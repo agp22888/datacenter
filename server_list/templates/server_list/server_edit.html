@@ -22,7 +22,7 @@ var territory_id={{form.server_territory.value|convert_none}};
 var room_id={{form.server_room.value|convert_none}};
 var rack_id={{form.server_rack.value|convert_none}};
 var is_physical = {{form.is_physical.value|yesno:"true,false"}};
-var vm_fields_to_hide = ["#id_server_unit", "#id_server_height", "#id_server_model","#id_server_serial_number","#id_server_territory", "#id_server_room", "#id_server_rack"]
+var vm_fields_to_hide = ["#tr_id_server_unit", "#tr_id_server_height", "#tr_id_server_model","#tr_id_server_serial_number","#tr_id_server_territory", "#tr_id_server_room", "#tr_id_server_rack"]
 
 console.log("{{form.server_name.value}}");
 console.log(territory_id,room_id,rack_id, is_physical);
@@ -61,19 +61,29 @@ $(document).ready(function() {
 
     $("#id_is_physical").change(function(){
         console.log("changed");
-        var element = $("#tr_id_server_room");
-        if (element.is(":visible")){
-            element.hide();
-        }else if(element.is(":hidden")) {
-            element.show();
+        if($("#id_is_physical").is(':checked')){
+            unhide_fields(vm_fields_to_hide);
+        }else{
+            hide_fields(vm_fields_to_hide);
         }
+
     });
     if (!is_physical){
-        for (field of vm_fields_to_hide){
-            $(field).hide();
-        }
+        hide_fields(vm_fields_to_hide);
     }
 });
+function hide_fields(fields){
+    for (field of fields){
+        $(field).hide();
+    }
+}
+
+function unhide_fields(fields){
+    for (field of fields){
+        $(field).show();
+    }
+}
+
 
 function ajax_request_rooms_by_territory(territory_id){
     $.ajax({
@@ -119,6 +129,9 @@ function ajax_request_racks_by_room(room_id){
         }
     });
 }
+
+
+
 
 
 

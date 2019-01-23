@@ -79,7 +79,7 @@ def servers(request):
                 ser_list.update({-1: row})
                 for server in rack.server_set.all():
                     if not len(server.segments.filter(id=target_segment)) == 0:
-                        row = [get_unit_string(server), server.model, server.hostname, get_power_state(server.is_on),
+                        row = [server.get_unit_string(), server.model, server.hostname, get_power_state(server.is_on),
                                "", server.os, server.purpose]
                         for seg in seg_list:  # segment dict
                             try:
@@ -119,7 +119,7 @@ def edit(request, server_id):
     if request.method == 'POST':
         print('POST', request.POST.get('server_name'))
         form = ServerForm(request.POST, server_id=server_id, user_auth=request.user.is_authenticated)
-        form.is_valid()
+        print("form.is_valid()", form.is_valid())
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'GET':
         form_dict = {'server_name': server.hostname,
@@ -169,7 +169,7 @@ def view(request, server_id):
         room = rack.room
         territory = room.territory
         data_dict.update({"is_physical": True,
-                          "unit": get_unit_string(server),
+                          "unit": server.get_unit_string(),
                           "territory": territory,
                           "room": room,
                           "rack": rack,
@@ -225,10 +225,6 @@ def update(d, u):
         else:
             d[k] = v
     return d
-
-
-def get_unit_string(server):
-    return str(server.unit) if server.height == 1 else str(server.unit) + "-" + str(server.unit + server.height)
 
 
 def get_power_state(server_is_on):

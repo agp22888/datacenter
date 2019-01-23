@@ -86,6 +86,9 @@ class Server(models.Model):
     def get_territory(self):
         return self.rack.room.territory
 
+    def get_unit_string(self):
+        return str(self.unit) if self.height == 1 else str(self.unit) + "-" + str(self.unit + self.height)
+
 
 class Ip(models.Model):
     ip_as_int = models.IntegerField()
