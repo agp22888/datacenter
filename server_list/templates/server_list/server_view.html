@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+{% load server_list_extras %}
+<head>
+    <title>
+        Карточка сервера
+    </title>
+    <style>
+        .spoiler-trigger{
+            color: #0b70db;
+            text-decoration: none;
+        }
+
+        .spoiler-trigger>span{
+            border-bottom: 1px dashed #0b70db;
+            padding:0 3px;
+        }
+        .spoiler-trigger:hover>span{
+            border-bottom-style: solid;
+        }
+        .spoiler-block{
+            display: none;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script>
+        $(document).on('click','.spoiler-trigger',function(e){
+            e.preventDefault();
+            if (!$(this).hasClass('active')){
+                $(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
+                $.ajax({
+                    url: "{% url 'test_ajax' %}",
+                    type: 'GET',
+                    data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
+                    dataType: "text",
+                    success: function(resp){
+                        console.log(resp)
+                        $(".spoiler-block").text(resp)
+
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(errorThrown)
+                    }
+                });
+            }else{
+                $(".spoiler-trigger").empty().append($('<span></span>').text('Показать пароли'));
+            }
+            $('.spoiler-block').slideToggle(300);
+            $(this).toggleClass('active');
+
+        })
+
+    </script>
+
+</head>
+
+
+{% if user.is_authenticated %}
+    <p style="text-align:right;">Пользователь: {{ user.get_username }}. <a href="/admin/logout/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">выйти</a></p>
+{% else %}
+   <p style="text-align:right;"><a href="/admin/login/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">Войти</a></p>
+{% endif %}
+<header>
+    <h1>Сервер: {{ server_dict|get_dict_item:"hostname" }}
+        {% if server_dict|get_dict_item:"power_state" %}|
+        <font color="green">On</font>
+        {% else %}
+        <font color="red">Off</font>
+        {%endif%}
+    </h1>
+    <h2>
+        {% if server_dict|get_dict_item:"is_physical" %}
+        <p>Физический сервер</p>
+        {%else%}
+        <p>Виртуальная машина на <a href="/servers/view/{{server_dict|get_dict_item:'host_machine_id'}}">{{server_dict|get_dict_item:"host_machine"}}</a>
+        </p>
+        {%endif%}
+    </h2>
+</header>
+
+{% for ip in server_dict|get_dict_item:"root_ip_list" %}
+<p>Сегмент: <a href="/servers/list?segment={{ip.segment.id}}">{{ip.segment}}</a></p>
+{% endfor %}
+<p>Назначение: {{server_dict|get_dict_item:"purpose"}}</p>
+<p>Операционная система: {{server_dict|get_dict_item:"os"}}</p>
+{% if server_dict|get_dict_item:"is_physical" %}
+<p>Расположен: <!--{{server_dict|get_dict_item:"territory"}},{{server_dict|get_dict_item:"room"}},-->
+    {{server_dict|get_dict_item:"rack"}}, unit {{server_dict|get_dict_item:"unit"}}</p>
+{%endif%}
+{% for ip in server_dict|get_dict_item:"ip_list"%}
+<p>{{ip.0}} : {{ip.1}}</p>
+{% endfor %}
+{% if server_dict|get_dict_item:"is_physical" %}
+<!--<p>Характеристики:</p>-->
+<p>Модель: {{server_dict|get_dict_item:"model"}}</p>
+<p>Серийный номер: {{server_dict|get_dict_item:"serial_number"}}</p>
+<p>Железо: {{server_dict|get_dict_item:"specs"}}</p>
+{% endif %}
+</p><a href="#" class="spoiler-trigger"><span>Показать пароли</span></a>
+<div class="spoiler-block" style="display:none">Ошибка</div>
+{% if server_dict|get_dict_item:"vm_list" %}
+<p>Виртуальные машины:</p>
+{% endif %}
+{% for s in server_dict|get_dict_item:"vm_list"%}
+<p><a href="/servers/view/{{s.id}}">{{s.hostname}}</a></p>
+{% endfor %}
+{%if request.user.is_authenticated %}
+<p><a href="/servers/edit/{{server_dict|get_dict_item:'server_id'}}">Редактировать</a></p>
+{% endif %}
+
+</html>
