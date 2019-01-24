@@ -8,5 +8,6 @@ urlpatterns = [
     # path('edit', views.edit, name='edit'),
     url(r'^edit/(?P<server_id>\d*)', views.edit, name='edit'),
     url(r'^view/(?P<server_id>\d*)', views.view, name='view'),
+    url(r'^new', views.new, name='new'),
     url(r'^test_ajax/', views.test_ajax, name='test_ajax'),
 ]

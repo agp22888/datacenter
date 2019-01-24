@@ -124,7 +124,7 @@ def edit(request, server_id):
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
         else:
             return HttpResponse('!')
-        
+
     elif request.method == 'GET':
         form_dict = {'server_name': server.hostname,
                      'power_state': server.is_on,
@@ -147,6 +147,12 @@ def edit(request, server_id):
                               'server_rack': rack.id})
         form = ServerForm(form_dict, server_id=server_id, user_auth=request.user.is_authenticated)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+
+
+def new(request):
+    server = Server()  # todo if request.method.get request.method.post
+    form = ServerForm(new_server=True)
+    return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
 def view(request, server_id):

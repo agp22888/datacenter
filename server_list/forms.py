@@ -66,20 +66,21 @@ class ServerForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.server_id = kwargs.pop('server_id', None)
+        new = kwargs.pop('new_server', False)
 
         if_user_authorized = kwargs.pop('user_auth', False)
         print("user_authorized:", if_user_authorized)
         super(ServerForm, self).__init__(*args, **kwargs)
-
-        ser = Server.objects.get(pk=self.server_id)
-        self.server_is_physical = ser.is_physical
-        if ser.is_physical:
-            print('server_isphysical: true')
-        else:
-            self.host_machine_id = ser.host_machine.id
-        for ip in ser.ip_set.all():
-            field_name = r'segment_' + str(ip.segment.id)
-            self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
+        if not new:
+            ser = Server.objects.get(pk=self.server_id)
+            self.server_is_physical = ser.is_physical
+            if ser.is_physical:
+                print('server_isphysical: true')
+            else:
+                self.host_machine_id = ser.host_machine.id
+            for ip in ser.ip_set.all():
+                field_name = r'segment_' + str(ip.segment.id)
+                self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
 
 # class MyForm(forms.Form):
 #     def __init__(self, *args, **kwargs):
