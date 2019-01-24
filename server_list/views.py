@@ -123,6 +123,8 @@ def edit(request, server_id):
         if not form.is_valid():
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
         else:
+            for field in form.cleaned_data:
+                print(field, form.cleaned_data[field])
             return HttpResponse('!')
 
     elif request.method == 'GET':
