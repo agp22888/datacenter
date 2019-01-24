@@ -5,16 +5,7 @@
 
 {% load server_list_extras %}
 {% load widget_tweaks %}
-{% comment %}
-{{form.server_territory.value}}
-{{form.server_id}}
-{% for f in form.fields_to_hide %}
-    {{f}}
-{% endfor %}
-var territory_id={{data|get_dict_item:"territory"}};
-var room_id={{data|get_dict_item:"room"}};
-var rack_id={{data|get_dict_item:"rack"}};
-{% endcomment %}
+
 
 
 
@@ -22,7 +13,8 @@ var territory_id={{form.server_territory.value|convert_none}};
 var room_id={{form.server_room.value|convert_none}};
 var rack_id={{form.server_rack.value|convert_none}};
 var is_physical = {{form.is_physical.value|yesno:"true,false"}};
-var vm_fields_to_hide = ["#tr_id_server_unit", "#tr_id_server_height", "#tr_id_server_model","#tr_id_server_serial_number","#tr_id_server_territory", "#tr_id_server_room", "#tr_id_server_rack"]
+var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
+var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
 
 console.log("{{form.server_name.value}}");
 console.log(territory_id,room_id,rack_id, is_physical);
@@ -63,13 +55,17 @@ $(document).ready(function() {
         console.log("changed");
         if($("#id_is_physical").is(':checked')){
             unhide_fields(vm_fields_to_hide);
+            hide_fields(physical_fields_to_hide);
         }else{
             hide_fields(vm_fields_to_hide);
+            unhide_fields(physical_fields_to_hide);
         }
 
     });
     if (!is_physical){
         hide_fields(vm_fields_to_hide);
+    } else {
+        hide_fields(physical_fields_to_hide);
     }
 });
 function hide_fields(fields){
@@ -129,6 +125,7 @@ function ajax_request_racks_by_room(room_id){
         }
     });
 }
+
 
 
 

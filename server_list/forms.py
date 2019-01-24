@@ -11,7 +11,9 @@ class ServerForm(forms.Form):
     power_state = forms.BooleanField(label="Питание", required=False)
     is_physical = forms.BooleanField(label="Физический сервер", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", max_length=100, required=False)
-
+    host_machine = forms.ChoiceField(label="Физический сервер", required=False,
+                                     choices=[(str(ser.id), ser.hostname) for ser in
+                                              Server.objects.filter(is_physical=True)])
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", max_length=100, required=False)
@@ -24,8 +26,9 @@ class ServerForm(forms.Form):
     server_rack = forms.ChoiceField(label='Стойка', required=False,
                                     choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
 
-    # fields_to_hide = ['server_unit', 'server_model', 'server_specs', 'server_serial_number', 'server_territory',
-    #                   'server_room', 'server_rack']
+    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
+                         'server_room', 'server_rack']
+    physical_fields_to_hide = ['host_machine']
 
     def clean(self):
         server = Server.objects.get(pk=self.server_id)
@@ -44,16 +47,18 @@ class ServerForm(forms.Form):
                 return
             if server.is_physical and 'unit' in field:
                 unit_low = self.cleaned_data[field]
-                unit_high = unit_low + self.cleaned_data['server_height']
+                unit_high = unit_low + self.cleaned_data['server_height'] - 1
                 rack = self.cleaned_data['server_rack']
                 for s in Rack.objects.get(pk=rack).server_set.all():
+                    if s == server:
+                        continue
                     s_unit = s.unit
                     s_unit_high = s_unit + s.height
-                    if s != server \
-                            and s_unit <= unit_low <= s_unit_high \
+                    if s_unit <= unit_low <= s_unit_high \
                             or s_unit <= unit_high <= s_unit_high \
                             or unit_low < s_unit and unit_high > s_unit_high:
-                        self.errors.update({field: ['unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
+                        self.errors.update({field: [
+                            'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
                 return
 
     def __init__(self, *args, **kwargs):
@@ -66,6 +71,8 @@ class ServerForm(forms.Form):
         self.server_is_physical = ser.is_physical
         if ser.is_physical:
             print('server_isphysical: true')
+        else:
+            self.initial['host_machine'] = ser.host_machine.id
         for ip in ser.ip_set.all():
             field_name = r'segment_' + str(ip.segment.id)
             self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
