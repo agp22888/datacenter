@@ -70,6 +70,7 @@ class ServerForm(forms.Form):
         if_user_authorized = kwargs.pop('user_auth', False)
         print("user_authorized:", if_user_authorized)
         super(ServerForm, self).__init__(*args, **kwargs)
+
         ser = Server.objects.get(pk=self.server_id)
         self.server_is_physical = ser.is_physical
         if ser.is_physical:

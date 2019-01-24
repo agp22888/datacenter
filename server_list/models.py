@@ -65,9 +65,9 @@ class Unit(models.Model):
 class Server(models.Model):
     hostname = models.CharField(max_length=50)
     model = models.CharField(max_length=50, blank=True)  # separate table?
-    is_physical = models.BooleanField()
+    is_physical = models.BooleanField(default=True)
     host_machine = models.ForeignKey('self', on_delete=models.CASCADE, default=None, blank=True, null=True)
-    is_on = models.BooleanField()
+    is_on = models.BooleanField(default=True)
     os = models.CharField(max_length=50, blank=True)  # separate table?
     purpose = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=500, blank=True)
