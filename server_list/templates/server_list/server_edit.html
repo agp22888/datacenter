@@ -15,10 +15,13 @@ var rack_id={{form.server_rack.value|convert_none}};
 var is_physical = {{form.is_physical.value|yesno:"true,false"}};
 var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
 var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
+var host_machine = {{form.host_machine_id}}
 
 console.log("{{form.server_name.value}}");
 console.log(territory_id,room_id,rack_id, is_physical);
 $(document).ready(function() {
+
+    $("#id_host_machine").val(host_machine).attr('selected', 'selected');
 
     $.ajax({
         url: "{% url 'test_ajax' %}",

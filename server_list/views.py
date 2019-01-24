@@ -120,7 +120,11 @@ def edit(request, server_id):
         print('POST', request.POST.get('server_name'))
         form = ServerForm(request.POST, server_id=server_id, user_auth=request.user.is_authenticated)
         print("form.is_valid()", form.is_valid())
-        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+        if not form.is_valid():
+            return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+        else:
+            return HttpResponse('!')
+        
     elif request.method == 'GET':
         form_dict = {'server_name': server.hostname,
                      'power_state': server.is_on,

@@ -54,7 +54,7 @@ class Segment(models.Model):
 
 class Unit(models.Model):
     number = models.IntegerField()
-    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=None, blank=True, null=True)
+    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=None, blank=True, null=True)  # todo to be deleted
 
     # server = models.OneToOneField(Server, on_delete=models.CASCADE, default=None, blank=True, null=True)
 

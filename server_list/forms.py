@@ -2,9 +2,9 @@ from django import forms
 from server_list.models import Server, Unit, Rack, Room, Territory
 
 
-# todo сделать отображение виртуалок физического сервера на странице редактирования
-# todo сделать отображение материнского сервера на странице редактирования
-# todo сделать перемещение виртуалки с одногого физического сервера на другой
+# todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
+
+
 class ServerForm(forms.Form):
     server_name = forms.CharField(label="Имя", max_length=100, required=True)
     server_purpose = forms.CharField(label="Назначение", required=False)
@@ -45,21 +45,24 @@ class ServerForm(forms.Form):
                     except ValueError:
                         self.errors.update({field: ['invalid ip']})
                 return
-            if server.is_physical and 'unit' in field:
+            if self.cleaned_data['is_physical'] and 'unit' in field:
                 unit_low = self.cleaned_data[field]
                 unit_high = unit_low + self.cleaned_data['server_height'] - 1
-                rack = self.cleaned_data['server_rack']
+                rack = int(self.cleaned_data['server_rack'])
                 for s in Rack.objects.get(pk=rack).server_set.all():
                     if s == server:
                         continue
                     s_unit = s.unit
-                    s_unit_high = s_unit + s.height
+                    s_unit_high = s_unit + s.height - 1
                     if s_unit <= unit_low <= s_unit_high \
                             or s_unit <= unit_high <= s_unit_high \
                             or unit_low < s_unit and unit_high > s_unit_high:
                         self.errors.update({field: [
                             'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
                 return
+            if not self.cleaned_data['is_physical']:
+                if self.cleaned_data['host_machine'] == '':
+                    self.errors.update({'host_machine': ['this value must be specified']})
 
     def __init__(self, *args, **kwargs):
         self.server_id = kwargs.pop('server_id', None)
@@ -72,7 +75,7 @@ class ServerForm(forms.Form):
         if ser.is_physical:
             print('server_isphysical: true')
         else:
-            self.initial['host_machine'] = ser.host_machine.id
+            self.host_machine_id = ser.host_machine.id
         for ip in ser.ip_set.all():
             field_name = r'segment_' + str(ip.segment.id)
             self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
