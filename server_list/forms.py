@@ -1,15 +1,24 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.forms import CharField
+
 from server_list.models import Server, Unit, Rack, Room, Territory
 
 
 # todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
 
+class ServerFormNameField(CharField):
+    def validate(self, value):
+        print('validate')
+        return value
+
 
 class ServerForm(forms.Form):
-    server_name = forms.CharField(label="Имя", max_length=100, required=True)
+    server_name = ServerFormNameField(label="Имя", max_length=100, required=True)
     server_purpose = forms.CharField(label="Назначение", required=False)
     power_state = forms.BooleanField(label="Питание", required=False)
     is_physical = forms.BooleanField(label="Физический сервер", required=False)
+    server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", max_length=100, required=False)
     host_machine = forms.ChoiceField(label="Физический сервер", required=False,
                                      choices=[(str(ser.id), ser.hostname) for ser in
@@ -31,7 +40,7 @@ class ServerForm(forms.Form):
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
-        print("form_clean", self.server_id)
+        print("form_clean, server_id is:", self.server_id)
 
         # server = Server.objects.get(pk=self.server_id)
         for field in self.fields:
@@ -52,7 +61,7 @@ class ServerForm(forms.Form):
                 unit_high = unit_low + self.cleaned_data['server_height'] - 1
                 rack = int(self.cleaned_data['server_rack'])
                 for s in Rack.objects.get(pk=rack).server_set.all():
-                    if s.id == self.server_id:
+                    if s.id == int(self.server_id):
                         continue
                     s_unit = s.unit
                     s_unit_high = s_unit + s.height - 1

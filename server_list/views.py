@@ -133,6 +133,7 @@ def edit(request, server_id):
                      'server_unit': server.unit if server.unit is not None else -1,
                      'server_height': server.height,
                      'server_model': server.model,
+                     'server_os': server.os,
                      'server_specs': server.specs,
                      'server_serial_number': server.serial_num,
                      'server_purpose': server.purpose,
@@ -152,13 +153,14 @@ def edit(request, server_id):
 
 
 def new(request):
-    server = Server()  # todo if request.method.get request.method.post
+    server = Server()
     server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
     if request.method == 'GET':
 
-        data_dict = {'server_name': 'New server',
-                     'power_state': True,
-                     'is_physical': True}
+        data_dict = {
+            # 'server_name': 'New server',
+            'power_state': True,
+            'is_physical': True}
         form = ServerForm(data_dict, server_id=server_id, new_server=True)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':
