@@ -31,7 +31,9 @@ class ServerForm(forms.Form):
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
-        server = Server.objects.get(pk=self.server_id)
+        print("form_clean", self.server_id)
+
+        # server = Server.objects.get(pk=self.server_id)
         for field in self.fields:
             if 'segment_' in field:
                 data = self.cleaned_data[field]
@@ -45,12 +47,12 @@ class ServerForm(forms.Form):
                     except ValueError:
                         self.errors.update({field: ['invalid ip']})
                 return
-            if self.cleaned_data['is_physical'] and 'unit' in field:
+            if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
                 unit_low = self.cleaned_data[field]
                 unit_high = unit_low + self.cleaned_data['server_height'] - 1
                 rack = int(self.cleaned_data['server_rack'])
                 for s in Rack.objects.get(pk=rack).server_set.all():
-                    if s == server:
+                    if s.id == self.server_id:
                         continue
                     s_unit = s.unit
                     s_unit_high = s_unit + s.height - 1
@@ -64,14 +66,14 @@ class ServerForm(forms.Form):
                 if self.cleaned_data['host_machine'] == '':
                     self.errors.update({'host_machine': ['this value must be specified']})
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)
-        new = kwargs.pop('new_server', False)
+        self.new = kwargs.pop('new_server', False)
 
         if_user_authorized = kwargs.pop('user_auth', False)
         print("user_authorized:", if_user_authorized)
         super(ServerForm, self).__init__(*args, **kwargs)
-        if not new:
+        if not self.new:
             ser = Server.objects.get(pk=self.server_id)
             self.server_is_physical = ser.is_physical
             if ser.is_physical:

@@ -153,8 +153,22 @@ def edit(request, server_id):
 
 def new(request):
     server = Server()  # todo if request.method.get request.method.post
-    form = ServerForm(new_server=True)
-    return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+    server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
+    if request.method == 'GET':
+
+        data_dict = {'server_name': 'New server',
+                     'power_state': True,
+                     'is_physical': True}
+        form = ServerForm(data_dict, server_id=server_id, new_server=True)
+        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+    elif request.method == 'POST':
+        form = ServerForm(request.POST, server_id=server_id, new_server=True)
+        if form.is_valid():
+            return HttpResponse("OK")
+        else:
+            print("not valid")
+            print("bound", form.is_bound)
+            return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
 def view(request, server_id):
@@ -196,7 +210,7 @@ def view(request, server_id):
 
 
 def test_ajax(request):
-    print('test')
+    print('test, requested: ', request.GET.get('model'))
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
                             content_type='application/json')
@@ -204,15 +218,17 @@ def test_ajax(request):
         ter = request.GET.get('territory')
         if ter is None:
             ter = 1
+            print("ajax request ter is None")
         return HttpResponse(
             serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
                                   fields='name'), content_type='application/json')
     if request.GET.get('model') == 'rack':
-        r = request.GET.get('room')
-        if r is None:
-            r = 1
+        room = request.GET.get('room')
+        if room is None:
+            print("ajax request room is None")
+            room = 1
         return HttpResponse(
-            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(r))), fields='name'),
+            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
             content_type='application/json')
     if request.GET.get('model') == 'server':
         if request.user.is_authenticated:
