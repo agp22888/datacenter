@@ -14,20 +14,20 @@ class ServerFormNameField(CharField):
 
 
 class ServerForm(forms.Form):
-    server_name = ServerFormNameField(label="Имя", max_length=100, required=True)
+    server_name = ServerFormNameField(label="Имя", required=True)
     server_purpose = forms.CharField(label="Назначение", required=False)
     power_state = forms.BooleanField(label="Питание", required=False)
     is_physical = forms.BooleanField(label="Физический сервер", required=False)
     server_os = forms.CharField(label="Операционная система", required=False)
-    sensitive_data = forms.CharField(label="Учётные данные", max_length=100, required=False)
+    sensitive_data = forms.CharField(label="Учётные данные", required=False)
     host_machine = forms.ChoiceField(label="Физический сервер", required=False,
                                      choices=[(str(ser.id), ser.hostname) for ser in
                                               Server.objects.filter(is_physical=True)])
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
-    server_model = forms.CharField(label="Модель", max_length=100, required=False)
-    server_specs = forms.CharField(label="Характеристики", max_length=100, required=False)
-    server_serial_number = forms.CharField(label="Серийный номер", max_length=100, required=False)
+    server_model = forms.CharField(label="Модель", required=False)
+    server_specs = forms.CharField(label="Характеристики", required=False)
+    server_serial_number = forms.CharField(label="Серийный номер", required=False)
     server_territory = forms.ChoiceField(label="Территория", required=False,
                                          choices=[(str(ter.id), ter.name) for ter in Territory.objects.all()])
     server_room = forms.ChoiceField(label='Помещение', required=False,
@@ -57,6 +57,9 @@ class ServerForm(forms.Form):
                         self.errors.update({field: ['invalid ip']})
                 return
             if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
+                if self.cleaned_data[field] is None or self.cleaned_data['server_height'] is None:
+                    self.errors.update({field: ['Error']})
+                    return
                 unit_low = self.cleaned_data[field]
                 unit_high = unit_low + self.cleaned_data['server_height'] - 1
                 rack = int(self.cleaned_data['server_rack'])
@@ -78,10 +81,9 @@ class ServerForm(forms.Form):
     def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)
-
-        if_user_authorized = kwargs.pop('user_auth', False)
-        print("user_authorized:", if_user_authorized)
         super(ServerForm, self).__init__(*args, **kwargs)
+        if len(self.fields['host_machine'].choices) > 0:
+            self.initial = {'host_machine': self.fields['host_machine'].choices[0][0]}
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
             self.server_is_physical = ser.is_physical

@@ -1,9 +1,10 @@
 import collections, os
 
 from django.core import serializers
+from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from .forms import ServerForm
 from django.http import Http404
 
@@ -111,6 +112,9 @@ def servers(request):
 
 
 def edit(request, server_id):
+    print('user_auth', request.user.is_authenticated)
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden()
     try:
         server = Server.objects.get(id=server_id)
     except Server.DoesNotExist:
@@ -118,7 +122,7 @@ def edit(request, server_id):
 
     if request.method == 'POST':
         print('POST', request.POST.get('server_name'))
-        form = ServerForm(request.POST, server_id=server_id, user_auth=request.user.is_authenticated)
+        form = ServerForm(request.POST, server_id=server_id)
         print("form.is_valid()", form.is_valid())
         if not form.is_valid():
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
@@ -148,11 +152,14 @@ def edit(request, server_id):
             form_dict.update({'server_territory': room.territory.id,
                               'server_room': room.id,
                               'server_rack': rack.id})
-        form = ServerForm(form_dict, server_id=server_id, user_auth=request.user.is_authenticated)
+        form = ServerForm(form_dict, server_id=server_id)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
 def new(request):
+    print('user_auth', request.user.is_authenticated)
+    if not request.user.is_authenticated:
+        raise PermissionDenied
     server = Server()
     server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
     if request.method == 'GET':
