@@ -22,7 +22,8 @@ class ServerForm(forms.Form):
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
     host_machine = forms.ChoiceField(label="Физический сервер", required=False,
                                      choices=[(str(ser.id), ser.hostname) for ser in
-                                              Server.objects.filter(is_physical=True)])
+                                              Server.objects.filter(is_physical=True)],
+                                     initial=Server.objects.filter(pk=2))
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
@@ -82,8 +83,8 @@ class ServerForm(forms.Form):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)
         super(ServerForm, self).__init__(*args, **kwargs)
-        if len(self.fields['host_machine'].choices) > 0:
-            self.initial = {'host_machine': self.fields['host_machine'].choices[0][0]}
+        # if len(self.fields['host_machine'].choices) > 0:
+        self.initial['host_machine'] = '2'  # self.fields['host_machine'].choices[0]
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
             self.server_is_physical = ser.is_physical
