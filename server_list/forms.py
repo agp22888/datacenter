@@ -84,7 +84,8 @@ class ServerForm(forms.Form):
         self.new = kwargs.pop('new_server', False)
         super(ServerForm, self).__init__(*args, **kwargs)
         # if len(self.fields['host_machine'].choices) > 0:
-        self.initial['host_machine'] = '2'  # self.fields['host_machine'].choices[0]
+        self.data['server_name'] = "FUCKIT!"  # Я ЕБУ ТОМУ ЕБАЛО
+        # self.data['host_machine'].initial = ('2', 2)  # self.fields['host_machine'].choices[0]
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
             self.server_is_physical = ser.is_physical

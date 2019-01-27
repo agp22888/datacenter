@@ -165,10 +165,11 @@ def new(request):
     if request.method == 'GET':
 
         data_dict = {
-            # 'server_name': 'New server',
+            'server_name': 'New server',
             'power_state': True,
             'is_physical': True}
-        form = ServerForm(data_dict, server_id=server_id, new_server=True)
+        form = ServerForm(initial=data_dict, server_id=server_id, new_server=True)
+        print("is_bound: ", form.is_bound)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':
         form = ServerForm(request.POST, server_id=server_id, new_server=True)
