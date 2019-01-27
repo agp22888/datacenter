@@ -21,7 +21,7 @@ console.log("{{form.server_name.value}}");
 console.log(territory_id,room_id,rack_id, is_physical);
 $(document).ready(function() {
 
-    $("#id_host_machine").val(host_machine).attr('selected', 'selected');
+    //$("#id_host_machine").val(host_machine).attr('selected', 'selected');
 
     $.ajax({
         url: "{% url 'test_ajax' %}",
@@ -128,6 +128,7 @@ function ajax_request_racks_by_room(room_id){
         }
     });
 }
+
 
 
 

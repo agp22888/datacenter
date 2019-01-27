@@ -2,9 +2,9 @@ import collections, os
 
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
 from .forms import ServerForm
 from django.http import Http404
 
@@ -127,9 +127,23 @@ def edit(request, server_id):
         if not form.is_valid():
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
         else:
-            for field in form.cleaned_data:
-                print(field, form.cleaned_data[field])
-            return HttpResponse('!')
+            server.hostname = form.cleaned_data['server_name']
+            server.is_on = form.cleaned_data['power_state']
+            server.unit = form.cleaned_data['server_unit']
+            server.height = form.cleaned_data['server_height']
+            server.model = form.cleaned_data['server_model']
+            server.os = form.cleaned_data['server_os']
+            server.specs = form.cleaned_data['server_specs']
+            server.serial_num = form.cleaned_data['server_serial_number']
+            server.purpose = form.cleaned_data['server_purpose']
+            server.sensitive_data = form.cleaned_data['sensitive_data']
+            server.is_physical = form.cleaned_data['is_physical']
+            for seg in (x for x in form.cleaned_data if 'ip_' in x):
+                num = int(seg.split('_')[1])
+                server.ip_set.get(pk=num).ip_as_int = Ip.get_ip_from_string(form.cleaned_data[seg])
+            server.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
+            server.save()
+        return redirect('view', server_id=server.id)
 
     elif request.method == 'GET':
         form_dict = {'server_name': server.hostname,
@@ -145,7 +159,7 @@ def edit(request, server_id):
                      'is_physical': server.is_physical,
                      }
         for ip in server.ip_set.all():
-            form_dict.update({'segment_' + str(ip.segment.id): ip.get_string_ip()})
+            form_dict.update({'ip_' + str(ip.id): ip.get_string_ip()})
         if server.is_physical:
             rack = server.rack
             room = rack.room
@@ -167,8 +181,9 @@ def new(request):
         data_dict = {
             'server_name': 'New server',
             'power_state': True,
-            'is_physical': True}
-        form = ServerForm(initial=data_dict, server_id=server_id, new_server=True)
+            'is_physical': True,
+            'host_machine': Server.objects.filter(is_physical=True).first().id}
+        form = ServerForm(data_dict, server_id=server_id, new_server=True)
         print("is_bound: ", form.is_bound)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':

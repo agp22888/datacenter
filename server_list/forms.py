@@ -45,7 +45,7 @@ class ServerForm(forms.Form):
 
         # server = Server.objects.get(pk=self.server_id)
         for field in self.fields:
-            if 'segment_' in field:
+            if 'ip_' in field:
                 data = self.cleaned_data[field]
                 data_split = data.split('.')
                 if len(data_split) != 4:
@@ -74,7 +74,7 @@ class ServerForm(forms.Form):
                             or unit_low < s_unit and unit_high > s_unit_high:
                         self.errors.update({field: [
                             'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
-                return
+
             if not self.cleaned_data['is_physical']:
                 if self.cleaned_data['host_machine'] == '':
                     self.errors.update({'host_machine': ['this value must be specified']})
@@ -84,7 +84,7 @@ class ServerForm(forms.Form):
         self.new = kwargs.pop('new_server', False)
         super(ServerForm, self).__init__(*args, **kwargs)
         # if len(self.fields['host_machine'].choices) > 0:
-        self.data['server_name'] = "FUCKIT!"  # Я ЕБУ ТОМУ ЕБАЛО
+
         # self.data['host_machine'].initial = ('2', 2)  # self.fields['host_machine'].choices[0]
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
@@ -94,7 +94,7 @@ class ServerForm(forms.Form):
             else:
                 self.host_machine_id = ser.host_machine.id
             for ip in ser.ip_set.all():
-                field_name = r'segment_' + str(ip.segment.id)
+                field_name = r'ip_' + str(ip.id)
                 self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
 
 # class MyForm(forms.Form):

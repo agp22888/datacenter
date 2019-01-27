@@ -111,3 +111,11 @@ class Ip(models.Model):
             result = str(t >> counter) + result
             counter += 8
         return result
+
+    @staticmethod
+    def get_ip_from_string(ip_str):
+        split = ip_str.split(".")
+        result = 0
+        for i in range(3):
+            result += int(split[i]) * 256 ** (3 - i)
+        return result
