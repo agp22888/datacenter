@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import CharField
 
-from server_list.models import Server, Unit, Rack, Room, Territory
+from server_list.models import Server, Unit, Rack, Room, Territory, Segment, Ip
 
 
 # todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
@@ -98,8 +98,14 @@ class ServerForm(forms.Form):
                 field_name = r'ip_' + str(ip.id)
                 self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
 
-# class MyForm(forms.Form):
-#     def __init__(self, *args, **kwargs):
-#         super(MyForm, self).__init__(*args, **kwargs)
-#         for i, q in enumerate(Question.objects.all()):
-#             self.fields['%s_field' % i] = forms.CharField(max_length=100, label=q.questionText)
+
+class IpForm(forms.Form):
+    segment_name = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
+                                                                               Segment.objects.all()])
+    ip = forms.CharField(label="IP", required=True)
+
+    def __init__(self, *args, **kwargs):
+        self.ip_id = kwargs.pop('ip_id', None)
+        ip = Ip.objects.get(pk=self.ip_id)
+        self.segment_name = ip.segment.name
+        self.ip = ip.get_string_ip()
