@@ -104,8 +104,8 @@ class IpForm(forms.Form):
                                                                                Segment.objects.all()])
     ip = forms.CharField(label="IP", required=True)
 
-    def __init__(self, *args, **kwargs):
-        self.ip_id = kwargs.pop('ip_id', None)
-        ip = Ip.objects.get(pk=self.ip_id)
-        self.segment_name = ip.segment.name
-        self.ip = ip.get_string_ip()
+    # def __init__(self, *args, **kwargs):
+    #     self.ip_id = kwargs.pop('ip_id', None)
+    #     ip = Ip.objects.get(pk=self.ip_id)
+    #     self.segment_name = ip.segment.name
+    #     self.ip = ip.get_string_ip()

@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm
+from .forms import ServerForm, IpForm
 from django.http import Http404
 
 
@@ -214,6 +214,18 @@ def new(request):
             print("not valid")
             print("bound", form.is_bound)
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+
+
+def edit_ip(request, ip_id):
+    print("kek")
+    print(ip_id)
+    ip = Ip.objects.get(pk=ip_id)
+    data = {'segment_name': ip.segment.id,
+            'ip': ip.get_string_ip()}
+
+    form = IpForm(data)
+    return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+    # return HttpResponse('сделяль')
 
 
 def view(request, server_id):
