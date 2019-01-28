@@ -24,6 +24,7 @@ class ServerForm(forms.Form):
                                      choices=[(str(ser.id), ser.hostname) for ser in
                                               Server.objects.filter(is_physical=True)],
                                      initial=Server.objects.filter(pk=2))
+    # host_machine = forms.ChoiceField(label="Физический сервер", required=False)
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
@@ -44,6 +45,9 @@ class ServerForm(forms.Form):
         print("form_clean, server_id is:", self.server_id)
 
         # server = Server.objects.get(pk=self.server_id)
+        if not self.cleaned_data['is_physical']:
+            if self.cleaned_data['host_machine'] == self.server_id:
+                self.errors.update({'host_machine': ['Виртуальная машина не может хоститься сама на себе!']})
         for field in self.fields:
             if 'ip_' in field:
                 data = self.cleaned_data[field]
@@ -56,28 +60,27 @@ class ServerForm(forms.Form):
                             self.errors.update({field: ['invalid ip']})
                     except ValueError:
                         self.errors.update({field: ['invalid ip']})
-                return
-            if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
-                if self.cleaned_data[field] is None or self.cleaned_data['server_height'] is None:
-                    self.errors.update({field: ['Error']})
-                    return
-                unit_low = self.cleaned_data[field]
-                unit_high = unit_low + self.cleaned_data['server_height'] - 1
-                rack = int(self.cleaned_data['server_rack'])
-                for s in Rack.objects.get(pk=rack).server_set.all():
-                    if s.id == int(self.server_id):
-                        continue
-                    s_unit = s.unit
-                    s_unit_high = s_unit + s.height - 1
-                    if s_unit <= unit_low <= s_unit_high \
-                            or s_unit <= unit_high <= s_unit_high \
-                            or unit_low < s_unit and unit_high > s_unit_high:
-                        self.errors.update({field: [
-                            'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
 
-            if not self.cleaned_data['is_physical']:
-                if self.cleaned_data['host_machine'] == '':
-                    self.errors.update({'host_machine': ['this value must be specified']})
+        if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
+            if self.cleaned_data[field] is None or self.cleaned_data['server_height'] is None \
+                    or self.cleaned_data[field] <= 0 or self.cleaned_data['server_height'] < - 0:
+                self.errors.update({field: ['Error']})
+                return
+            unit_low = self.cleaned_data[field]
+            unit_high = unit_low + self.cleaned_data['server_height'] - 1
+            rack = int(self.cleaned_data['server_rack'])
+            for s in Rack.objects.get(pk=rack).server_set.all():
+                if s.id == int(self.server_id):
+                    continue
+                s_unit = s.unit
+                s_unit_high = s_unit + s.height - 1
+                if s_unit <= unit_low <= s_unit_high \
+                        or s_unit <= unit_high <= s_unit_high \
+                        or unit_low < s_unit and unit_high > s_unit_high:
+                    self.errors.update({field: [
+                        'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
+
+
 
     def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)

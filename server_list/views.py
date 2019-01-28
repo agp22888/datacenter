@@ -140,6 +140,7 @@ def edit(request, server_id):
                 server.model = form.cleaned_data['server_model']  #
                 server.specs = form.cleaned_data['server_specs']  #
                 server.serial_num = form.cleaned_data['server_serial_number']  #
+                server.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
                 server.host_machine = None
             else:
                 server.unit = 0
@@ -147,12 +148,13 @@ def edit(request, server_id):
                 server.model = ''
                 server.specs = ''
                 server.serial_num = ''
+                server.rack = None
                 server.host_machine = Server.objects.get(pk=form.cleaned_data['host_machine'])
 
             for seg in (x for x in form.cleaned_data if 'ip_' in x):
                 num = int(seg.split('_')[1])
                 server.ip_set.get(pk=num).ip_as_int = Ip.get_ip_from_string(form.cleaned_data[seg])
-            server.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
+
             server.save()
         return redirect('view', server_id=server.id)
 
@@ -279,6 +281,10 @@ def test_ajax(request):
             return HttpResponse('Access Denied')
     response = HttpResponse(serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
                             content_type='application/json')
+    if request.GET.get('model') == 'vm':
+        return HttpResponse(
+            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
+            content_type='application/json')
     return response
 
 

@@ -26,6 +26,28 @@ $(document).ready(function() {
     $.ajax({
         url: "{% url 'test_ajax' %}",
         type: 'GET',
+        data: {'model': 'vm'},
+        dataType: "json",
+        success: function(resp){
+            $("#id_host_machine").empty();
+            $.each(resp, function(idx, obj) {
+                console.log(obj);
+                if (obj.pk == host_machine){
+                    $("#id_host_machine").append($('<option></option>').attr('value', parseInt(obj.pk)).attr('selected','selected').text(obj.fields.hostname));
+                }else{
+                    $("#id_host_machine").append($('<option></option>').attr('value', parseInt(obj.pk)).text(obj.fields.hostname));
+                }
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown+'vm_id');
+        }
+
+    });
+
+    $.ajax({
+        url: "{% url 'test_ajax' %}",
+        type: 'GET',
         data: {'model': 'territory'},
         dataType: "json",
         success: function(resp){
@@ -36,7 +58,7 @@ $(document).ready(function() {
                 }else{
                     $("#id_server_territory").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
                 }
-                });
+            });
             ajax_request_rooms_by_territory($("#id_server_territory").val());
         },
         error: function(jqXHR, textStatus, errorThrown) {
