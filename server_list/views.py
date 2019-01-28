@@ -129,15 +129,26 @@ def edit(request, server_id):
         else:
             server.hostname = form.cleaned_data['server_name']
             server.is_on = form.cleaned_data['power_state']
-            server.unit = form.cleaned_data['server_unit']
-            server.height = form.cleaned_data['server_height']
-            server.model = form.cleaned_data['server_model']
-            server.os = form.cleaned_data['server_os']
-            server.specs = form.cleaned_data['server_specs']
-            server.serial_num = form.cleaned_data['server_serial_number']
             server.purpose = form.cleaned_data['server_purpose']
             server.sensitive_data = form.cleaned_data['sensitive_data']
+            server.os = form.cleaned_data['server_os']
+
             server.is_physical = form.cleaned_data['is_physical']
+            if form.cleaned_data['is_physical']:
+                server.unit = form.cleaned_data['server_unit']  #
+                server.height = form.cleaned_data['server_height']  #
+                server.model = form.cleaned_data['server_model']  #
+                server.specs = form.cleaned_data['server_specs']  #
+                server.serial_num = form.cleaned_data['server_serial_number']  #
+                server.host_machine = None
+            else:
+                server.unit = 0
+                server.height = 0
+                server.model = ''
+                server.specs = ''
+                server.serial_num = ''
+                server.host_machine = Server.objects.get(pk=form.cleaned_data['host_machine'])
+
             for seg in (x for x in form.cleaned_data if 'ip_' in x):
                 num = int(seg.split('_')[1])
                 server.ip_set.get(pk=num).ip_as_int = Ip.get_ip_from_string(form.cleaned_data[seg])
