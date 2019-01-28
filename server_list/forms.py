@@ -80,8 +80,6 @@ class ServerForm(forms.Form):
                     self.errors.update({field: [
                         'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
 
-
-
     def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)

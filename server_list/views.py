@@ -45,12 +45,18 @@ def proof(request):
     return HttpResponse('blank')
 
 
+def all(request):
+    server_list = Server.objects.filter(is_physical=True).filter(ip__segment__is_root_segment=True)
+    return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
+
+
 def servers(request):
-    links = {}  # список сегментов для ссылок
+    links = {}
+    for segment in Segment.objects.filter(is_root_segment=True):
+        links.update({segment.id: segment.name})
     territories = []
     target_segment = request.GET.get('segment')
-    for server in Segment.objects.filter(is_root_segment=True):
-        links.update({server.id: server.name})
+
     if target_segment is None:
         return render(request, os.path.join('server_list', 'server_list.html'),
                       {"links": links, "tabs": {}, "servers": {}})
@@ -80,7 +86,8 @@ def servers(request):
                 ser_list.update({-1: row})
                 for server in rack.server_set.all():
                     if not len(server.segments.filter(id=target_segment)) == 0:
-                        row = [server.get_unit_string(), server.model, server.hostname, get_power_state(server.is_on),
+                        row = [server.get_unit_string(), server.model, server.hostname,
+                               get_power_state(server.is_on),
                                "", server.os, server.purpose]
                         for seg in seg_list:  # segment dict
                             try:
@@ -279,8 +286,9 @@ def test_ajax(request):
                 return HttpResponse('500')
         else:
             return HttpResponse('Access Denied')
-    response = HttpResponse(serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
-                            content_type='application/json')
+    response = HttpResponse(
+        serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
+        content_type='application/json')
     if request.GET.get('model') == 'vm':
         return HttpResponse(
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),

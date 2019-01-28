@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Все серверы</title>
+</head>
+<body>
+<table>
+    {% for s in servers %}
+    <tr>
+        <th><a href="/servers/view/{{s.id}}">{{s.hostname}}</a></th>
+        <th>{{s.rack}}</th>
+    </tr>
+    {% for vm in s.server_set.all%}
+    <tr>
+        <th></th>
+        <th align="left"><a href="/servers/view/{{vm.id}}">{{vm.hostname}}</a></th>
+
+    </tr>
+    {% endfor %}
+    {% endfor %}
+</table>
+</body>
+</html>
