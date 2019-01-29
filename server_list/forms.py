@@ -51,15 +51,8 @@ class ServerForm(forms.Form):
         for field in self.fields:
             if 'ip_' in field:
                 data = self.cleaned_data[field]
-                data_split = data.split('.')
-                if len(data_split) != 4:
+                if not Ip.check_ip(data):
                     self.errors.update({field: ['invalid ip']})
-                for split in data_split:
-                    try:
-                        if int(split) > 255 or int(split) < 0:
-                            self.errors.update({field: ['invalid ip']})
-                    except ValueError:
-                        self.errors.update({field: ['invalid ip']})
 
         if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
             if self.cleaned_data[field] is None or self.cleaned_data['server_height'] is None \
@@ -103,6 +96,12 @@ class IpForm(forms.Form):
     segment_name = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
                                                                                Segment.objects.all()])
     ip = forms.CharField(label="IP", required=True)
+
+    def clean(self):
+        if not Segment.objects.filter(pk=self.cleaned_data['segment_name']).exists:
+            self.errors.update({'segment_name': ['invalid segment']})
+        if not Ip.check_ip(self.cleaned_data['ip']):
+            self.errors.update({'ip': ['invalid ip']})
 
     # def __init__(self, *args, **kwargs):
     #     self.ip_id = kwargs.pop('ip_id', None)

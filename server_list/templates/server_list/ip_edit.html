@@ -4,10 +4,29 @@
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
+<script>
+    function addSeg(){
+        console.log("click");
+        win = window.open("{%url 'ip_edit' 2%}","name","height=400,width=300");
+    }
+</script>
 <body>
 <form method="post">
-    {% csrf_token %}
-    {{form.as_p}}
+    <table>
+        {% csrf_token %}
+        {% for field in form %}
+        <tr>
+            <th>{{field.label}}</th>
+            <th>{{field}}</th>
+            {% if field.auto_id == 'id_segment_name' %}
+            <th><a href="#" onclick="addSeg();">Link</a></th>
+            {% endif %}
+            {% for error in field.errors %}
+            <th><font color="red">{{error}}</font></th>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
     <input type="submit" value="submit">
 </form>
 </body>

@@ -119,3 +119,16 @@ class Ip(models.Model):
         for i in range(3):
             result += int(split[i]) * 256 ** (3 - i)
         return result
+
+    @staticmethod
+    def check_ip(ip_str):
+        data_split = ip_str.split('.')
+        if len(data_split) != 4:
+            return False
+        for split in data_split:
+            try:
+                if int(split) > 255 or int(split) < 0:
+                    return False
+            except ValueError:
+                return False
+        return True

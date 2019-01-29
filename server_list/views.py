@@ -45,7 +45,7 @@ def proof(request):
     return HttpResponse('blank')
 
 
-def all(request):
+def server_view_all(request):
     server_list = Server.objects.filter(is_physical=True).filter(ip__segment__is_root_segment=True)
     return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
 
@@ -118,7 +118,7 @@ def servers(request):
                   {"links": links, "tabs": tabs, "servers": ser_dict})
 
 
-def edit(request, server_id):
+def server_edit(request, server_id):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
         return HttpResponseForbidden()
@@ -190,7 +190,7 @@ def edit(request, server_id):
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
-def new(request):
+def server_new(request):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
         raise PermissionDenied
@@ -216,19 +216,25 @@ def new(request):
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
-def edit_ip(request, ip_id):
-    print("kek")
-    print(ip_id)
-    ip = Ip.objects.get(pk=ip_id)
-    data = {'segment_name': ip.segment.id,
-            'ip': ip.get_string_ip()}
+def ip_edit(request, ip_id):
+    try:
+        ip = Ip.objects.get(pk=ip_id)
+    except Ip.DoesNotExist:
+        raise Http404("IP not found")
+    if request.method == 'GET':
+        data = {'segment_name': ip.segment.id,
+                'ip': ip.get_string_ip()}
+        form = IpForm(data)
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+    elif request.method == 'POST':
+        form = IpForm(request.POST)
+        if form.is_valid():
+            return HttpResponse("OK")
+        else:
+            return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
-    form = IpForm(data)
-    return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
-    # return HttpResponse('сделяль')
 
-
-def view(request, server_id):
+def server_view(request, server_id):
     try:
         server = Server.objects.get(pk=server_id)
     except Server.DoesNotExist:
