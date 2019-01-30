@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
+{% load server_list_extras %}
 <head>
     <title>
         Список серверов
@@ -61,6 +61,7 @@
 
 
 
+
     </style>
 
     <script>
@@ -84,6 +85,7 @@
         document.getElementById(cityName).style.display = "block";
         evt.currentTarget.className += " active";
     }
+
 
 
 
@@ -127,7 +129,18 @@
             <th><a href="/servers/view/{{id}}">{{col}}</a></th>
             {%else%}
 
-            <th>{{col}}{{col|check_if_list}}</th>
+            <th>
+                {%if col|is_list%}
+                    {% for c in col %}
+                        {% if not forloop.first %}
+                            <br/>
+                        {% endif%}
+                        {{c}}
+                    {% endfor %}
+                {% else %}
+                   {{col}}
+                {% endif %}
+            </th>
             <!--|linebreaks-->
             {%endif%}
             {% endfor %}

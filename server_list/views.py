@@ -96,8 +96,8 @@ def servers(request):
                             #     ip_str += new_line + Ip.get_string_ip(ip.ip_as_int)
                             #     new_line = '\n'
                             # row.append(ip_str)
-                            ip = list(server.ip_set.filter(segment=seg).values_list('ip_as_int', flat=True))
-                            row.append(ip)
+
+                            row.append([Ip.get_string_ip(x.ip_as_int) for x in list(server.ip_set.filter(segment=seg))])
                         row.append(server.serial_num)
                         row.append(server.specs)
                         # row.append(server.sensitive_data)
@@ -106,11 +106,9 @@ def servers(request):
                         for vm in server.server_set.all():
                             vm_row = ["", "", " ", get_power_state(vm.is_on), vm.hostname, vm.os, vm.purpose]
                             for seg in seg_list:  # segment dict
-                                try:
-                                    ip = vm.ip_set.get(segment=seg)
-                                except Ip.DoesNotExist:
-                                    ip = ""
-                                vm_row.append(ip)
+
+                                vm_row.append(
+                                    [Ip.get_string_ip(x.ip_as_int) for x in list(vm.ip_set.filter(segment=seg))])
                             vm_row.append("")
                             vm_row.append("")
                             # vm_row.append(vm.sensitive_data)

@@ -4,7 +4,8 @@ register = template.Library()
 
 
 @register.filter()
-def check_if_list(value):
+def is_list(value):
+
     return isinstance(value, list)
 
 
@@ -23,6 +24,3 @@ def convert_none(value):
 @register.filter()
 def negate(boolean):
     return (not boolean).__str__()
-
-
-
