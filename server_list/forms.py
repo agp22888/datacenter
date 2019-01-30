@@ -93,13 +93,13 @@ class ServerForm(forms.Form):
 
 
 class IpForm(forms.Form):
-    segment_name = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
-                                                                               Segment.objects.all()])
+    segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
+                                                                             Segment.objects.all()])
     ip = forms.CharField(label="IP", required=True)
 
     def clean(self):
-        if not Segment.objects.filter(pk=self.cleaned_data['segment_name']).exists:
-            self.errors.update({'segment_name': ['invalid segment']})
+        if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
+            self.errors.update({'segment_id': ['invalid segment']})
         if not Ip.check_ip(self.cleaned_data['ip']):
             self.errors.update({'ip': ['invalid ip']})
 

@@ -90,10 +90,13 @@ def servers(request):
                                get_power_state(server.is_on),
                                "", server.os, server.purpose]
                         for seg in seg_list:  # segment dict
-                            try:
-                                ip = server.ip_set.get(segment=seg)
-                            except Ip.DoesNotExist:
-                                ip = ""
+                            # ip_str = ''
+                            # new_line = ''
+                            # for ip in server.ip_set.filter(segment=seg):  # todo много ip в одном сегменте
+                            #     ip_str += new_line + Ip.get_string_ip(ip.ip_as_int)
+                            #     new_line = '\n'
+                            # row.append(ip_str)
+                            ip = list(server.ip_set.filter(segment=seg).values_list('ip_as_int', flat=True))
                             row.append(ip)
                         row.append(server.serial_num)
                         row.append(server.specs)
@@ -209,6 +212,7 @@ def server_new(request):
     elif request.method == 'POST':
         form = ServerForm(request.POST, server_id=server_id, new_server=True)
         if form.is_valid():
+
             return HttpResponse("OK")
         else:
             print("not valid")
@@ -217,18 +221,47 @@ def server_new(request):
 
 
 def ip_edit(request, ip_id):
+    if not request.user.is_authenticated:
+        raise PermissionDenied
     try:
         ip = Ip.objects.get(pk=ip_id)
     except Ip.DoesNotExist:
         raise Http404("IP not found")
     if request.method == 'GET':
-        data = {'segment_name': ip.segment.id,
+        data = {'segment_id': ip.segment.id,
                 'ip': ip.get_string_ip()}
         form = IpForm(data)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     elif request.method == 'POST':
         form = IpForm(request.POST)
         if form.is_valid():
+            ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
+            ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
+            ip.save()
+            return HttpResponse("OK")
+        else:
+            return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+
+
+def ip_new(request, server_id):  # todo ip добавляется только из экрана редактирования сервера,
+    # todo так что возможно здесь нужен id сервера и сразу добавление ip к серверу?
+    if not request.user.is_authenticated:
+        raise PermissionDenied
+
+    if request.method == 'GET':
+        data = {'segment_id': Segment.objects.first().id,
+                'ip': Ip.get_string_ip(0)}
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpForm(data)})
+    elif request.method == 'POST':
+        form = IpForm(request.POST)
+        if form.is_valid():
+            ip = Ip()
+            ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
+            ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
+            ip.mask_as_int = 0
+            ip.gateway_as_int = 0
+            ip.server = Server.objects.get(pk=server_id)
+            ip.save()
             return HttpResponse("OK")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})

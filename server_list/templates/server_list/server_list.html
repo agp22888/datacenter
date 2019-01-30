@@ -59,6 +59,8 @@
             background-color: #dddddd;
         }
 
+
+
     </style>
 
     <script>
@@ -84,12 +86,15 @@
     }
 
 
+
+
     </script>
 </head>
 {% if user.is_authenticated %}
-    <p style="text-align:right;">Пользователь: {{ user.get_username }}. <a href="/admin/logout/?next={{request.get_full_path}}">выйти</a></p>
+<p style="text-align:right;">Пользователь: {{ user.get_username }}. <a
+        href="/admin/logout/?next={{request.get_full_path}}">выйти</a></p>
 {% else %}
-   <p style="text-align:right;"><a href="/admin/login/?next={{request.get_full_path}}">Войти</a></p>
+<p style="text-align:right;"><a href="/admin/login/?next={{request.get_full_path}}">Войти</a></p>
 {% endif %}
 <div>
     <!-- ссылки на сегменты -->
@@ -121,7 +126,9 @@
             {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " "%}
             <th><a href="/servers/view/{{id}}">{{col}}</a></th>
             {%else%}
-            <th>{{col}}</th>
+
+            <th>{{col}}{{col|check_if_list}}</th>
+            <!--|linebreaks-->
             {%endif%}
             {% endfor %}
         </tr>

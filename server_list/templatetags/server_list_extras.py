@@ -23,3 +23,6 @@ def convert_none(value):
 @register.filter()
 def negate(boolean):
     return (not boolean).__str__()
+
+
+

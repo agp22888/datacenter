@@ -18,7 +18,7 @@
         <tr>
             <th>{{field.label}}</th>
             <th>{{field}}</th>
-            {% if field.auto_id == 'id_segment_name' %}
+            {% if field.auto_id == 'id_segment_id' %}
             <th><a href="#" onclick="addSeg();">Link</a></th>
             {% endif %}
             {% for error in field.errors %}

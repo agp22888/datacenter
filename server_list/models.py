@@ -98,16 +98,17 @@ class Ip(models.Model):
     segment = models.ForeignKey(Segment, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.get_string_ip()
+        return Ip.get_string_ip(self.ip_as_int)
 
-    def get_string_ip(self):
+    @staticmethod
+    def get_string_ip(ip_as_int):
         counter = 0
         mask = 255
         result = ""
         while counter < 32:
             if len(result) != 0:
                 result = "." + result
-            t = self.ip_as_int & (mask << counter)
+            t = ip_as_int & (mask << counter)
             result = str(t >> counter) + result
             counter += 8
         return result
@@ -116,7 +117,7 @@ class Ip(models.Model):
     def get_ip_from_string(ip_str):
         split = ip_str.split(".")
         result = 0
-        for i in range(3):
+        for i in range(4):
             result += int(split[i]) * 256 ** (3 - i)
         return result
 
