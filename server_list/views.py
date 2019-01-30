@@ -180,7 +180,7 @@ def server_edit(request, server_id):
                      'is_physical': server.is_physical,
                      }
         for ip in server.ip_set.all():
-            form_dict.update({'ip_' + str(ip.id): ip.get_string_ip()})
+            form_dict.update({'ip_' + str(ip.id): Ip.get_string_ip(ip.ip_as_int)})
         if server.is_physical:
             rack = server.rack
             room = rack.room
@@ -245,7 +245,10 @@ def ip_new(request, server_id):  # todo ip добавляется только �
     # todo так что возможно здесь нужен id сервера и сразу добавление ip к серверу?
     if not request.user.is_authenticated:
         raise PermissionDenied
-
+    try:
+        server = Server.objects.get(pk=server_id)
+    except Server.DoesNotExist:
+        raise Http404("Server not found")
     if request.method == 'GET':
         data = {'segment_id': Segment.objects.first().id,
                 'ip': Ip.get_string_ip(0)}
@@ -258,7 +261,7 @@ def ip_new(request, server_id):  # todo ip добавляется только �
             ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
             ip.mask_as_int = 0
             ip.gateway_as_int = 0
-            ip.server = Server.objects.get(pk=server_id)
+            ip.server = server
             ip.save()
             return HttpResponse("OK")
         else:
@@ -272,7 +275,7 @@ def server_view(request, server_id):
         raise Http404("No server found")
     ip_list = []
     for ip in server.ip_set.all():
-        ip_list.append((ip.segment.name, ip.get_string_ip()))
+        ip_list.append((ip.segment.name, Ip.get_string_ip(ip.ip_as_int)))
     data_dict = {"server_id": server_id,
                  "model": server.model,
                  "hostname": server.hostname,

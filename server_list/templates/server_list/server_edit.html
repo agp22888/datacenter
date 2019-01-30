@@ -166,6 +166,7 @@ function open_window(){
 
 
 
+
     </script>
 </head>
 
@@ -195,6 +196,9 @@ function open_window(){
         </tr>
 
         {% endfor %}
+        <tr>
+            <th colspan="2"><a href="{% url 'ip_new' form.server_id %}">"Добавить ip"</a></th>
+        </tr>
         <tr>
             <th colspan="2"><input type="submit" value="Submit"></th>
         </tr>
