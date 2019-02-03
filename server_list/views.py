@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm, IpForm
+from .forms import ServerForm, IpForm, SegmentForm
 from django.http import Http404
 
 
@@ -241,8 +241,7 @@ def ip_edit(request, ip_id):
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
 
-def ip_new(request, server_id):  # todo ip добавляется только из экрана редактирования сервера,
-    # todo так что возможно здесь нужен id сервера и сразу добавление ip к серверу?
+def ip_new(request, server_id):
     if not request.user.is_authenticated:
         raise PermissionDenied
     try:
@@ -346,6 +345,34 @@ def test_ajax(request):
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
     return response
+
+
+def segment_new(request):
+    if not request.user.is_authenticated:
+        return PermissionDenied
+    if request.method == 'GET':
+        data = {'segment_name': 'Новый сегмент',
+                'segment_description': '',
+                'segment_is_root_segment': False,
+                'segment_parent_segment': 0}
+        form = SegmentForm(data)
+        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = SegmentForm(request.POST)
+        if form.is_valid:
+            return HttpResponse('OK')
+        else:
+            return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+
+
+
+
+def segment_view():
+    return None
+
+
+def segment_edit():
+    return None
 
 
 def update(d, u):
