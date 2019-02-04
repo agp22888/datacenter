@@ -355,7 +355,7 @@ def segment_new(request):
                 'segment_description': '',
                 'segment_is_root_segment': False,
                 'segment_parent_segment': 0}
-        form = SegmentForm(data)
+        form = SegmentForm()
         return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
     if request.method == 'POST':
         form = SegmentForm(request.POST)

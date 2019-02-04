@@ -105,7 +105,7 @@ class IpForm(forms.Form):
 
 
 class SegmentForm(forms.Form):
-    segment_name = forms.CharField(label="Название", required=True)
+    segment_name = forms.CharField(label="Название", required=True, initial="Новый сегмент")
     segment_description = forms.CharField(label="Описание", required=False)
     segment_is_root_segment = forms.BooleanField(label="Корневой сегмент", required=False)
     segment_parent_segment = forms.ChoiceField(label="Родительский сегмент", required=False, choices=[(0, '-----')] + [(x.id, x.name) for x in Segment.objects.filter(is_root_segment=True)], initial=0)
