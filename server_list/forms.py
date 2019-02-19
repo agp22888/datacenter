@@ -108,12 +108,16 @@ class SegmentForm(forms.Form):
     segment_name = forms.CharField(label="Название", required=True, initial="Новый сегмент")
     segment_description = forms.CharField(label="Описание", required=False)
     segment_is_root_segment = forms.BooleanField(label="Корневой сегмент", required=False)
-    segment_parent_segment = forms.ChoiceField(label="Родительский сегмент", required=False, choices=[(0, '-----')] + [(x.id, x.name) for x in Segment.objects.filter(is_root_segment=True)], initial=0)
+    segment_parent_segment = forms.ChoiceField(label="Родительский сегмент", required=False,
+                                               choices=[(0, '-----')] + [(x.id, x.name) for x in
+                                                                         Segment.objects.filter(is_root_segment=True)],
+                                               initial=0)
 
     def clean(self):
         if self.cleaned_data['segment_name'] in [x.name for x in Segment.objects.all()]:
             self.errors.update({'segment_name': ['Сегмент с таким именем уже существует']})
-        if self.cleaned_data['segment_is_root_segment'] == False and self.cleaned_data['segment_parent_segment'] == -1:
-            self.errors.update({'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
+        if self.cleaned_data['segment_is_root_segment'] is False and self.cleaned_data['segment_parent_segment'] == -1:
+            self.errors.update(
+                {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
         if not Segment.objects.filter(pk=self.cleaned_data['segment_parent_segment']).exists():
             self.errors.update({'segment_parent_segment': ['Сегмент не существует']})

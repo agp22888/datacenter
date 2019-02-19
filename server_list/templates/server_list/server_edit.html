@@ -151,20 +151,14 @@ function ajax_request_racks_by_room(room_id){
     });
 }
 
-function open_window(){
-    wiw = window.open("/servers/view/{{form.server_id}}","Ratting","width=700,height=800");
-    console.log("DAFUQ?");
-    wiw.addEventListener("beforeunload", function (event){
-    location.reload();
-    });
+function open_window(url){
+    wiw = window.open(url,"Ratting","width=700,height=800");
+    wiw.addEventListener("beforeunload", setTimeout(function (event){
+        console.log("listener triggered");
+        location.reload();
+    }),1000);
 
 }
-
-
-
-
-
-
 
 
     </script>
@@ -197,16 +191,17 @@ function open_window(){
 
         {% endfor %}
         <tr>
-            <th colspan="2"><a href="{% url 'ip_new' form.server_id %}">"Добавить ip"</a></th>
+            <th colspan="2">
+                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick=open_window("{% url
+                'ip_new' form.server_id %}")>Добавить ip</a>
+            </th>
         </tr>
+
         <tr>
             <th colspan="2"><input type="submit" value="Submit"></th>
         </tr>
     </table>
-    <a href="javascript:void(0);"
-       NAME="My Window Name" title=" My title here "
-       onClick=open_window()>Click here
-        to open the child window</a>
+
 
 </form>
 </html>
