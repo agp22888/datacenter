@@ -118,3 +118,5 @@ dmypy.json
 .idea/
 
 venv_linux/
+
+db.sqlite3

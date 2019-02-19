@@ -215,7 +215,7 @@ def ip_edit(request, ip_id):
             ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
             ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
             ip.save()
-            return HttpResponse("OK")
+            return HttpResponse("<script>window.close</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
@@ -241,7 +241,7 @@ def ip_new(request, server_id):
             ip.gateway_as_int = 0
             ip.server = server
             ip.save()
-            return HttpResponse("OK")
+            return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 

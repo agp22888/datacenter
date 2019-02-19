@@ -154,20 +154,29 @@ function ajax_request_racks_by_room(room_id){
 function open_window(url){
     console.log(url);
     wiw = window.open(url,"Ratting","width=700,height=800");
-    wiw.addEventListener("beforeunload",
-                                            async function (event){
-                                                                console.log("listener triggered, sleeping 1s");
-                                                                await sleep(1000);
-                                                                location.reload();
-                                                            }
+   // wiw.addEventListener("beforeunload", async function (event){
+   //     console.log("listener triggered, sleeping 1s");
+   //     await sleep(1000);
+   //     location.reload();
+   //     },
+   //     1000);
 
-
-                   ,1000);
-
+   //wiw.onunload( async function (){
+   //                                        console.log("listener triggered, sleeping 1s");
+   //                                        await sleep(1000);
+   //                                        location.reload();
+   //                                });
 }
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+ async function call_reload(){
+    console.log('reload called');
+    console.log("listener triggered, sleeping 1s");
+    await sleep(1000);
+    location.reload();
 }
 
 
