@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import CharField, ModelForm
+from django.forms import CharField, ModelForm, GenericIPAddressField
 
 from server_list.models import Server, Unit, Rack, Room, Territory, Segment, Ip
 
@@ -11,26 +11,6 @@ class ServerFormNameField(CharField):
     def validate(self, value):
         print('validate')
         return value
-
-
-class ServerFormTest(ModelForm):
-    class Meta:
-        model = Server
-        fields = ['hostname',
-                  'model',
-                  'is_physical',
-                  'host_machine',
-                  'is_on',
-                  'os',
-                  'purpose',
-                  'description',
-                  'serial_num',
-                  'specs',
-                  'sensitive_data',
-                  'segments',
-                  'height',
-                  'unit',
-                  'rack']
 
 
 class ServerForm(forms.Form):
@@ -124,6 +104,15 @@ class IpForm(forms.Form):
             self.errors.update({'ip': ['invalid ip']})
 
 
+class IpFormTest(ModelForm):
+    class Meta:
+        model = Ip
+        fields = '__all__'
+        field_classes = {
+            'ip_as_int': GenericIPAddressField
+        }
+
+
 class SegmentForm(forms.Form):
     segment_name = forms.CharField(label="Название", required=True, initial="Новый сегмент")
     segment_description = forms.CharField(label="Описание", required=False)
@@ -147,3 +136,12 @@ class SegmentTestForm(ModelForm):
     class Meta:
         model = Segment
         fields = ['name', 'description', 'is_root_segment', 'parent_segment']
+
+    def clean(self):
+        if self.cleaned_data['segment_name'] in [x.name for x in Segment.objects.all()]:
+            self.errors.update({'segment_name': ['Сегмент с таким именем уже существует']})
+        if self.cleaned_data['segment_is_root_segment'] is False and self.cleaned_data['segment_parent_segment'] == -1:
+            self.errors.update(
+                {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
+        if not Segment.objects.filter(pk=self.cleaned_data['segment_parent_segment']).exists():
+            self.errors.update({'segment_parent_segment': ['Сегмент не существует']})

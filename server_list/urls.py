@@ -18,5 +18,5 @@ urlpatterns = [
     # todo подумать над объединением view для создания и редактирования объекта
     url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
     url(r'^edit_segment_test/(?P<segment_id>\d*)', views.segment_edit_test, name='segment_edit_test'),
-    url(r'^edit_test/(?P<server_id>\d*)', views.server_edit_test, name='server_edit_test'),
+    url(r'^ip_test/(?P<ip_id>\d*)', views.ip_edit_test, name='ip_edit_test'),
 ]

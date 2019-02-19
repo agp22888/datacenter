@@ -5,43 +5,12 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm, IpForm, SegmentForm, SegmentTestForm, ServerFormTest
+from .forms import ServerForm, IpForm, SegmentForm, SegmentTestForm, IpFormTest
 from django.http import Http404
 
 
 # Create your views here.
 def proof(request):
-    # output = '<head><style>table{font-family: arial, sans-serif;border-collapse: collapse;width: 100%;}td, th {border: 1px solid #dddddd;text-align: left;padding: 8px;}tr:nth-child(even) {background-color: #dddddd;}</style></head><table>'
-    # output += '<tr><td>Unit</td><td>Модель</td><td>Имя</td><td>Power state</td><td>Virtual machine</td><td>OS</td><td>Назначение</td><td>Ip адрес</td><td>Маска/шлюз</td><td>Ilo</td><td>s/n</td><td>Характеристики</td>'
-    # for p_host in Server.objects.filter(is_physical=True):
-    #     name = p_host.hostname
-    #     unit = "10 h"
-    #     model = p_host.model
-    #     power_state = 'On' if p_host.is_on else 'Off'
-    #     os = p_host.os
-    #     purpose = p_host.purpose
-    #     s = Segment.objects.get(id=1)
-    #     s_man = Segment.objects.get(id=2)
-    #     ip = str(p_host.ip_set.get(segment=s))
-    #     mask = '255.255.255.0 h'
-    #     ilo_ip = str(p_host.ip_set.get(segment=s_man))
-    #     ser_num = p_host.serial_num
-    #     specs = p_host.specs
-    #     output += '<tr><td>' + unit + '</td><td>' + model + '</td><td>' + name + '</td><td>' + power_state + '</td><td> </td><td>' + os + '</td><td>' + purpose + '</td><td>' + ip + '</td><td>' + mask + '</td><td>' + ilo_ip + '</td><td>' + ser_num + ' </td><td>' + specs + '</td></tr>'
-    #     for v_host in p_host.server_set.all():
-    #         name = v_host.hostname
-    #         unit = ' '
-    #         model = " "
-    #         power_state = 'On' if v_host.is_on else 'Off'
-    #         os = v_host.os
-    #         purpose = v_host.purpose
-    #         s = Segment.objects.get(id=1)
-    #         ip = str(p_host.ip_set.get(segment=s))
-    #         mask = '255.255.255.0 h'
-    #         ilo_ip = " "
-    #         ser_num = " "
-    #         specs = " "
-    #         output += '<tr><td>' + unit + '</td><td>' + model + '</td><td> </td><td>' + power_state + '</td><td>' + name + '</td><td>' + os + '</td><td>' + purpose + '</td><td>' + ip + '</td><td>' + mask + '</td><td>' + ilo_ip + '</td><td>' + ser_num + ' </td><td>' + specs + '</td></tr>'
     return HttpResponse('blank')
 
 
@@ -218,6 +187,16 @@ def server_new(request):
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
+def ip_edit_test(request, ip_id):
+    if request.method == 'GET':
+        try:
+            form = IpFormTest(instance=Ip.objects.get(pk=ip_id))
+        except Ip.DoesNotExist:
+            raise Http404("No ip found")
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+    return None
+
+
 def ip_edit(request, ip_id):
     if not request.user.is_authenticated:
         raise PermissionDenied
@@ -372,16 +351,6 @@ def segment_edit_test(request, segment_id):
         except Segment.DoesNotExist:
             raise Http404("No segment found")
         return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-    return None
-
-
-def server_edit_test(request, server_id):
-    if request.method == 'GET':
-        try:
-            form = ServerFormTest(instance=Server.objects.get(pk=server_id))
-        except Server.DoesNotExist:
-            raise Http404("No segment found")
-        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     return None
 
 
