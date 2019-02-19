@@ -152,12 +152,22 @@ function ajax_request_racks_by_room(room_id){
 }
 
 function open_window(url){
+    console.log(url);
     wiw = window.open(url,"Ratting","width=700,height=800");
-    wiw.addEventListener("beforeunload", setTimeout(function (event){
-        console.log("listener triggered");
-        location.reload();
-    }),1000);
+    wiw.addEventListener("beforeunload",
+                                            async function (event){
+                                                                console.log("listener triggered, sleeping 1s");
+                                                                await sleep(1000);
+                                                                location.reload();
+                                                            }
 
+
+                   ,1000);
+
+}
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
@@ -192,8 +202,7 @@ function open_window(url){
         {% endfor %}
         <tr>
             <th colspan="2">
-                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick=open_window("{% url
-                'ip_new' form.server_id %}")>Добавить ip</a>
+                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick=open_window("{% url 'ip_new' form.server_id %}")>Добавить ip</a>
             </th>
         </tr>
 
