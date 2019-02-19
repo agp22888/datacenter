@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm, IpForm, SegmentForm
+from .forms import ServerForm, IpForm, SegmentForm, SegmentTestForm, ServerFormTest
 from django.http import Http404
 
 
@@ -365,9 +365,23 @@ def segment_new(request):
             return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
 
 
+def segment_edit_test(request, segment_id):
+    if request.method == 'GET':
+        try:
+            form = SegmentTestForm(instance=Segment.objects.get(pk=segment_id))
+        except Segment.DoesNotExist:
+            raise Http404("No segment found")
+        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+    return None
 
 
-def segment_view():
+def server_edit_test(request, server_id):
+    if request.method == 'GET':
+        try:
+            form = ServerFormTest(instance=Server.objects.get(pk=server_id))
+        except Server.DoesNotExist:
+            raise Http404("No segment found")
+        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     return None
 
 
@@ -386,3 +400,7 @@ def update(d, u):
 
 def get_power_state(server_is_on):
     return "on" if server_is_on else "off"
+
+
+def segment_view():
+    return None

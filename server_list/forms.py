@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import CharField
+from django.forms import CharField, ModelForm
 
 from server_list.models import Server, Unit, Rack, Room, Territory, Segment, Ip
 
@@ -11,6 +11,26 @@ class ServerFormNameField(CharField):
     def validate(self, value):
         print('validate')
         return value
+
+
+class ServerFormTest(ModelForm):
+    class Meta:
+        model = Server
+        fields = ['hostname',
+                  'model',
+                  'is_physical',
+                  'host_machine',
+                  'is_on',
+                  'os',
+                  'purpose',
+                  'description',
+                  'serial_num',
+                  'specs',
+                  'sensitive_data',
+                  'segments',
+                  'height',
+                  'unit',
+                  'rack']
 
 
 class ServerForm(forms.Form):
@@ -121,3 +141,9 @@ class SegmentForm(forms.Form):
                 {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
         if not Segment.objects.filter(pk=self.cleaned_data['segment_parent_segment']).exists():
             self.errors.update({'segment_parent_segment': ['Сегмент не существует']})
+
+
+class SegmentTestForm(ModelForm):
+    class Meta:
+        model = Segment
+        fields = ['name', 'description', 'is_root_segment', 'parent_segment']
