@@ -210,6 +210,8 @@ def ip_edit(request, ip_id):
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
 
+# todo на странице просмотра сервера если много ip из корневых сегментов, то расположение дублируется
+
 def ip_new(request, server_id):
     if not request.user.is_authenticated:
         raise PermissionDenied
@@ -349,6 +351,18 @@ def test_ajax(request):
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
     return response
+
+
+def ajax(request):
+    if request.GET.get('action') == 'delete_ip':
+        ip_id = request.GET.get('ip_id')
+        try:
+            ip = Ip.objects.get(pk=ip_id)
+            ip.delete()
+        except Ip.DoesNotExist:
+            raise Http404
+        return HttpResponse('ok')
+    return None
 
 
 def update(d, u):

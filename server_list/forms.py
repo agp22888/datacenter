@@ -122,6 +122,10 @@ class SegmentForm(ModelForm):
         model = Segment
         fields = ['name', 'description', 'is_root_segment', 'parent_segment']
 
+    def __init__(self, *args, **kwargs):
+        super(SegmentForm, self).__init__(*args, **kwargs)
+        self.fields['name'].initial = "Новый сегмент"
+
     def clean(self):
         if self.cleaned_data['name'] in [x.name for x in Segment.objects.all()]:
             self.errors.update({'name': ['Сегмент с таким именем уже существует']})
@@ -129,5 +133,5 @@ class SegmentForm(ModelForm):
         if self.cleaned_data['is_root_segment'] is False and parent_segment == -1:
             self.errors.update(
                 {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
-        if parent_segment is not None and not Segment.objects.filter(pk=parent_segment).exists():
-            self.errors.update({'parent_segment': ['Сегмент не существует']})
+        # if parent_segment is not None and not Segment.objects.filter(pk=parent_segment).exists():
+        #    self.errors.update({'parent_segment': ['Сегмент не существует']})

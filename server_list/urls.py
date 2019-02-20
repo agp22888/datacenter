@@ -18,4 +18,5 @@ urlpatterns = [
     # todo подумать над объединением view для создания и редактирования объекта
     # url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
     url(r'^edit_segment_test/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit_test'),
+    url(r'ajax/', views.ajax, name='ajax'),
 ]

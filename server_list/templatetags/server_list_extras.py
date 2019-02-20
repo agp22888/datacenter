@@ -24,3 +24,7 @@ def convert_none(value):
 @register.filter()
 def negate(boolean):
     return (not boolean).__str__()
+
+@register.filter()
+def get_ip_num(value):
+    return value.split('_')[1]
