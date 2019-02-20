@@ -1,0 +1,10 @@
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+ async function call_reload(){
+    console.log('reload called');
+    console.log("listener triggered, sleeping 1s");
+    await sleep(1000);
+    location.reload();
+}

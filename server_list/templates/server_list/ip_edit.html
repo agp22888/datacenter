@@ -5,10 +5,7 @@
     <title>Title</title>
 </head>
 <script>
-    function addSeg(){
-        console.log("click");
-        win = window.open("{%url 'ip_edit' 2%}","name","height=400,width=300");
-    }
+    {% include "server_list/js_open_window.html" %}
 </script>
 <body>
 <form method="post">
@@ -19,7 +16,7 @@
             <th>{{field.label}}</th>
             <th>{{field}}</th>
             {% if field.auto_id == 'id_segment_id' %}
-            <th><a href="#" onclick="addSeg();">Link</a></th>
+            <th><a href="javascript:void(0)" onclick='open_window("{% url 'segment_new' %}", "Новый сегмент");'>Добавить сегмент</a></th>
             {% endif %}
             {% for error in field.errors %}
             <th><font color="red">{{error}}</font></th>

@@ -93,6 +93,7 @@ $(document).ready(function() {
         hide_fields(physical_fields_to_hide);
     }
 });
+
 function hide_fields(fields){
     for (field of fields){
         $(field).hide();
@@ -151,33 +152,9 @@ function ajax_request_racks_by_room(room_id){
     });
 }
 
-function open_window(url){
-    console.log(url);
-    wiw = window.open(url,"Ratting","width=700,height=800");
-   // wiw.addEventListener("beforeunload", async function (event){
-   //     console.log("listener triggered, sleeping 1s");
-   //     await sleep(1000);
-   //     location.reload();
-   //     },
-   //     1000);
+{% include "server_list/js_open_window.html" %}
 
-   //wiw.onunload( async function (){
-   //                                        console.log("listener triggered, sleeping 1s");
-   //                                        await sleep(1000);
-   //                                        location.reload();
-   //                                });
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
- async function call_reload(){
-    console.log('reload called');
-    console.log("listener triggered, sleeping 1s");
-    await sleep(1000);
-    location.reload();
-}
+{% include "server_list/js_reload_call.html" %}
 
 
     </script>
@@ -211,7 +188,7 @@ function sleep(ms) {
         {% endfor %}
         <tr>
             <th colspan="2">
-                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick=open_window("{% url 'ip_new' form.server_id %}")>Добавить ip</a>
+                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick="open_window('{% url 'ip_new' form.server_id %}', 'Добавить ip');">Добавить ip</a>
             </th>
         </tr>
 
