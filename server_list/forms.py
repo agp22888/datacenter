@@ -1,8 +1,7 @@
 from django import forms
-from django.core.exceptions import ValidationError
 from django.forms import CharField, ModelForm, GenericIPAddressField
 
-from server_list.models import Server, Unit, Rack, Room, Territory, Segment, Ip
+from server_list.models import Server, Rack, Room, Territory, Segment, Ip
 
 
 # todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
@@ -95,7 +94,12 @@ class ServerForm(forms.Form):
 class IpForm(forms.Form):
     segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
                                                                              Segment.objects.all()])
-    ip = forms.CharField(label="IP", required=True)
+    ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")
+
+    def __init__(self, *args, **kwargs):
+        super(IpForm, self).__init__(*args, **kwargs)
+        self.fields['segment_id'] = forms.ChoiceField(
+            choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
 
     def clean(self):
         if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
@@ -113,35 +117,17 @@ class IpFormTest(ModelForm):
         }
 
 
-class SegmentForm(forms.Form):
-    segment_name = forms.CharField(label="Название", required=True, initial="Новый сегмент")
-    segment_description = forms.CharField(label="Описание", required=False)
-    segment_is_root_segment = forms.BooleanField(label="Корневой сегмент", required=False)
-    segment_parent_segment = forms.ChoiceField(label="Родительский сегмент", required=False,
-                                               choices=[(0, '-----')] + [(x.id, x.name) for x in
-                                                                         Segment.objects.filter(is_root_segment=True)],
-                                               initial=0)
-
-    def clean(self):
-        if self.cleaned_data['segment_name'] in [x.name for x in Segment.objects.all()]:
-            self.errors.update({'segment_name': ['Сегмент с таким именем уже существует']})
-        if self.cleaned_data['segment_is_root_segment'] is False and self.cleaned_data['segment_parent_segment'] == -1:
-            self.errors.update(
-                {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
-        if not Segment.objects.filter(pk=self.cleaned_data['segment_parent_segment']).exists():
-            self.errors.update({'segment_parent_segment': ['Сегмент не существует']})
-
-
-class SegmentTestForm(ModelForm):
+class SegmentForm(ModelForm):
     class Meta:
         model = Segment
         fields = ['name', 'description', 'is_root_segment', 'parent_segment']
 
     def clean(self):
-        if self.cleaned_data['segment_name'] in [x.name for x in Segment.objects.all()]:
-            self.errors.update({'segment_name': ['Сегмент с таким именем уже существует']})
-        if self.cleaned_data['segment_is_root_segment'] is False and self.cleaned_data['segment_parent_segment'] == -1:
+        if self.cleaned_data['name'] in [x.name for x in Segment.objects.all()]:
+            self.errors.update({'name': ['Сегмент с таким именем уже существует']})
+        parent_segment = self.cleaned_data['parent_segment']
+        if self.cleaned_data['is_root_segment'] is False and parent_segment == -1:
             self.errors.update(
                 {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
-        if not Segment.objects.filter(pk=self.cleaned_data['segment_parent_segment']).exists():
-            self.errors.update({'segment_parent_segment': ['Сегмент не существует']})
+        if parent_segment is not None and not Segment.objects.filter(pk=parent_segment).exists():
+            self.errors.update({'parent_segment': ['Сегмент не существует']})

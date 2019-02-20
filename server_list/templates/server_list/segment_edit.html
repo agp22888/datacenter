@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Добавление сегмента</title>
+
 </head>
 <body>
 <form method="post">
     {% csrf_token %}
     {{form.as_p}}
-    <input type="submit" value="submit">
+     <input type="submit" value="submit" onclick="opener.call_reload()">
 </form>
 </body>
 </html>

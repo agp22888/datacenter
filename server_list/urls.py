@@ -16,7 +16,6 @@ urlpatterns = [
     url(r'^new_segment$', views.segment_new, name='segment_new'),
     url(r'^view_segment/(?P<segment_id>\d*)', views.segment_view, name='segment_view'),
     # todo подумать над объединением view для создания и редактирования объекта
-    url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
-    url(r'^edit_segment_test/(?P<segment_id>\d*)', views.segment_edit_test, name='segment_edit_test'),
-    url(r'^ip_test/(?P<ip_id>\d*)', views.ip_edit_test, name='ip_edit_test'),
+    # url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
+    url(r'^edit_segment_test/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit_test'),
 ]

@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm, IpForm, SegmentForm, SegmentTestForm, IpFormTest
+from .forms import ServerForm, IpForm, SegmentForm
 from django.http import Http404
 
 
@@ -187,16 +187,6 @@ def server_new(request):
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
-def ip_edit_test(request, ip_id):
-    if request.method == 'GET':
-        try:
-            form = IpFormTest(instance=Ip.objects.get(pk=ip_id))
-        except Ip.DoesNotExist:
-            raise Http404("No ip found")
-        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
-    return None
-
-
 def ip_edit(request, ip_id):
     if not request.user.is_authenticated:
         raise PermissionDenied
@@ -215,7 +205,7 @@ def ip_edit(request, ip_id):
             ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
             ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
             ip.save()
-            return HttpResponse("<script>window.close</script>")
+            return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
@@ -230,7 +220,7 @@ def ip_new(request, server_id):
     if request.method == 'GET':
         data = {'segment_id': Segment.objects.first().id,
                 'ip': Ip.get_string_ip(0)}
-        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpForm(data)})
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpForm()})
     elif request.method == 'POST':
         form = IpForm(request.POST)
         if form.is_valid():
@@ -244,6 +234,41 @@ def ip_new(request, server_id):
             return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+
+
+def segment_new(request):
+    if not request.user.is_authenticated:
+        return PermissionDenied
+    if request.method == 'GET':
+        form = SegmentForm()
+        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = SegmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+
+
+def segment_edit(request, segment_id):
+    if not request.user.is_authenticated:
+        return PermissionDenied
+    if request.method == 'GET':
+        try:
+            form = SegmentForm(instance=Segment.objects.get(pk=segment_id))
+        except Segment.DoesNotExist:
+            raise Http404("No segment found")
+        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = SegmentForm(request)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
+
+    return None
 
 
 def server_view(request, server_id):
@@ -324,38 +349,6 @@ def test_ajax(request):
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
     return response
-
-
-def segment_new(request):
-    if not request.user.is_authenticated:
-        return PermissionDenied
-    if request.method == 'GET':
-        data = {'segment_name': 'Новый сегмент',
-                'segment_description': '',
-                'segment_is_root_segment': False,
-                'segment_parent_segment': 0}
-        form = SegmentForm()
-        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = SegmentForm(request.POST)
-        if form.is_valid:
-            return HttpResponse('OK')
-        else:
-            return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-
-
-def segment_edit_test(request, segment_id):
-    if request.method == 'GET':
-        try:
-            form = SegmentTestForm(instance=Segment.objects.get(pk=segment_id))
-        except Segment.DoesNotExist:
-            raise Http404("No segment found")
-        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-    return None
-
-
-def segment_edit():
-    return None
 
 
 def update(d, u):
