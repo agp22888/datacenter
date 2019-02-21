@@ -362,9 +362,6 @@ def ajax(request):
     return None
 
 
-
-
-
 def update(d, u):
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
