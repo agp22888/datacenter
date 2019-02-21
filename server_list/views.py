@@ -133,7 +133,7 @@ def server_edit(request, server_id):
                 server.ip_set.get(pk=num).ip_as_int = Ip.get_ip_from_string(form.cleaned_data[seg])
 
             server.save()
-        return redirect('view', server_id=server.id)
+        return redirect('server_view', server_id=server.id)
 
     elif request.method == 'GET':
         form_dict = {'server_name': server.hostname,
@@ -311,7 +311,7 @@ def server_view(request, server_id):
     return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict})
 
 
-def test_ajax(request):
+def ajax(request):
     print('test, requested: ', request.GET.get('model'))
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
@@ -343,17 +343,14 @@ def test_ajax(request):
                 return HttpResponse('500')
         else:
             return HttpResponse('Access Denied')
-    response = HttpResponse(
-        serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
-        content_type='application/json')
+    # response = HttpResponse(
+    #     serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
+    #     content_type='application/json')
     if request.GET.get('model') == 'vm':
         return HttpResponse(
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
-    return response
-
-
-def ajax(request):
+    # return response
     if request.GET.get('action') == 'delete_ip':
         ip_id = request.GET.get('ip_id')
         try:
@@ -363,6 +360,9 @@ def ajax(request):
             raise Http404
         return HttpResponse('ok')
     return None
+
+
+
 
 
 def update(d, u):

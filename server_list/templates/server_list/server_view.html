@@ -29,7 +29,7 @@
             if (!$(this).hasClass('active')){
                 $(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
                 $.ajax({
-                    url: "{% url 'test_ajax' %}",
+                    url: "{% url 'ajax' %}",
                     type: 'GET',
                     data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
                     dataType: "text",

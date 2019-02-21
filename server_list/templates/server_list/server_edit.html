@@ -24,7 +24,7 @@ $(document).ready(function() {
     //$("#id_host_machine").val(host_machine).attr('selected', 'selected');
 
     $.ajax({
-        url: "{% url 'test_ajax' %}",
+        url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'model': 'vm'},
         dataType: "json",
@@ -46,7 +46,7 @@ $(document).ready(function() {
     });
 
     $.ajax({
-        url: "{% url 'test_ajax' %}",
+        url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'model': 'territory'},
         dataType: "json",
@@ -109,7 +109,7 @@ function unhide_fields(fields){
 
 function ajax_request_rooms_by_territory(territory_id){
     $.ajax({
-        url: "{% url 'test_ajax' %}",
+        url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'model':'room','territory': territory_id},
         dataType: "json",
@@ -132,7 +132,7 @@ function ajax_request_rooms_by_territory(territory_id){
 
 function ajax_request_racks_by_room(room_id){
      $.ajax({
-        url: "{% url 'test_ajax' %}",
+        url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'model':'rack','room': room_id},
         dataType: "json",
