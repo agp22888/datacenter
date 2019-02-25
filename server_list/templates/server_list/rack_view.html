@@ -3,8 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Карточка стойки</title>
+    <script>
+        function draw(){
+            console.log(window.innerWidth, window.innerHeight);
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(0, 0, 150, 75);
+       }
+
+    </script>
 </head>
-<body>
+<body onload="draw();">
 {{rack}}
 <p></p>
 {{rack.description}}
@@ -22,5 +32,9 @@
 <p></p>
 {% endfor %}
 {% endif %}
+
+<canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;">
+
+</canvas>
 </body>
 </html>
