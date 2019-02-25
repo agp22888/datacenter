@@ -19,4 +19,5 @@ urlpatterns = [
     # url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
     url(r'^edit_segment_test/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit_test'),
     url(r'ajax/', views.ajax, name='ajax'),
+    url(r'rack/(?P<rack_id>\d*)', views.rack_view, name="rack_view")
 ]

@@ -1,5 +1,5 @@
-import collections, os
-
+import os
+from . import utils
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
@@ -57,7 +57,7 @@ def servers(request):
                     if not len(server.segments.filter(id=target_segment)) == 0:
                         row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                                server.hostname,
-                               get_power_state(server.is_on),
+                               "on" if server.is_on else "off",
                                "", server.os, server.purpose]
                         for seg in seg_list:  # segment dict
                             # ip_str = ''
@@ -74,7 +74,7 @@ def servers(request):
                         #  <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
                         ser_list.update({server.id: row})
                         for vm in server.server_set.all():
-                            vm_row = ["", "", " ", get_power_state(vm.is_on), vm.hostname, vm.os, vm.purpose]
+                            vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
                             for seg in seg_list:  # segment dict
 
                                 vm_row.append(
@@ -83,7 +83,7 @@ def servers(request):
                             vm_row.append("")
                             # vm_row.append(vm.sensitive_data)
                             ser_list.update({vm.id: vm_row})
-                        ser_dict = update(ser_dict, {t: {room: {rack: ser_list}}})
+                        ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
 
     return render(request, os.path.join('server_list', 'server_list.html'),
                   {"links": links, "tabs": tabs, "servers": ser_dict})
@@ -375,18 +375,9 @@ def ajax(request):
     return None
 
 
-def update(d, u):
-    for k, v in u.items():
-        if isinstance(v, collections.Mapping):
-            d[k] = update(d.get(k, {}), v)
-        else:
-            d[k] = v
-    return d
-
-
-def get_power_state(server_is_on):  # todo move to templatetags
-    return "on" if server_is_on else "off"
-
-
 def segment_view():
+    return None
+
+
+def rack_view(request):
     return None
