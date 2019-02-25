@@ -4,6 +4,7 @@ from django.forms import CharField, ModelForm, GenericIPAddressField
 from server_list.models import Server, Rack, Room, Territory, Segment, Ip
 from django.db.utils import OperationalError
 
+
 # todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
 
 class ServerFormNameField(CharField):
@@ -13,10 +14,26 @@ class ServerFormNameField(CharField):
 
 
 class ServerForm(forms.Form):
-    server_name = ServerFormNameField(label="Имя", required=True)
+    field_order = ['server_name',
+                   'server_purpose',
+                   'power_state',
+                   'is_physical',
+                   'host_machine',
+                   'server_os',
+                   'server_model',
+                   'server_specs',
+                   'server_serial_number',
+                   'sensitive_data',
+                   'server_unit',
+                   'server_height',
+                   'server_location',
+                   'server_rack',
+                   'server_room',
+                   'server_territory']
+    server_name = ServerFormNameField(label="Имя", required=True, initial="Новый сервер")
     server_purpose = forms.CharField(label="Назначение", required=False)
-    power_state = forms.BooleanField(label="Питание", required=False)
-    is_physical = forms.BooleanField(label="Физический сервер", required=False)
+    power_state = forms.BooleanField(label="Питание", required=False, initial=True)
+    is_physical = forms.BooleanField(label="Физический сервер", required=False, initial=True)
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
     try:
@@ -38,8 +55,8 @@ class ServerForm(forms.Form):
     server_model = forms.CharField(label="Модель", required=False)
     server_specs = forms.CharField(label="Характеристики", required=False)
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
-
-
+    server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
+                                        choices=[(i, n) for i, n in Server.locations.items()])
     vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
                          'server_room', 'server_rack']
     physical_fields_to_hide = ['host_machine']
@@ -57,24 +74,28 @@ class ServerForm(forms.Form):
                 if not Ip.check_ip(data):
                     self.errors.update({field: ['invalid ip']})
 
-        if self.cleaned_data['is_physical'] and 'unit' in field and not self.new:
-            if self.cleaned_data[field] is None or self.cleaned_data['server_height'] is None \
-                    or self.cleaned_data[field] <= 0 or self.cleaned_data['server_height'] < - 0:
-                self.errors.update({field: ['Error']})
+        if self.cleaned_data['is_physical']:
+            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None \
+                    or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
+                self.errors.update({'server_unit': ['Error']})
                 return
-            unit_low = self.cleaned_data[field]
+            unit_low = self.cleaned_data['server_unit']
             unit_high = unit_low + self.cleaned_data['server_height'] - 1
             rack = int(self.cleaned_data['server_rack'])
             for s in Rack.objects.get(pk=rack).server_set.all():
-                if s.id == int(self.server_id):
+                if self.server_id is not None and s.id == int(self.server_id):
                     continue
-                s_unit = s.unit
-                s_unit_high = s_unit + s.height - 1
-                if s_unit <= unit_low <= s_unit_high \
-                        or s_unit <= unit_high <= s_unit_high \
-                        or unit_low < s_unit and unit_high > s_unit_high:
-                    self.errors.update({field: [
-                        'unit already in use by ' + s.hostname + '; units: ' + s.get_unit_string()]})  # todo добавить ссылку на сервер, с которым идёт пересечение?
+                s_unit_low = s.unit
+                s_unit_high = s_unit_low + s.height - 1
+                s_location = s.location
+                print('server location is', self.cleaned_data['server_location'], s_location)
+                if ((s_unit_low <= unit_low <= s_unit_high or s_unit_low <= unit_high <= s_unit_high) \
+                        or (unit_low < s_unit_low and unit_high > s_unit_high)) \
+                        and (s_location == int(self.cleaned_data['server_location']) or s_location == 3):
+                    self.errors.update({'server_unit': [
+                        'unit already in use by ' + s.hostname + '; units: ' +
+                        s.get_unit_string() + Server.locations.get(s.location)]})
+                    # todo добавить ссылку на сервер, с которым идёт пересечение?
 
     def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)
@@ -85,11 +106,11 @@ class ServerForm(forms.Form):
         # self.data['host_machine'].initial = ('2', 2)  # self.fields['host_machine'].choices[0]
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
-            self.server_is_physical = ser.is_physical
-            if ser.is_physical:
-                print('server_isphysical: true')
-            else:
-                self.host_machine_id = ser.host_machine.id
+            # self.server_is_physical = ser.is_physical
+            # if ser.is_physical:
+            #     print('server_isphysical: true')
+            # else:
+            #     self.host_machine_id = ser.host_machine.id
             for ip in ser.ip_set.all():
                 field_name = r'ip_' + str(ip.id)
                 self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
@@ -98,7 +119,7 @@ class ServerForm(forms.Form):
 class IpForm(forms.Form):
     try:
         segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
-                                                                             Segment.objects.all()])
+                                                                                 Segment.objects.all()])
     except OperationalError:
         pass
     ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")

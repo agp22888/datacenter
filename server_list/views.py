@@ -55,7 +55,8 @@ def servers(request):
                 ser_list.update({-1: row})
                 for server in rack.server_set.all():
                     if not len(server.segments.filter(id=target_segment)) == 0:
-                        row = [server.get_unit_string(), server.model, server.hostname,
+                        row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
+                               server.hostname,
                                get_power_state(server.is_on),
                                "", server.os, server.purpose]
                         for seg in seg_list:  # segment dict
@@ -98,9 +99,7 @@ def server_edit(request, server_id):
         raise Http404("No server found")
 
     if request.method == 'POST':
-        print('POST', request.POST.get('server_name'))
         form = ServerForm(request.POST, server_id=server_id)
-        print("form.is_valid()", form.is_valid())
         if not form.is_valid():
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
         else:
@@ -109,7 +108,6 @@ def server_edit(request, server_id):
             server.purpose = form.cleaned_data['server_purpose']
             server.sensitive_data = form.cleaned_data['sensitive_data']
             server.os = form.cleaned_data['server_os']
-
             server.is_physical = form.cleaned_data['is_physical']
             if form.cleaned_data['is_physical']:
                 server.unit = form.cleaned_data['server_unit']  #
@@ -122,6 +120,7 @@ def server_edit(request, server_id):
             else:
                 server.unit = 0
                 server.height = 0
+                server.location = None
                 server.model = ''
                 server.specs = ''
                 server.serial_num = ''
@@ -164,23 +163,39 @@ def server_new(request):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
         raise PermissionDenied
-    server = Server()
-    server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
+    # server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
     if request.method == 'GET':
-
-        data_dict = {
-            'server_name': 'New server',
-            'power_state': True,
-            'is_physical': True,
-            'host_machine': Server.objects.filter(is_physical=True).first().id}
-        form = ServerForm(data_dict, server_id=server_id, new_server=True)
-        print("is_bound: ", form.is_bound)
+        # data_dict = {
+        #     'server_name': 'New server',
+        #     'power_state': True,
+        #     'is_physical': True,
+        #     'host_machine': Server.objects.filter(is_physical=True).first().id}
+        # form = ServerForm(data_dict, server_id=server_id, new_server=True)
+        form = ServerForm(new_server=True)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':
-        form = ServerForm(request.POST, server_id=server_id, new_server=True)
+        form = ServerForm(request.POST, new_server=True)
         if form.is_valid():
+            s = Server()
+            s.hostname = form.cleaned_data['server_name']
 
-            return HttpResponse("OK")
+            s.purpose = form.cleaned_data['server_purpose']
+            s.is_on = form.cleaned_data['power_state']
+            s.is_physical = form.cleaned_data['is_physical']
+            s.os = form.cleaned_data['server_os']
+            s.sensitive_data = form.cleaned_data['sensitive_data']
+            if s.is_physical:
+                s.model = form.cleaned_data['server_model']
+                s.specs = form.cleaned_data['server_specs']
+                s.serial_num = form.cleaned_data['server_serial_number']
+                s.unit = form.cleaned_data['server_unit']
+                s.height = form.cleaned_data['server_height']
+                s.location = form.cleaned_data['server_location']
+                s.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
+            else:
+                s.host_machine = form.cleaned_data['host_machine']
+            s.save()
+            return redirect("server_view", s.id)
         else:
             print("not valid")
             print("bound", form.is_bound)

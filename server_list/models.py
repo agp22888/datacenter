@@ -52,18 +52,18 @@ class Segment(models.Model):
         return str(self.name)
 
 
-class Unit(models.Model):
-    number = models.IntegerField()
-    rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=None, blank=True, null=True)  # todo to be deleted
-
-    # server = models.OneToOneField(Server, on_delete=models.CASCADE, default=None, blank=True, null=True)
-
-    def __str__(self):
-        return str(self.number)
+# class Unit(models.Model):
+#     number = models.IntegerField()
+#     rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=None, blank=True, null=True)  # todo to be deleted
+#
+#     # server = models.OneToOneField(Server, on_delete=models.CASCADE, default=None, blank=True, null=True)
+#
+#     def __str__(self):
+#         return str(self.number)
 
 
 class Server(models.Model):
-    locations = {"front": 0, "back": 1, "full": 2}
+    locations = {0: "front", 1: "back", 2: "full"}
     hostname = models.CharField(max_length=50)
     model = models.CharField(max_length=50, blank=True)  # separate table?
     is_physical = models.BooleanField(default=True)
@@ -89,7 +89,7 @@ class Server(models.Model):
         return self.rack.room.territory
 
     def get_unit_string(self):
-        return str(self.unit) if self.height == 1 else str(self.unit) + "-" + str(self.unit + self.height)
+        return str(self.unit) if self.height == 1 else str(self.unit) + "-" + str(self.unit + self.height - 1)
 
 
 class Ip(models.Model):
