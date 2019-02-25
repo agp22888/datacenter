@@ -49,7 +49,6 @@ class ServerForm(forms.Form):
                                         choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
     except OperationalError:
         pass
-    # host_machine = forms.ChoiceField(label="Физический сервер", required=False)
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
@@ -64,7 +63,6 @@ class ServerForm(forms.Form):
     def clean(self):
         print("form_clean, server_id is:", self.server_id)
 
-        # server = Server.objects.get(pk=self.server_id)
         if not self.cleaned_data['is_physical']:
             if self.cleaned_data['host_machine'] == self.server_id:
                 self.errors.update({'host_machine': ['Виртуальная машина не может хоститься сама на себе!']})
@@ -90,7 +88,7 @@ class ServerForm(forms.Form):
                 s_location = s.location
                 print('server location is', self.cleaned_data['server_location'], s_location)
                 if ((s_unit_low <= unit_low <= s_unit_high or s_unit_low <= unit_high <= s_unit_high) \
-                        or (unit_low < s_unit_low and unit_high > s_unit_high)) \
+                    or (unit_low < s_unit_low and unit_high > s_unit_high)) \
                         and (s_location == int(self.cleaned_data['server_location']) or s_location == 3):
                     self.errors.update({'server_unit': [
                         'unit already in use by ' + s.hostname + '; units: ' +
@@ -101,16 +99,8 @@ class ServerForm(forms.Form):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)
         super(ServerForm, self).__init__(*args, **kwargs)
-        # if len(self.fields['host_machine'].choices) > 0:
-
-        # self.data['host_machine'].initial = ('2', 2)  # self.fields['host_machine'].choices[0]
         if not self.new:
             ser = Server.objects.get(pk=self.server_id)
-            # self.server_is_physical = ser.is_physical
-            # if ser.is_physical:
-            #     print('server_isphysical: true')
-            # else:
-            #     self.host_machine_id = ser.host_machine.id
             for ip in ser.ip_set.all():
                 field_name = r'ip_' + str(ip.id)
                 self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
@@ -163,3 +153,9 @@ class SegmentForm(ModelForm):
                 {'segment_parent_segment': ['Некорневой сегмент должен быть наследованным от корневого']})
         # if parent_segment is not None and not Segment.objects.filter(pk=parent_segment).exists():
         #    self.errors.update({'parent_segment': ['Сегмент не существует']})
+
+
+class RackForm(ModelForm):
+    class Meta:
+        model = Rack
+        fields = '__all__'

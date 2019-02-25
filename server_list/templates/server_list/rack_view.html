@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Карточка стойки</title>
+</head>
+<body>
+{{rack}}
+<p></p>
+{{rack.description}}
+{% if front %}
+<p>FRONT</p>
+{% for t, v in front.items %}
+{{t}}:{{v}}
+<p></p>
+{% endfor %}
+{% endif %}
+{% if back %}
+<p>BACK</p>
+{% for t, v in back.items %}
+{{t}}:{{v}}
+<p></p>
+{% endfor %}
+{% endif %}
+</body>
+</html>

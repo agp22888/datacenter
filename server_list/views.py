@@ -38,7 +38,6 @@ def servers(request):
     tabs = []  # список территорий для вкладок
     ser_dict = {}  # список серверов (список списков по территориям?)
     # {territory:{room:{rack::server_list}}}
-
     for t in territories:
         tabs.append(t.name)
         seg_list = Segment.objects.filter(server__in=t.get_servers(target_segment)).distinct()
@@ -51,7 +50,6 @@ def servers(request):
                     row.append(seg)
                 row.append("s/n")
                 row.append("хар-ки")
-                # row.append("учётные данные")
                 ser_list.update({-1: row})
                 for server in rack.server_set.all():
                     if not len(server.segments.filter(id=target_segment)) == 0:
@@ -59,19 +57,10 @@ def servers(request):
                                server.hostname,
                                "on" if server.is_on else "off",
                                "", server.os, server.purpose]
-                        for seg in seg_list:  # segment dict
-                            # ip_str = ''
-                            # new_line = ''
-                            # for ip in server.ip_set.filter(segment=seg):  # todo много ip в одном сегменте
-                            #     ip_str += new_line + Ip.get_string_ip(ip.ip_as_int)
-                            #     new_line = '\n'
-                            # row.append(ip_str)
-
+                        for seg in seg_list:
                             row.append([Ip.get_string_ip(x.ip_as_int) for x in list(server.ip_set.filter(segment=seg))])
                         row.append(server.serial_num)
                         row.append(server.specs)
-                        # row.append(server.sensitive_data)
-                        #  <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
                         ser_list.update({server.id: row})
                         for vm in server.server_set.all():
                             vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
@@ -81,7 +70,6 @@ def servers(request):
                                     [Ip.get_string_ip(x.ip_as_int) for x in list(vm.ip_set.filter(segment=seg))])
                             vm_row.append("")
                             vm_row.append("")
-                            # vm_row.append(vm.sensitive_data)
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
 
@@ -163,14 +151,7 @@ def server_new(request):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
         raise PermissionDenied
-    # server_id = max(Server.objects.all().values_list('id', flat=True)) + 1
     if request.method == 'GET':
-        # data_dict = {
-        #     'server_name': 'New server',
-        #     'power_state': True,
-        #     'is_physical': True,
-        #     'host_machine': Server.objects.filter(is_physical=True).first().id}
-        # form = ServerForm(data_dict, server_id=server_id, new_server=True)
         form = ServerForm(new_server=True)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':
@@ -286,6 +267,23 @@ def segment_edit(request, segment_id):
     return None
 
 
+def rack_view(request, rack_id):
+    try:
+        rack = Rack.objects.get(pk=rack_id)
+    except Rack.DoesNotExist:
+        raise Http404("No rack found")
+    rack_front = {}
+    rack_back = {}
+    for s in rack.server_set.all():
+        for i in range(s.unit, s.unit + s.height):
+            if s.location != 0:
+                rack_front.update({i: s})
+            elif s.location != 1:
+                rack_back.update({i: s})
+    return render(request, os.path.join('server_list', 'rack_view.html'),
+                  {'rack': rack, 'front': rack_front, 'back': rack_back})
+
+
 def server_view(request, server_id):
     try:
         server = Server.objects.get(pk=server_id)
@@ -356,14 +354,10 @@ def ajax(request):
                 return HttpResponse('500')
         else:
             return HttpResponse('Access Denied')
-    # response = HttpResponse(
-    #     serializers.serialize('json', Server.objects.all(), fields=('pk', 'hostname', 'purpose')),
-    #     content_type='application/json')
     if request.GET.get('model') == 'vm':
         return HttpResponse(
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
-    # return response
     if request.GET.get('action') == 'delete_ip':
         ip_id = request.GET.get('ip_id')
         try:
@@ -376,8 +370,4 @@ def ajax(request):
 
 
 def segment_view():
-    return None
-
-
-def rack_view(request):
     return None
