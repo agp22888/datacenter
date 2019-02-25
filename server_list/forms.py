@@ -2,7 +2,7 @@ from django import forms
 from django.forms import CharField, ModelForm, GenericIPAddressField
 
 from server_list.models import Server, Rack, Room, Territory, Segment, Ip
-
+from django.db.utils import OperationalError
 
 # todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
 
@@ -19,22 +19,26 @@ class ServerForm(forms.Form):
     is_physical = forms.BooleanField(label="Физический сервер", required=False)
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
-    host_machine = forms.ChoiceField(label="Физический сервер", required=False,
-                                     choices=[(str(ser.id), ser.hostname) for ser in
-                                              Server.objects.filter(is_physical=True)],
-                                     initial=Server.objects.filter(pk=2))
+    try:
+        host_machine = forms.ChoiceField(label="Физический сервер", required=False,
+                                         choices=[(str(ser.id), ser.hostname) for ser in
+                                                  Server.objects.filter(is_physical=True)],
+                                         initial=Server.objects.filter(pk=2))
+        server_territory = forms.ChoiceField(label="Территория", required=False,
+                                             choices=[(str(ter.id), ter.name) for ter in Territory.objects.all()])
+        server_room = forms.ChoiceField(label='Помещение', required=False,
+                                        choices=[(str(room.id), room.name) for room in Room.objects.all()])
+        server_rack = forms.ChoiceField(label='Стойка', required=False,
+                                        choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
+    except OperationalError:
+        pass
     # host_machine = forms.ChoiceField(label="Физический сервер", required=False)
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
     server_specs = forms.CharField(label="Характеристики", required=False)
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
-    server_territory = forms.ChoiceField(label="Территория", required=False,
-                                         choices=[(str(ter.id), ter.name) for ter in Territory.objects.all()])
-    server_room = forms.ChoiceField(label='Помещение', required=False,
-                                    choices=[(str(room.id), room.name) for room in Room.objects.all()])
-    server_rack = forms.ChoiceField(label='Стойка', required=False,
-                                    choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
+
 
     vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
                          'server_room', 'server_rack']
@@ -92,8 +96,11 @@ class ServerForm(forms.Form):
 
 
 class IpForm(forms.Form):
-    segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
+    try:
+        segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
                                                                              Segment.objects.all()])
+    except OperationalError:
+        pass
     ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")
 
     def __init__(self, *args, **kwargs):

@@ -220,8 +220,6 @@ def ip_new(request, server_id):
     except Server.DoesNotExist:
         raise Http404("Server not found")
     if request.method == 'GET':
-        data = {'segment_id': Segment.objects.first().id,
-                'ip': Ip.get_string_ip(0)}
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpForm()})
     elif request.method == 'POST':
         form = IpForm(request.POST)
@@ -371,7 +369,7 @@ def update(d, u):
     return d
 
 
-def get_power_state(server_is_on):
+def get_power_state(server_is_on):  # todo move to templatetags
     return "on" if server_is_on else "off"
 
 

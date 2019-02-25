@@ -63,6 +63,7 @@ class Unit(models.Model):
 
 
 class Server(models.Model):
+    locations = {"front": 0, "back": 1, "full": 2}
     hostname = models.CharField(max_length=50)
     model = models.CharField(max_length=50, blank=True)  # separate table?
     is_physical = models.BooleanField(default=True)
@@ -77,6 +78,7 @@ class Server(models.Model):
     segments = models.ManyToManyField(Segment, through='Ip')
     height = models.IntegerField(blank=True, null=True)
     unit = models.IntegerField(blank=True, null=True)
+    location = models.IntegerField(blank=True, null=True)
     # unit = models.OneToOneField(Unit, on_delete=models.CASCADE, default=None, blank=True, null=True)
     rack = models.ForeignKey(Rack, on_delete=models.DO_NOTHING, default=None, blank=True, null=True)
 
