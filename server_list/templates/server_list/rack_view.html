@@ -8,33 +8,70 @@
             console.log(window.innerWidth, window.innerHeight);
             var canvas = document.getElementById("myCanvas");
             var ctx = canvas.getContext("2d");
+
+            var windowWidth = Math.round(window.innerWidth/2);
+            var windowHeight = window.innerHeight-100;
+            ctx.canvas.width = windowWidth;
+            ctx.canvas.height = windowHeight;
             ctx.fillStyle = "#FF0000";
-            ctx.fillRect(0, 0, 150, 75);
+
+            var rackWidth = Math.round(windowWidth*.3);
+            var rackGap = Math.round(windowWidth*.1);
+            var horMargin = 0.5+(windowWidth-rackWidth*2-rackGap)/2;
+            var verMargin = 0.5+Math.round(windowHeight*.15);
+            var rackHeight = windowHeight-2*verMargin;
+
+            ctx.lineWidth = 1;
+
+            ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
+            ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
+
+            var rackSize = {{rack.size}};
+            var front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+            var back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+
+
+            var unitHeight = rackHeight/rackSize;
+
+            for (var i = 1; i<rackSize; i++){
+                y = 0.5+Math.round(verMargin + unitHeight * i);
+                ctx.beginPath();
+                ctx.moveTo(horMargin, y);
+                ctx.lineTo(horMargin + rackWidth, y);
+                ctx.stroke();
+                ctx.moveTo(horMargin + rackWidth + rackGap, y);
+                ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
+                ctx.stroke();
+                ctx.closePath();
+            }
        }
 
     </script>
 </head>
 <body onload="draw();">
-{{rack}}
-<p></p>
-{{rack.description}}
-{% if front %}
-<p>FRONT</p>
-{% for t, v in front.items %}
-{{t}}:{{v}}
-<p></p>
-{% endfor %}
-{% endif %}
-{% if back %}
-<p>BACK</p>
-{% for t, v in back.items %}
-{{t}}:{{v}}
-<p></p>
-{% endfor %}
-{% endif %}
+<div style="width:100%; overflow: hidden;">
+    <div style="float: left;" class="block1">
+        <p>{{rack}}</p>
+        <p> {{rack.size}} </p>
+        <p>{{rack.description}}</p>
+        {% if front %}
+        <p>FRONT</p>
+        {% for t, v in front.items %}
+        <p>unit {{t}}: {{v}}</p>
+        {% endfor %}
+        {% endif %}
+        {% if back %}
+        <p>BACK</p>
+        {% for t, v in back.items %}
+        <p>unit {{t}}: {{v}}</p>
+        {% endfor %}
+        {% endif %}
+    </div>
 
-<canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;">
+    <div style="margin-left;" class="block2">
+        <canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;"></canvas>
+    </div>
+</div>
 
-</canvas>
 </body>
 </html>
