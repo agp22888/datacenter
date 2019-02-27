@@ -7,7 +7,11 @@
         function draw(){
             console.log(window.innerWidth, window.innerHeight);
             var canvas = document.getElementById("myCanvas");
+            canvas.addEventListener("mousemove",mouseDown,false);
             var ctx = canvas.getContext("2d");
+            var rackSize = {{rack.size}};
+            var front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+            var back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
 
             var windowWidth = Math.round(window.innerWidth/2);
             var windowHeight = window.innerHeight-100;
@@ -17,47 +21,75 @@
 
             var rackWidth = Math.round(windowWidth*.3);
             var rackGap = Math.round(windowWidth*.1);
-            var horMargin = 0.5+(windowWidth-rackWidth*2-rackGap)/2;
-            var verMargin = 0.5+Math.round(windowHeight*.15);
+            var horMargin = 0.5+Math.round(windowWidth-rackWidth*2-rackGap)/2;
+            var verMargin = 0.5+Math.round(windowHeight*.05);
             var rackHeight = windowHeight-2*verMargin;
+            var unitHeight = Math.round(rackHeight/rackSize);
+            rackHeight = unitHeight*rackSize;
 
             ctx.lineWidth = 1;
 
             ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
             ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
 
-            var rackSize = {{rack.size}};
-            var front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
-            var back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
 
 
-            var unitHeight = rackHeight/rackSize;
 
-            for (var i = 1; i<rackSize; i++){
-                y = 0.5+Math.round(verMargin + unitHeight * i);
+
+            var fontSize =Math.round(unitHeight-2);
+            ctx.font =  fontSize + "px Arial";
+            var topDown = {{rack.topdown|yesno:"true,false"}};
+            for (var i = 1; i<=rackSize; i++){
+                if (topDown){
+                    y = 0.5+Math.round(verMargin + unitHeight * i);
+                }else{
+                    y = 0.5+Math.round(verMargin + rackHeight - unitHeight * i);
+                }
+                ctx.fillStyle = "black";
+                ctx.fillText(i, horMargin - ctx.measureText("00").width - 2, y - 2 + (topDown?0:unitHeight))
                 ctx.beginPath();
-                ctx.moveTo(horMargin, y);
-                ctx.lineTo(horMargin + rackWidth, y);
+
+                if ( i!= rackSize) {
+                    ctx.moveTo(horMargin, y);
+                    ctx.lineTo(horMargin + rackWidth, y);
+                }
                 ctx.stroke();
+                ctx.fillText(i, horMargin + rackWidth +rackGap - ctx.measureText("00").width - 2, y - 2 + (topDown?0:unitHeight))
                 ctx.moveTo(horMargin + rackWidth + rackGap, y);
-                ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
+                if ( i!= rackSize)  ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
                 ctx.stroke();
                 ctx.closePath();
             }
-            ctx.font = rackHeight-2 + " Arial";
+
+
             for (var server in front){
+                console.log(ctx.measureText(server));
                 ctx.fillStyle= "#FF0000";
-                ctx.fillRect(horMargin,  0.5+Math.round(verMargin + unitHeight*(front[server][0]-1)), rackWidth, 0.5+Math.round(unitHeight*front[server][1]));
+                if (topDown){
+                    y = verMargin + unitHeight*(front[server][0]-1);
+                } else {
+                    y = verMargin + rackHeight - unitHeight*(front[server][0]-1 + front[server][1]);
+                }
+                ctx.fillRect(horMargin,  0.5+Math.round(y), rackWidth,  unitHeight*front[server][1]);
                 ctx.fillStyle = "black"
-                ctx.fillText(server,horMargin+rackWidth/2, 0.5+Math.round(verMargin + unitHeight*(front[server][0]-1) + front[server][1]*unitHeight/2));
+                ctx.fillText(server,horMargin+rackWidth/2-ctx.measureText(server).width/2, y + front[server][1]*unitHeight/2 + fontSize/2);
             }
 
             for (var server in back){
                 ctx.fillStyle= "#FF0000";
-                ctx.fillRect(horMargin+rackGap+rackWidth,  0.5+Math.round(verMargin + unitHeight*(back[server][0]-1)), rackWidth, 0.5+Math.round(unitHeight*back[server][1]));
+                  if (topDown){
+                    y = verMargin + unitHeight*(back[server][0]-1);
+                } else {
+                    y = verMargin + rackHeight - unitHeight*(back[server][0]-1 + back[server][1]);
+                }
+                ctx.fillRect(horMargin+rackGap+rackWidth,  0.5+Math.round(y), rackWidth, unitHeight*back[server][1]);
                 ctx.fillStyle = "black"
-                ctx.fillText(server,horMargin+rackGap+rackWidth+rackWidth/2, 0.5+Math.round(verMargin + unitHeight*(back[server][0]-1) + back[server][1]*unitHeight/2));
+                ctx.fillText(server,horMargin+rackGap+rackWidth+rackWidth/2 -ctx.measureText(server).width/2, y + back[server][1]*unitHeight/2 + fontSize/2);
             }
+       }
+
+       function mouseDown(event){
+        console.log(event.pageX, event.pageY);
        }
 
     </script>

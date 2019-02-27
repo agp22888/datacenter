@@ -278,7 +278,7 @@ def rack_view(request, rack_id):
         units = [s.unit, s.height]
         if s.location != 0:
             rack_front.update({s: units})
-        elif s.location != 1:
+        if s.location != 1:
             rack_back.update({s: units})
     return render(request, os.path.join('server_list', 'rack_view.html'),
                   {'rack': rack, 'front': rack_front, 'back': rack_back})

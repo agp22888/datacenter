@@ -63,6 +63,7 @@ class ServerForm(forms.Form):
 
     def clean(self):
         print("form_clean, server_id is:", self.server_id)
+        # todo проверить, не выходит ли юнит за границы стойки
 
         if not self.cleaned_data['is_physical']:
             if self.cleaned_data['host_machine'] == self.server_id:
