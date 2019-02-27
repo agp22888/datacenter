@@ -4,44 +4,41 @@
     <meta charset="UTF-8">
     <title>Карточка стойки</title>
     <script>
-        function draw(mouseX, mouseY){
-            pook = "kek";
-            var canvas = document.getElementById("myCanvas");
+        function init(){
+            canvas = document.getElementById("myCanvas");
             canvas.addEventListener("mousemove",mouseDown,false);
             var rect = canvas.getBoundingClientRect();
-            mouseX -= rect.left;
-            mouseY -= rect.top;
-            var ctx = canvas.getContext("2d");
-            var rackSize = {{rack.size}};
-            var front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
-            var back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
-
-            var windowWidth = Math.round(window.innerWidth/2);
-            var windowHeight = window.innerHeight-100;
+            ctx = canvas.getContext("2d");
+            rackSize = {{rack.size}};
+            front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+            back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+            windowWidth = Math.round(window.innerWidth/2);
+            windowHeight = window.innerHeight-100;
             ctx.canvas.width = windowWidth;
             ctx.canvas.height = windowHeight;
-            ctx.fillStyle = "#FF0000";
-
-            var rackWidth = Math.round(windowWidth*.3);
-            var rackGap = Math.round(windowWidth*.1);
-            var horMargin = 0.5+Math.round(windowWidth-rackWidth*2-rackGap)/2;
-            var verMargin = 0.5+Math.round(windowHeight*.05);
-            var rackHeight = windowHeight-2*verMargin;
-            var unitHeight = Math.round(rackHeight/rackSize);
+            rackWidth = Math.round(windowWidth*.3);
+            rackGap = Math.round(windowWidth*.1);
+            horMargin = 0.5+Math.round(windowWidth-rackWidth*2-rackGap)/2;
+            verMargin = 0.5+Math.round(windowHeight*.05);
+            rackHeight = windowHeight-2*verMargin;
+            unitHeight = Math.round(rackHeight/rackSize);
             rackHeight = unitHeight*rackSize;
+            topDown = {{rack.topdown|yesno:"true,false"}};
+            drawRack();
+        }
 
+        highlightUnit(mouseX, mouseY){
+
+        }
+
+        function drawRack(){
+            ctx.fillStyle = "#FF0000";
             ctx.lineWidth = 1;
-
             ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
             ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
-
-
-
-
-
-            var fontSize =Math.round(unitHeight-2);
+            var fontSize = Math.round(unitHeight-2);
             ctx.font =  fontSize + "px Arial";
-            var topDown = {{rack.topdown|yesno:"true,false"}};
+
             for (var i = 1; i<=rackSize; i++){
                 if (topDown){
                     y = 0.5+Math.round(verMargin + unitHeight * i);
@@ -66,13 +63,14 @@
                 }
                 ctx.stroke();
                 ctx.closePath();
-                console.log(mouseY, y);
-                if ((mouseY>y && mouseY<(y+unitHeight)) && (mouseX > horMargin && mouseX < (horMargin + rackWidth))){
-                    console.log("yay");
-                    ctx.fillStyle = "gray";
-                    ctx.fillRect(horMargin, y, rackWidth, unitHeight);
-                }
+                //if ((mouseY>y && mouseY<(y+unitHeight)) && (mouseX > horMargin && mouseX < (horMargin + rackWidth))){
+                //    console.log("yay");
+                //    ctx.fillStyle = "gray";
+                //    ctx.fillRect(horMargin, y, rackWidth, unitHeight);
+                //}
             }
+
+            //todo координаты ячеек стойки занести в массив?
 
 
             for (var server in front){
@@ -100,18 +98,14 @@
             }
        }
 
-       function kek(){
-            console.log(pook);
-       }
 
        function mouseDown(event){
-            draw(event.pageX, event.pageY);
-            kek();
+            //draw(event.pageX, event.pageY);
        }
 
     </script>
 </head>
-<body onload="draw(0,0);">
+<body onload="init();">
 <div style="width:100%; overflow: hidden;">
     <div style="float: left;" class="block1">
         <p>{{rack.name}}</p>
