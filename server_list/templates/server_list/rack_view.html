@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <title>Карточка стойки</title>
     <script>
-        function draw(){
-            console.log(window.innerWidth, window.innerHeight);
+        function draw(mouseX, mouseY){
+            pook = "kek";
             var canvas = document.getElementById("myCanvas");
             canvas.addEventListener("mousemove",mouseDown,false);
+            var rect = canvas.getBoundingClientRect();
+            mouseX -= rect.left;
+            mouseY -= rect.top;
             var ctx = canvas.getContext("2d");
             var rackSize = {{rack.size}};
             var front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
@@ -42,11 +45,13 @@
             for (var i = 1; i<=rackSize; i++){
                 if (topDown){
                     y = 0.5+Math.round(verMargin + unitHeight * i);
+                    m = 0
                 }else{
                     y = 0.5+Math.round(verMargin + rackHeight - unitHeight * i);
+                    m = unitHeight;
                 }
                 ctx.fillStyle = "black";
-                ctx.fillText(i, horMargin - ctx.measureText("00").width - 2, y - 2 + (topDown?0:unitHeight))
+                ctx.fillText(i, horMargin - ctx.measureText("00").width - 2, y - 2 + m);
                 ctx.beginPath();
 
                 if ( i!= rackSize) {
@@ -54,16 +59,23 @@
                     ctx.lineTo(horMargin + rackWidth, y);
                 }
                 ctx.stroke();
-                ctx.fillText(i, horMargin + rackWidth +rackGap - ctx.measureText("00").width - 2, y - 2 + (topDown?0:unitHeight))
-                ctx.moveTo(horMargin + rackWidth + rackGap, y);
-                if ( i!= rackSize)  ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
+                ctx.fillText(i, horMargin + rackWidth +rackGap - ctx.measureText("00").width - 2, y - 2 + m);
+                if ( i!= rackSize){
+                    ctx.moveTo(horMargin + rackWidth + rackGap, y);
+                    ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
+                }
                 ctx.stroke();
                 ctx.closePath();
+                console.log(mouseY, y);
+                if ((mouseY>y && mouseY<(y+unitHeight)) && (mouseX > horMargin && mouseX < (horMargin + rackWidth))){
+                    console.log("yay");
+                    ctx.fillStyle = "gray";
+                    ctx.fillRect(horMargin, y, rackWidth, unitHeight);
+                }
             }
 
 
             for (var server in front){
-                console.log(ctx.measureText(server));
                 ctx.fillStyle= "#FF0000";
                 if (topDown){
                     y = verMargin + unitHeight*(front[server][0]-1);
@@ -88,13 +100,18 @@
             }
        }
 
+       function kek(){
+            console.log(pook);
+       }
+
        function mouseDown(event){
-        console.log(event.pageX, event.pageY);
+            draw(event.pageX, event.pageY);
+            kek();
        }
 
     </script>
 </head>
-<body onload="draw();">
+<body onload="draw(0,0);">
 <div style="width:100%; overflow: hidden;">
     <div style="float: left;" class="block1">
         <p>{{rack.name}}</p>
