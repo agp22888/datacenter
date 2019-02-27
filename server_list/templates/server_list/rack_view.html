@@ -97,21 +97,12 @@
 <body onload="draw();">
 <div style="width:100%; overflow: hidden;">
     <div style="float: left;" class="block1">
-        <p>{{rack}}</p>
-        <p> {{rack.size}} </p>
-        <p>{{rack.description}}</p>
-        {% if front %}
-        <p>FRONT</p>
-        {% for t, v in front.items %}
-        <p>unit {{t}}: {{v}}</p>
-        {% endfor %}
-        {% endif %}
-        {% if back %}
-        <p>BACK</p>
-        {% for t, v in back.items %}
-        <p>unit {{t}}: {{v}}</p>
-        {% endfor %}
-        {% endif %}
+        <p>{{rack.name}}</p>
+        <p>Расположение: {{rack.room}}</p>
+        <p>Размер в юнитах: {{rack.size}} </p>
+        <p>Нумерация: {{rack.topdown|yesno:"сверху,снизу"}}</p>
+        <p>Описание: {{rack.description}}</p>
+        <p>Серийный номер: {{rack.serial_number}}</p>
     </div>
 
     <div style="margin-left;" class="block2">

@@ -39,7 +39,7 @@ class Rack(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     serial_number = models.CharField(max_length=100, blank=True)
     size = models.IntegerField(default=0)
-    topdown = models.BooleanField(default=True)
+    topdown = models.BooleanField(default=False)
 
     def __str__(self):
         return self.room.__str__() + ", " + self.name
