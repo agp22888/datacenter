@@ -44,6 +44,20 @@
                 ctx.stroke();
                 ctx.closePath();
             }
+            ctx.font = rackHeight-2 + " Arial";
+            for (var server in front){
+                ctx.fillStyle= "#FF0000";
+                ctx.fillRect(horMargin,  0.5+Math.round(verMargin + unitHeight*(front[server][0]-1)), rackWidth, 0.5+Math.round(unitHeight*front[server][1]));
+                ctx.fillStyle = "black"
+                ctx.fillText(server,horMargin+rackWidth/2, 0.5+Math.round(verMargin + unitHeight*(front[server][0]-1) + front[server][1]*unitHeight/2));
+            }
+
+            for (var server in back){
+                ctx.fillStyle= "#FF0000";
+                ctx.fillRect(horMargin+rackGap+rackWidth,  0.5+Math.round(verMargin + unitHeight*(back[server][0]-1)), rackWidth, 0.5+Math.round(unitHeight*back[server][1]));
+                ctx.fillStyle = "black"
+                ctx.fillText(server,horMargin+rackGap+rackWidth+rackWidth/2, 0.5+Math.round(verMargin + unitHeight*(back[server][0]-1) + back[server][1]*unitHeight/2));
+            }
        }
 
     </script>

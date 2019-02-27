@@ -48,6 +48,7 @@ class ServerForm(forms.Form):
         server_rack = forms.ChoiceField(label='Стойка', required=False,
                                         choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
     except OperationalError:
+        print("operational error")
         pass
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
@@ -57,7 +58,7 @@ class ServerForm(forms.Form):
     server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
                                         choices=[(i, n) for i, n in Server.locations.items()])
     vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
-                         'server_room', 'server_rack']
+                         'server_room', 'server_rack', 'server_location']
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):

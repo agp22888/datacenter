@@ -174,7 +174,7 @@ def server_new(request):
                 s.location = form.cleaned_data['server_location']
                 s.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
             else:
-                s.host_machine = form.cleaned_data['host_machine']
+                s.host_machine = Server.objects.get(pk=int(form.cleaned_data['host_machine']))
             s.save()
             return redirect("server_view", s.id)
         else:
@@ -275,7 +275,7 @@ def rack_view(request, rack_id):
     rack_front = {}
     rack_back = {}
     for s in rack.server_set.all():
-        units = [s.unit, s.unit + s.height - 1] if s.height > 1 else [s.unit]
+        units = [s.unit, s.height]
         if s.location != 0:
             rack_front.update({s: units})
         elif s.location != 1:
