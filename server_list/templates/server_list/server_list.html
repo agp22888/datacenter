@@ -101,7 +101,7 @@
 <div>
     <!-- ссылки на сегменты -->
     {% for id, name in links.items %}
-    <a href="\servers\list?segment={{ id }}">{{name}}</a>
+    <a href={% url 'list' %}?segment={{ id }}>{{name}}</a>
     {% endfor %}
 </div>
 
@@ -116,7 +116,7 @@
     {% for room, rack_dict in room_dict.items %}
     <p>{{room.name}}</p>
     {% for rack, ser_dict in rack_dict.items %}
-    <p>{{rack.name}}</p>
+    <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
     <table width="100%">
         <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 

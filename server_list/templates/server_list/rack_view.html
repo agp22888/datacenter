@@ -8,7 +8,7 @@
             canvas = document.getElementById("myCanvas");
             canvas.addEventListener("mousemove",mouseDown,false);
             canvas.addEventListener("click",mouseClick,false);
-            correctionRect = canvas.getBoundingClientRect();
+
             ctx = canvas.getContext("2d");
             rackSize = {{rack.size}};
             front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
@@ -97,8 +97,11 @@
        }
 
        function mouseDown(event){
+            correctionRect = canvas.getBoundingClientRect();
+            //console.log(correctionRect);
             x = event.pageX - correctionRect.left;
             y = event.pageY - correctionRect.top;
+
 
             ctx.clearRect(0,0,canvas.width,canvas.height);
             drawRack();
@@ -108,10 +111,10 @@
                 if (y < unitCoords[i+1][0] && y > unitCoords[i][0]){
                     if (x > unitCoords[i][1] && x < unitCoords[i][2]){
                         ctx.strokeRect(unitCoords[i][1], unitCoords[i][0], rackWidth, unitHeight);
-                        return [topDown?i+1:racksize-i,0];
+                        return [topDown?i+1:rackSize-i,0];
                     }else if(x > unitCoords[i][3] && x < unitCoords[i][4]){
                         ctx.strokeRect(unitCoords[i][3], unitCoords[i][0], rackWidth, unitHeight);
-                        return [topDown?i+1:racksize-i,1];
+                        return [topDown?i+1:rackSize-i,1];
                     }
                 }
             }
@@ -120,7 +123,32 @@
        }
 
        function mouseClick(event){
-            console.log(mouseDown(event));
+            data = mouseDown(event);
+            console.log(data);
+            //console.log(front);
+            if (data[0] == 0) return;
+            front_ids = { {% for s in front %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
+            back_ids  = { {% for s in back %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
+
+            switch(data[1]){
+                case 0:
+                    for(let server in front){
+                        if (data[0]<= front[server][0] + front[server][1] -1 && data[0]>= front[server][0]){
+                            console.log("success", front[server], front_ids[server]);
+                            window.open('{% url 'server_view_without_parameters'%}'+ front_ids[server],  "_self");
+                        }
+                    }
+                    break;
+                case 1:
+                    for(let server in back){
+                        if (data[0]<= back[server][0] + back[server][1] -1 && data[0]>= back[server][0]){
+                            console.log("success", back[server], back_ids[server]);
+                            window.open('{% url 'server_view_without_parameters'%}'+ front_ids[server],  "_self");
+                        }
+                    }
+                    break;
+
+            }
        }
 
 
