@@ -5,7 +5,6 @@ register = template.Library()
 
 @register.filter()
 def is_list(value):
-
     return isinstance(value, list)
 
 
@@ -24,6 +23,7 @@ def convert_none(value):
 @register.filter()
 def negate(boolean):
     return (not boolean).__str__()
+
 
 @register.filter()
 def get_ip_num(value):

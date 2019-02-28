@@ -7,7 +7,8 @@
         function init(){
             canvas = document.getElementById("myCanvas");
             canvas.addEventListener("mousemove",mouseDown,false);
-            var rect = canvas.getBoundingClientRect();
+            canvas.addEventListener("click",mouseClick,false);
+            correctionRect = canvas.getBoundingClientRect();
             ctx = canvas.getContext("2d");
             rackSize = {{rack.size}};
             front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
@@ -24,84 +25,104 @@
             unitHeight = Math.round(rackHeight/rackSize);
             rackHeight = unitHeight*rackSize;
             topDown = {{rack.topdown|yesno:"true,false"}};
+            fontSize = Math.round(unitHeight-2);
+            unitCoords = [];
+            for (let i = 0; i<=rackSize; i++){
+                // [y, xStart1, xEnd1, xStart2, xEnd2];
+                unitCoords.push([0.5+Math.round(verMargin + unitHeight * i), horMargin, horMargin + rackWidth, horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap]);
+            }
+            console.log(unitCoords);
             drawRack();
         }
 
-        highlightUnit(mouseX, mouseY){
 
-        }
 
         function drawRack(){
-            ctx.fillStyle = "#FF0000";
+            ctx.strokeStyle = "black";
             ctx.lineWidth = 1;
-            ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
-            ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
-            var fontSize = Math.round(unitHeight-2);
+            //ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
+            //ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
+            ctx.beginPath();
+            ctx.moveTo(unitCoords[0][1],unitCoords[0][0]);
+            ctx.lineTo(unitCoords[rackSize ][1],unitCoords[rackSize][0]);
+            ctx.stroke();
+            ctx.moveTo(unitCoords[0][2],unitCoords[0][0]);
+            ctx.lineTo(unitCoords[rackSize][2],unitCoords[rackSize][0]);
+            ctx.stroke();
+            ctx.moveTo(unitCoords[0][3],unitCoords[0][0]);
+            ctx.lineTo(unitCoords[rackSize][3],unitCoords[rackSize][0]);
+            ctx.stroke();
+            ctx.moveTo(unitCoords[0][4],unitCoords[0][0]);
+            ctx.lineTo(unitCoords[rackSize][4],unitCoords[rackSize][0]);
+            ctx.stroke();
+            ctx.closePath();
             ctx.font =  fontSize + "px Arial";
+            var numDisplacement = ctx.measureText("00").width +2;
 
-            for (var i = 1; i<=rackSize; i++){
-                if (topDown){
-                    y = 0.5+Math.round(verMargin + unitHeight * i);
-                    m = 0
-                }else{
-                    y = 0.5+Math.round(verMargin + rackHeight - unitHeight * i);
-                    m = unitHeight;
-                }
-                ctx.fillStyle = "black";
-                ctx.fillText(i, horMargin - ctx.measureText("00").width - 2, y - 2 + m);
+            for (let i = 0; i <= rackSize; i++){
                 ctx.beginPath();
-
-                if ( i!= rackSize) {
-                    ctx.moveTo(horMargin, y);
-                    ctx.lineTo(horMargin + rackWidth, y);
-                }
-                ctx.stroke();
-                ctx.fillText(i, horMargin + rackWidth +rackGap - ctx.measureText("00").width - 2, y - 2 + m);
-                if ( i!= rackSize){
-                    ctx.moveTo(horMargin + rackWidth + rackGap, y);
-                    ctx.lineTo(horMargin + rackWidth * 2 + rackGap, y);
-                }
+                ctx.fillStyle="black";
+                coordArray = unitCoords[i];
+                ctx.moveTo(coordArray[1],coordArray[0]);
+                ctx.lineTo(coordArray[2],coordArray[0]);
+                ctx.moveTo(coordArray[3],coordArray[0]);
+                ctx.lineTo(coordArray[4],coordArray[0]);
                 ctx.stroke();
                 ctx.closePath();
-                //if ((mouseY>y && mouseY<(y+unitHeight)) && (mouseX > horMargin && mouseX < (horMargin + rackWidth))){
-                //    console.log("yay");
-                //    ctx.fillStyle = "gray";
-                //    ctx.fillRect(horMargin, y, rackWidth, unitHeight);
-                //}
+                if (i >0){
+                    ctx.fillText(topDown?i:rackSize +1 - i, coordArray[1]-numDisplacement, coordArray[0]- 2);
+                    ctx.fillText(topDown?i:rackSize +1 - i, coordArray[3]-numDisplacement, coordArray[0]- 2);
+                }
             }
 
-            //todo координаты ячеек стойки занести в массив?
-
-
-            for (var server in front){
-                ctx.fillStyle= "#FF0000";
-                if (topDown){
-                    y = verMargin + unitHeight*(front[server][0]-1);
-                } else {
-                    y = verMargin + rackHeight - unitHeight*(front[server][0]-1 + front[server][1]);
-                }
-                ctx.fillRect(horMargin,  0.5+Math.round(y), rackWidth,  unitHeight*front[server][1]);
-                ctx.fillStyle = "black"
-                ctx.fillText(server,horMargin+rackWidth/2-ctx.measureText(server).width/2, y + front[server][1]*unitHeight/2 + fontSize/2);
+            for (let server in front){
+                ctx.fillStyle = "yellow";
+                serverUnit = topDown?front[server][0]-1:(rackSize-front[server][0] - front[server][1]+1);
+                //console.log(serverUnit);
+                coordArray = unitCoords[serverUnit];
+                ctx.fillRect(coordArray[1], coordArray[0] , rackWidth, unitHeight*front[server][1]);
+                ctx.fillStyle = "black";
+                ctx.fillText(server,coordArray[1] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ front[server][1]*unitHeight/2 + fontSize/2 -2 );
             }
 
-            for (var server in back){
-                ctx.fillStyle= "#FF0000";
-                  if (topDown){
-                    y = verMargin + unitHeight*(back[server][0]-1);
-                } else {
-                    y = verMargin + rackHeight - unitHeight*(back[server][0]-1 + back[server][1]);
-                }
-                ctx.fillRect(horMargin+rackGap+rackWidth,  0.5+Math.round(y), rackWidth, unitHeight*back[server][1]);
-                ctx.fillStyle = "black"
-                ctx.fillText(server,horMargin+rackGap+rackWidth+rackWidth/2 -ctx.measureText(server).width/2, y + back[server][1]*unitHeight/2 + fontSize/2);
+            for (let server in back){
+                ctx.fillStyle = "yellow";
+                serverUnit = topDown?back[server][0]-1:(rackSize-back[server][0] - back[server][1]+1);
+                //console.log(serverUnit);
+                coordArray = unitCoords[serverUnit];
+                ctx.fillRect(coordArray[3], coordArray[0] , rackWidth, unitHeight*back[server][1]);
+                ctx.fillStyle = "black";
+                ctx.fillText(server,coordArray[3] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ back[server][1]*unitHeight/2 + fontSize/2 -2);
             }
        }
-
 
        function mouseDown(event){
-            //draw(event.pageX, event.pageY);
+            x = event.pageX - correctionRect.left;
+            y = event.pageY - correctionRect.top;
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            drawRack();
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 3;
+            for(let i = 0; i<rackSize; i++){
+                if (y < unitCoords[i+1][0] && y > unitCoords[i][0]){
+                    if (x > unitCoords[i][1] && x < unitCoords[i][2]){
+                        ctx.strokeRect(unitCoords[i][1], unitCoords[i][0], rackWidth, unitHeight);
+                        return [topDown?i+1:racksize-i,0];
+                    }else if(x > unitCoords[i][3] && x < unitCoords[i][4]){
+                        ctx.strokeRect(unitCoords[i][3], unitCoords[i][0], rackWidth, unitHeight);
+                        return [topDown?i+1:racksize-i,1];
+                    }
+                }
+            }
+            return [0,0];
+
        }
+
+       function mouseClick(event){
+            console.log(mouseDown(event));
+       }
+
 
     </script>
 </head>
