@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Карточка территории</title>
+</head>
+<body>
+<p>Название: {{territory.name}}</p>
+<p>Расположение: {{territory.address}}</p>
+<p>Описание: {{room.description}}</p>
+{% for room_id, room_name in rooms.items %}
+{% if forloop.first%}<p>Помещения:</p>{% endif %}
+<p><a href="{% url 'room_view' room_id %}">{{room_name}}</a></p>
+{% endfor %}
+<p><a href="{% url 'territory_edit' territory.id %}">Редактировать</a></p>
+</body>
+</html>

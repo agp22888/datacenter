@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Карточка комнаты</title>
+</head>
+<body>
+<p>Название: {{room.name}}</p>
+<p>Расположение: {{room.territory}}</p>
+<p>Описание: {{room.description}}</p>
+{% for rack_id, rack_name in racks.items %}
+{% if forloop.first%}<p>Стойки:</p>{% endif %}
+<p><a href="{% url 'rack_view' rack_id %}">{{rack_name}}</a></p>
+{% endfor %}
+<p><a href="{% url 'room_edit' room.id %}">Редактировать</a></p>
+</body>
+</html>

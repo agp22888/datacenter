@@ -22,4 +22,8 @@ urlpatterns = [
     url(r'ajax/', views.ajax, name='ajax'),
     url(r'rack/(?P<rack_id>\d*)', views.rack_view, name="rack_view"),
     url(r'rack_edit/(?P<rack_id>\d*)', views.rack_edit, name="rack_edit"),
+    url(r'room/(?P<room_id>\d*)', views.room_view, name="room_view"),
+    url(r'room_edit/(?P<room_id>\d*)', views.room_edit, name="room_edit"),
+    url(r'territory/(?P<territory_id>\d*)', views.territory_view, name="territory_view"),
+    url(r'territory_edit/(?P<territory_id>\d*)', views.territory_edit, name="territory_edit"),
 ]

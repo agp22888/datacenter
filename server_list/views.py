@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
-from .forms import ServerForm, IpForm, SegmentForm, RackForm
+from .forms import ServerForm, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm
 from django.http import Http404
 
 
@@ -35,11 +35,11 @@ def servers(request):
         territory = server.get_territory()
         if territory not in territories:
             territories.append(territory)
-    tabs = []  # список территорий для вкладок
+    tabs = {}  # список территорий для вкладок
     ser_dict = {}  # список серверов (список списков по территориям?)
     # {territory:{room:{rack::server_list}}}
     for t in territories:
-        tabs.append(t.name)
+        tabs.update({t.id: t.name})
         seg_list = Segment.objects.filter(server__in=t.get_servers(target_segment)).distinct()
 
         for room in t.room_set.all():
@@ -344,7 +344,7 @@ def server_view(request, server_id):
     return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict})
 
 
-def ajax(request):
+def ajax(request):  # todo добавить верификацию юзера
     print('test, requested: ', request.GET.get('model'))
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
@@ -393,3 +393,65 @@ def ajax(request):
 
 def segment_view():
     return None
+
+
+def room_edit(request, room_id):
+    if not request.user.is_authenticated:
+        return PermissionDenied
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesNotExists:
+        raise Http404("No rack found")
+    if request.method == 'GET':
+        form = RoomForm(instance=room)
+        return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = TerritoryForm(request.POST, instance=room)
+        if form.is_valid():
+            form.save()
+            return redirect('room_view', room_id)
+        else:
+            return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
+    return HttpResponse('ok')
+
+
+def room_view(request, room_id):
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesntExist:
+        raise Http404
+    racks = {}
+    for rack in room.rack_set.all():
+        racks.update({rack.id: rack.name})
+    return render(request, os.path.join('server_list', 'room_view.html'), {'room': room, 'racks': racks})
+
+
+def territory_view(request, territory_id):
+    try:
+        territory = Territory.objects.get(pk=territory_id)
+    except Territory.DoesntExist:
+        raise Http404
+    rooms = {}
+    for room in territory.room_set.all():
+        rooms.update({room.id: room.name})
+    return render(request, os.path.join('server_list', 'territory_view.html'), {'territory': territory, 'rooms': rooms})
+
+
+def territory_edit(request, territory_id):
+    if not request.user.is_authenticated:
+        return PermissionDenied
+    try:
+        territory = Territory.objects.get(pk=territory_id)
+    except Room.DoesNotExists:
+        raise Http404("No rack found")
+    if request.method == 'GET':
+        form = TerritoryForm(instance=territory)
+        return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = TerritoryForm(request.POST, instance=territory)
+        if form.is_valid():
+            form.save()
+            return redirect('territory_view', territory_id)
+        else:
+            return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
+    return HttpResponse('ok')

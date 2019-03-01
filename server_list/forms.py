@@ -81,8 +81,10 @@ class ServerForm(forms.Form):
                 return
             unit_low = self.cleaned_data['server_unit']
             unit_high = unit_low + self.cleaned_data['server_height'] - 1
-            rack = int(self.cleaned_data['server_rack'])
-            for s in Rack.objects.get(pk=rack).server_set.all():
+            rack = Rack.objects.get(pk=int(self.cleaned_data['server_rack']))
+            if unit_high > rack.size:
+                self.errors.update({'server_unit': ['расположение сервера выходит за размеры стойки']})
+            for s in rack.server_set.all():
                 if self.server_id is not None and s.id == int(self.server_id):
                     continue
                 s_unit_low = s.unit
@@ -165,7 +167,19 @@ class RackForm(ModelForm):
 
     def clean(self):
         for server in self.instance.server_set.all():
-
             if server.unit + server.height - 1 > self.cleaned_data['size']:
                 self.errors.update(
-                    {'size': ["сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+                    {'size': [
+                        "сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+
+
+class RoomForm(ModelForm):
+    class Meta:
+        model = Room
+        fields = '__all__'
+
+
+class TerritoryForm(ModelForm):
+    class Meta:
+        model = Territory
+        fields = '__all__'

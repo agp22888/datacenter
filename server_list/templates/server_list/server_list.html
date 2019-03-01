@@ -24,6 +24,7 @@
             transition: 0.3s;
         }
 
+
         /* Change background color of buttons on hover */
         .tab button:hover {
             background-color: #ddd;
@@ -33,6 +34,8 @@
         .tab button.active {
             background-color: #ccc;
         }
+
+
 
         /* Style the tab content */
         .tabcontent {
@@ -58,6 +61,7 @@
         tr:nth-child(even) {
             background-color: #dddddd;
         }
+
 
 
 
@@ -90,6 +94,7 @@
 
 
 
+
     </script>
 </head>
 {% if user.is_authenticated %}
@@ -106,15 +111,19 @@
 </div>
 
 <div class="tab"> <!-- вкладки -->
-    {% for tabname in tabs %}
-    <button class="tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}</button>
+    {% for tabid, tabname in tabs.items %}
+    <button class="tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
+
+            <button value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">edit</button>
+
+    </button>
     {% endfor %}
 </div>
 
 {% for ter, room_dict in servers.items %}
 <div id="{{ter}}" class="tabcontent">
     {% for room, rack_dict in room_dict.items %}
-    <p>{{room.name}}</p>
+    <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
     {% for rack, ser_dict in rack_dict.items %}
     <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
     <table width="100%">
@@ -131,14 +140,14 @@
 
             <th>
                 {%if col|is_list%}
-                    {% for c in col %}
-                        {% if not forloop.first %}
-                            <br/>
-                        {% endif%}
-                        {{c}}
-                    {% endfor %}
+                {% for c in col %}
+                {% if not forloop.first %}
+                <br/>
+                {% endif%}
+                {{c}}
+                {% endfor %}
                 {% else %}
-                   {{col}}
+                {{col}}
                 {% endif %}
             </th>
             <!--|linebreaks-->
