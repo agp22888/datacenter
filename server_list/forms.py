@@ -160,4 +160,5 @@ class SegmentForm(ModelForm):
 class RackForm(ModelForm):
     class Meta:
         model = Rack
-        fields = '__all__'
+        fields = '__all__'  # todo в методе clean при изменении размера стойки нужно проверить, не выходит ли размещение
+                            # серверов за границы стойки опционально удалить сервер из стойки
