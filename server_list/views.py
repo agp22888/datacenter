@@ -295,12 +295,13 @@ def rack_edit(request, rack_id):
         form = RackForm(instance=rack)
         return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
     if request.method == 'POST':
+        print(request.POST)
         form = RackForm(request.POST, instance=rack)
         if form.is_valid():
             form.save()
             return redirect('rack_view', rack_id)
         else:
-            return render(request, os.path.join('server_list', 'rack_view.html'), {'form': form})
+            return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 
     return HttpResponse('ok')
 

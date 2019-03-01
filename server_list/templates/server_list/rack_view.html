@@ -143,7 +143,7 @@
                     for(let server in back){
                         if (data[0]<= back[server][0] + back[server][1] -1 && data[0]>= back[server][0]){
                             console.log("success", back[server], back_ids[server]);
-                            window.open('{% url 'server_view_without_parameters'%}'+ front_ids[server],  "_self");
+                            window.open('{% url 'server_view_without_parameters'%}'+ back_ids[server],  "_self");
                         }
                     }
                     break;
