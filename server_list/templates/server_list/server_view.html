@@ -84,8 +84,9 @@
 <p>Назначение: {{server_dict|get_dict_item:"purpose"}}</p>
 <p>Операционная система: {{server_dict|get_dict_item:"os"}}</p>
 {% if server_dict|get_dict_item:"is_physical" %}
-<p>Расположен: {{server_dict|get_dict_item:"room"}},
-    <a href="{% url 'rack_view' server_dict.rack.id  %}">{{server_dict.rack.name}}</a>, unit {{server_dict|get_dict_item:"unit"}}</p>
+<p>Расположен: <a href ="{% url 'territory_view' server_dict.territory.id %} ">{{server_dict.territory.name}}</a>,
+    <a href ="{% url 'room_view' server_dict.room.id %} ">{{server_dict.room.name}}</a>,
+    <a href="{% url 'rack_view' server_dict.rack.id  %}">{{server_dict.rack.name}}, unit {{server_dict|get_dict_item:"unit"}}</a></p>
 {%endif%}
 {% for ip in server_dict|get_dict_item:"ip_list"%}
 <p>{{ip.0}} : {{ip.1}}</p>

@@ -3,80 +3,51 @@
 <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    document.getElementById("myInput").addEventListener("focusout", blur);
+    document.getElementById("myInput").addEventListener("focus", searchFunction);
+});
+
+function blur() {
+    console.log("blur")
+    document.getElementById("myDropdown").innerHTML="";
+};
+
+function searchFunction(){
+    console.log(document.getElementById('myInput').value);
     $.ajax({
-        url: "{% url 'test_ajax' %}",
+        url: "{% url 'ajax' %}",
         type: 'GET',
-        data: {'model': 'territory'},
+        data: {'action': 'search', 'query':document.getElementById('myInput').value},
         dataType: "json",
         success: function(resp){
-            $("#id_field1").empty();
+            document.getElementById("myDropdown").innerHTML="";
             $.each(resp, function(idx, obj) {
-                $("#id_field1").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                    //console.log(idx);
+                    //console.log(obj);
+                    element = document.createElement('a');
+                    element.innerHTML = obj.fields.hostname
+                    element.href = "{% url 'server_view_without_parameters' %}"+obj.pk;
+                    p = document.createElement('p');
+                    p.appendChild(element);
+                    document.getElementById("myDropdown").appendChild(p);
                 });
-            ajax_request_rooms_by_territory($("#id_field1").val());
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert(errorThrown+'initial load');
         }
     });
-    
-    $("#id_field1").change(function(){
-        console.log('rack by room'+$("#id_field1").val())
-        ajax_request_rooms_by_territory($("#id_field1").val());
-    });
+};
 
-    $("#id_field2").change(function(){
-        console.log('rack by room'+$("#id_field2").val())
-        ajax_request_racks_by_room($("#id_field2").val());
-    });
-});
 
-function ajax_request_rooms_by_territory(territory_id){
-    $.ajax({
-        url: "{% url 'test_ajax' %}",
-        type: 'GET',
-        data: {'model':'room','territory': territory_id},
-        dataType: "json",
-        success: function(resp){
-            $("#id_field2").empty();
-            $.each(resp, function(idx, obj) {
-                $("#id_field2").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
-                });
-            ajax_request_racks_by_room($("#id_field2").val());
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'rooms by ter'+territory_id);
-        }
-    });
-}
-
-function ajax_request_racks_by_room(room_id){
-     $.ajax({
-        url: "{% url 'test_ajax' %}",
-        type: 'GET',
-        data: {'model':'rack','room': room_id},
-        dataType: "json",
-        success: function(resp){
-            $("#id_field3").empty();
-            $.each(resp, function(idx, obj) {
-                $("#id_field3").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
-                });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'racks by room'+room_id);
-        }
-    });
-}
 </script>
 
 </head>
 <body>
-<select id="id_field1" name="field1">
-</select>
-<select id="id_field2" name="field2">
-</select>
-<select id="id_field3" name="field3">
-</select>
-<input style="visibility: hidden" type="text" name="server_purpose" value="test vm on server 1" id="id_server_purpose">
+<div class="dropdown">
+    <input type="text" placeholder="Поиск..." id="myInput" onkeyup="searchFunction()" >
+    <div id="myDropdown" class="dropdown-content">
+
+    </div>
+</div>
 </body>
 </html>

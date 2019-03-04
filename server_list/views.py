@@ -1,4 +1,4 @@
-import os
+import os, re
 from . import utils
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
@@ -388,6 +388,22 @@ def ajax(request):  # todo добавить верификацию юзера
         except Ip.DoesNotExist:
             raise Http404
         return HttpResponse('ok')
+    if request.GET.get('action') == 'search':  # todo searh by ip address
+        search_query = request.GET.get('query')
+
+        sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
+                                     fields=('pk', 'hostname'))
+        for part in search_query.split('.'):
+            try:
+                i = int(part)
+            except ValueError:
+                break
+
+        return HttpResponse(
+            serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
+                                  fields=('pk', 'hostname')),
+            content_type='application/json')
+
     return None
 
 
@@ -455,3 +471,7 @@ def territory_edit(request, territory_id):
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     return HttpResponse('ok')
+
+
+def test(request):
+    return render(request, os.path.join('server_list', 'test.html'))
