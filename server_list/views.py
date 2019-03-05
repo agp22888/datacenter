@@ -150,7 +150,7 @@ def server_edit(request, server_id):
 def server_new(request):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
-        raise PermissionDenied
+        raise PermissionDenied  # todo https://stackoverflow.com/questions/21123559/django-redirect-all-non-authenticated-users-to-landing-page
     if request.method == 'GET':
         form = ServerForm(new_server=True)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})

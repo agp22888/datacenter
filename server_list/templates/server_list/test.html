@@ -1,53 +1,66 @@
 <html>
 <head>
-<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-<script>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script>
 $(document).ready(function() {
-    document.getElementById("myInput").addEventListener("focusout", blur);
-    document.getElementById("myInput").addEventListener("focus", searchFunction);
+    //document.getElementById("myInput").addEventListener("focusout", blur);
+    //document.getElementById("myInput").addEventListener("focus", searchFunction);
+    document.getElementById("myInput").addEventListener('input', searchFunction);
 });
 
 function blur() {
     console.log("blur")
-    document.getElementById("myDropdown").innerHTML="";
+    //document.getElementById("myDropdown").innerHTML="";
 };
 
 function searchFunction(){
-    console.log(document.getElementById('myInput').value);
+    input = document.getElementById('myInput');
+
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'action': 'search', 'query':document.getElementById('myInput').value},
         dataType: "json",
         success: function(resp){
-            document.getElementById("myDropdown").innerHTML="";
+            document.getElementById("resultlist").innerHTML="";
             $.each(resp, function(idx, obj) {
                     //console.log(idx);
                     //console.log(obj);
-                    element = document.createElement('a');
-                    element.innerHTML = obj.fields.hostname
-                    element.href = "{% url 'server_view_without_parameters' %}"+obj.pk;
-                    p = document.createElement('p');
-                    p.appendChild(element);
-                    document.getElementById("myDropdown").appendChild(p);
+                    element = document.createElement('option');
+                    element.dataset.id=obj.pk;
+                    element.dataset.model=obj.model;
+                    element.innerHTML = obj.fields.hostname;
+                    document.getElementById("resultlist").appendChild(element);
                 });
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert(errorThrown+'initial load');
         }
     });
+    val = input.value;
+    list = input.getAttribute('list');
+
+    options = document.getElementById(list).childNodes;
+    //console.log('options', options);
+    for (let i = 0; i < options.length; i++){
+        //console.log(options[i].innerText);
+        if (val == options[i].innerText){
+            console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
+        }
+    }
+
 };
 
 
-</script>
+
+    </script>
 
 </head>
 <body>
-<div class="dropdown">
-    <input type="text" placeholder="Поиск..." id="myInput" onkeyup="searchFunction()" >
-    <div id="myDropdown" class="dropdown-content">
-
-    </div>
-</div>
+<input list="resultlist" type="text" placeholder="Поиск..." id="myInput" >
+<datalist id="resultlist">
+    <option value="1" id=1></option>
+    <option value="2"></option>
+</datalist>
 </body>
 </html>
