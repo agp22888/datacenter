@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'territory/(?P<territory_id>\d*)', views.territory_view, name="territory_view"),
     url(r'territory_edit/(?P<territory_id>\d*)', views.territory_edit, name="territory_edit"),
     url(r'^test$', views.test, name='test'),
+    url(r'^search$', views.search, name='search'),
 ]

@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.forms import CharField, ModelForm, GenericIPAddressField
 
@@ -38,8 +40,7 @@ class ServerForm(forms.Form):
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
     try:
         host_machine = forms.ChoiceField(label="Физический сервер", required=False,
-                                         choices=[(str(ser.id), ser.hostname) for ser in
-                                                  Server.objects.filter(is_physical=True)],
+                                         choices=[(str(ser.id), ser.hostname) for ser in Server.objects.filter(is_physical=True)],
                                          initial=Server.objects.filter(pk=2))
         server_territory = forms.ChoiceField(label="Территория", required=False,
                                              choices=[(str(ter.id), ter.name) for ter in Territory.objects.all()])
@@ -57,13 +58,16 @@ class ServerForm(forms.Form):
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
     server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
                                         choices=[(i, n) for i, n in Server.locations.items()])
-    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
-                         'server_room', 'server_rack', 'server_location']
+    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location']
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
         print("form_clean, server_id is:", self.server_id)
-        # todo проверить, не выходит ли юнит за границы стойки
+
+        self.cleaned_data['server_name'] = re.sub(r'\s+', ' ', self.cleaned_data['server_name'].strip())
+
+        if self.new and Server.objects.filter(hostname=self.cleaned_data['server_name']).count() > 0:
+            self.errors.update({'server_name': ['Имя уже используется']})
 
         if not self.cleaned_data['is_physical']:
             if self.cleaned_data['host_machine'] == self.server_id:
@@ -75,8 +79,8 @@ class ServerForm(forms.Form):
                     self.errors.update({field: ['invalid ip']})
 
         if self.cleaned_data['is_physical']:
-            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None \
-                    or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
+            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data[
+                'server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
             unit_low = self.cleaned_data['server_unit']
@@ -112,8 +116,7 @@ class ServerForm(forms.Form):
 
 class IpForm(forms.Form):
     try:
-        segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in
-                                                                                 Segment.objects.all()])
+        segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
     except OperationalError:
         pass
     ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")
@@ -169,8 +172,7 @@ class RackForm(ModelForm):
         for server in self.instance.server_set.all():
             if server.unit + server.height - 1 > self.cleaned_data['size']:
                 self.errors.update(
-                    {'size': [
-                        "сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+                    {'size': ["сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
 
 
 class RoomForm(ModelForm):

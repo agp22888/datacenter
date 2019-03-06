@@ -4,7 +4,7 @@ from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseBadRequest
 from .forms import ServerForm, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm
 from django.http import Http404
 
@@ -73,8 +73,7 @@ def servers(request):
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
 
-    return render(request, os.path.join('server_list', 'server_list.html'),
-                  {"links": links, "tabs": tabs, "servers": ser_dict})
+    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict})
 
 
 def server_edit(request, server_id):
@@ -280,8 +279,7 @@ def rack_view(request, rack_id):
             rack_front.update({s: units})
         if s.location != 1:
             rack_back.update({s: units})
-    return render(request, os.path.join('server_list', 'rack_view.html'),
-                  {'rack': rack, 'front': rack_front, 'back': rack_back})
+    return render(request, os.path.join('server_list', 'rack_view.html'), {'rack': rack, 'front': rack_front, 'back': rack_back})
 
 
 def rack_edit(request, rack_id):
@@ -347,24 +345,21 @@ def server_view(request, server_id):
 def ajax(request):  # todo добавить верификацию юзера
     print('test, requested: ', request.GET.get('model'))
     if request.GET.get('model') == 'territory':
-        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
-                            content_type='application/json')
+        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'room':
         ter = request.GET.get('territory')
         if ter is None:
             ter = 1
             print("ajax request ter is None")
         return HttpResponse(
-            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
-                                  fields='name'), content_type='application/json')
+            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'rack':
         room = request.GET.get('room')
         if room is None:
             print("ajax request room is None")
             room = 1
         return HttpResponse(
-            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
-            content_type='application/json')
+            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'server':
         if request.user.is_authenticated:
             try:
@@ -378,8 +373,7 @@ def ajax(request):  # todo добавить верификацию юзера
             return HttpResponse('Access Denied')
     if request.GET.get('model') == 'vm':
         return HttpResponse(
-            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
-            content_type='application/json')
+            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
     if request.GET.get('action') == 'delete_ip':
         ip_id = request.GET.get('ip_id')
         try:
@@ -390,7 +384,8 @@ def ajax(request):  # todo добавить верификацию юзера
         return HttpResponse('ok')
     if request.GET.get('action') == 'search':  # todo searh by ip address
         search_query = request.GET.get('query')
-
+        print('search query', "'" + search_query + "'")
+        re = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
         sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
                                      fields=('pk', 'hostname'))
         for part in search_query.split('.'):
@@ -399,9 +394,12 @@ def ajax(request):  # todo добавить верификацию юзера
             except ValueError:
                 break
 
+        filt = Server.objects.filter(hostname__contains=search_query)
+        print(filt.count())
+        serialize = serializers.serialize('json', filt, fields=('pk', 'hostname'))
+        print(serialize)
         return HttpResponse(
-            serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
-                                  fields=('pk', 'hostname')),
+            serialize,
             content_type='application/json')
 
     return None
@@ -475,3 +473,13 @@ def territory_edit(request, territory_id):
 
 def test(request):
     return render(request, os.path.join('server_list', 'test.html'))
+
+
+def search(request):
+    if request.method == 'GET':
+        print("GET")
+        return HttpResponseBadRequest("400")
+    if request.method == 'POST':
+        print(request)
+        return HttpResponse(request.POST.items())
+    return HttpResponse('search')

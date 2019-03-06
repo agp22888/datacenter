@@ -6,6 +6,7 @@ $(document).ready(function() {
     //document.getElementById("myInput").addEventListener("focusout", blur);
     //document.getElementById("myInput").addEventListener("focus", searchFunction);
     document.getElementById("myInput").addEventListener('input', searchFunction);
+    //document.getElementById("myInput").onchange=searchFunction();
 });
 
 function blur() {
@@ -30,26 +31,35 @@ function searchFunction(){
                     element.dataset.id=obj.pk;
                     element.dataset.model=obj.model;
                     element.innerHTML = obj.fields.hostname;
+                    //console.log(obj.fields.hostname);
                     document.getElementById("resultlist").appendChild(element);
                 });
+            val = input.value;
+            list = input.getAttribute('list');
+
+            options = Array.from(document.getElementById(list).childNodes);
+
+           // for (let i = 0; i < options.length; i++){
+           //     //console.log(options[i].innerText);
+           //     if (val == options[i].innerText){
+           //         console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
+           //     }
+           // }
+            //console.log('options', options);
+            //console.log(options.length);
+            if (options.length == 1){
+                console.log('item selected _', val, options[0].dataset.model, options[0].dataset.id);
+            }
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert(errorThrown+'initial load');
         }
     });
-    val = input.value;
-    list = input.getAttribute('list');
 
-    options = document.getElementById(list).childNodes;
-    //console.log('options', options);
-    for (let i = 0; i < options.length; i++){
-        //console.log(options[i].innerText);
-        if (val == options[i].innerText){
-            console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
-        }
-    }
 
 };
+
+
 
 
 
@@ -57,10 +67,14 @@ function searchFunction(){
 
 </head>
 <body>
-<input list="resultlist" type="text" placeholder="Поиск..." id="myInput" >
-<datalist id="resultlist">
-    <option value="1" id=1></option>
-    <option value="2"></option>
-</datalist>
+<form method="POST" autocomplete="off" action="{% url 'search'%}">
+    {% csrf_token %}
+    <input name="searchInput" list="resultlist" type="text" placeholder="Поиск..." id="myInput">
+    <datalist id="resultlist">
+        <option value="1" id=1></option>
+        <option value="2"></option>
+    </datalist>
+    <input type="submit" value="Submit">
+</form>
 </body>
 </html>
