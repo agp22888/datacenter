@@ -384,8 +384,27 @@ def ajax(request):  # todo добавить верификацию юзера
         return HttpResponse('ok')
     if request.GET.get('action') == 'search':  # todo searh by ip address
         search_query = request.GET.get('query')
-        print('search query', "'" + search_query + "'")
-        re = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
+        # print('search query', "'" + search_query + "'")
+        pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
+        if re.match(pattern, search_query):
+            matching_ips = []
+            search_query = search_query.rstrip('.')
+            octets = search_query.split('.')
+            number_of_octets = len(octets)
+            octets_as_int = 0
+            for i in range(len(octets)):
+                octets_as_int += int(octets[i]) * (256 ** (len(octets) - i - 1))
+            mask = (1 << 8 * number_of_octets) - 1
+            for ip in Ip.objects.all():
+                for k in range(4 - number_of_octets+1):
+                    bit_len = 8 * k
+                    mask_len = mask << (bit_len)
+                    result_of_and = ip.ip_as_int & mask_len
+                    octets_shifted = octets_as_int << bit_len
+                    if result_of_and == octets_shifted:
+                        matching_ips.append(ip) # todo проверить не находится ли уже ip в списке
+            print(matching_ips)
+
         sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
                                      fields=('pk', 'hostname'))
         for part in search_query.split('.'):
@@ -395,9 +414,9 @@ def ajax(request):  # todo добавить верификацию юзера
                 break
 
         filt = Server.objects.filter(hostname__contains=search_query)
-        print(filt.count())
+        # print(filt.count())
         serialize = serializers.serialize('json', filt, fields=('pk', 'hostname'))
-        print(serialize)
+        # print(serialize)
         return HttpResponse(
             serialize,
             content_type='application/json')
