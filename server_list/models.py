@@ -101,9 +101,12 @@ class Ip(models.Model):
     gateway_as_int = models.IntegerField()
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     segment = models.ForeignKey(Segment, on_delete=models.CASCADE)
+    ip_as_string = models.CharField(max_length=20)
 
     def __str__(self):
         return Ip.get_string_ip(self.ip_as_int)
+
+
 
     @staticmethod
     def get_string_ip(ip_as_int):

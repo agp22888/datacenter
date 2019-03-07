@@ -1,4 +1,6 @@
-import os, re
+import os, re, json
+from collections import namedtuple
+
 from . import utils
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
@@ -387,7 +389,7 @@ def ajax(request):  # todo добавить верификацию юзера
         # print('search query', "'" + search_query + "'")
         pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
         if re.match(pattern, search_query):
-            matching_ips = []
+            matching_ips = {}
             search_query = search_query.rstrip('.')
             octets = search_query.split('.')
             number_of_octets = len(octets)
@@ -396,22 +398,17 @@ def ajax(request):  # todo добавить верификацию юзера
                 octets_as_int += int(octets[i]) * (256 ** (len(octets) - i - 1))
             mask = (1 << 8 * number_of_octets) - 1
             for ip in Ip.objects.all():
-                for k in range(4 - number_of_octets+1):
+                for k in range(4 - number_of_octets + 1):
                     bit_len = 8 * k
                     mask_len = mask << (bit_len)
                     result_of_and = ip.ip_as_int & mask_len
                     octets_shifted = octets_as_int << bit_len
                     if result_of_and == octets_shifted:
-                        matching_ips.append(ip) # todo проверить не находится ли уже ip в списке
+                        matching_ips.update({'id': ip.id, 'ip': Ip.get_string_ip(ip.ip_as_int), 'model': 'server_list.ip'})  # todo проверить не находится ли уже ip в списке
             print(matching_ips)
+            return HttpResponse(json.dumps(matching_ips))
 
-        sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query),
-                                     fields=('pk', 'hostname'))
-        for part in search_query.split('.'):
-            try:
-                i = int(part)
-            except ValueError:
-                break
+        sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query), fields=('pk', 'hostname'))
 
         filt = Server.objects.filter(hostname__contains=search_query)
         # print(filt.count())

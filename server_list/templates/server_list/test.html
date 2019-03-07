@@ -26,11 +26,15 @@ function searchFunction(){
             document.getElementById("resultlist").innerHTML="";
             $.each(resp, function(idx, obj) {
                     //console.log(idx);
-                    //console.log(obj);
+                    console.log('obj',obj);
                     element = document.createElement('option');
                     element.dataset.id=obj.pk;
                     element.dataset.model=obj.model;
-                    element.innerHTML = obj.fields.hostname;
+                    if (obj.model.split('.')[1].localeCompare('server')==0){
+                        element.innerHTML = obj.fields.hostname;
+                    }else if (obj.model.split('.')[1].localeCompare('ip')==0){
+                        element.innerHTML = obj.fields.ip_as_int;
+                    }
                     //console.log(obj.fields.hostname);
                     document.getElementById("resultlist").appendChild(element);
                 });
