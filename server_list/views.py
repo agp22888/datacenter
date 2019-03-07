@@ -389,7 +389,7 @@ def ajax(request):  # todo добавить верификацию юзера
         # print('search query', "'" + search_query + "'")
         pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
         if re.match(pattern, search_query):
-            matching_ips = {}
+            matching_ips = []
             search_query = search_query.rstrip('.')
             octets = search_query.split('.')
             number_of_octets = len(octets)
@@ -404,7 +404,7 @@ def ajax(request):  # todo добавить верификацию юзера
                     result_of_and = ip.ip_as_int & mask_len
                     octets_shifted = octets_as_int << bit_len
                     if result_of_and == octets_shifted:
-                        matching_ips.update({'id': ip.id, 'ip': Ip.get_string_ip(ip.ip_as_int), 'model': 'server_list.ip'})  # todo проверить не находится ли уже ip в списке
+                        matching_ips.append({'pk': ip.id, 'fields': {'ip': Ip.get_string_ip(ip.ip_as_int)}, 'model': 'server_list.ip'})  # todo проверить не находится ли уже ip в списке
             print(matching_ips)
             return HttpResponse(json.dumps(matching_ips))
 

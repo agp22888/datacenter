@@ -26,14 +26,14 @@ function searchFunction(){
             document.getElementById("resultlist").innerHTML="";
             $.each(resp, function(idx, obj) {
                     //console.log(idx);
-                    console.log('obj',obj);
+                    //console.log('obj',obj);
                     element = document.createElement('option');
                     element.dataset.id=obj.pk;
                     element.dataset.model=obj.model;
                     if (obj.model.split('.')[1].localeCompare('server')==0){
                         element.innerHTML = obj.fields.hostname;
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
-                        element.innerHTML = obj.fields.ip_as_int;
+                        element.innerHTML = obj.fields.ip;
                     }
                     //console.log(obj.fields.hostname);
                     document.getElementById("resultlist").appendChild(element);
