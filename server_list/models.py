@@ -27,29 +27,29 @@ class Territory(models.Model):
 class Room(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True)
-    territory = models.ForeignKey(Territory, on_delete=models.CASCADE)
+    territory = models.ForeignKey(Territory, on_delete=models.SET_DEFAULT, default=None)
 
     def __str__(self):
-        return self.territory.__str__() + ", " + self.name
+        return self.territory.__str__() if self.territory is not None else 'None' + ", " + str(self.name)
 
 
 class Rack(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True)
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.SET_DEFAULT, default=None)
     serial_number = models.CharField(max_length=100, blank=True)
     size = models.IntegerField(default=0)
     topdown = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.room.__str__() + ", " + self.name
+        return self.room.__str__() if self.room is not None else 'None' + ", " + str(self.name)
 
 
 class Segment(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=200, blank=True)
     is_root_segment = models.BooleanField(default=False)
-    parent_segment = models.ForeignKey('self', on_delete=models.CASCADE, default=None, blank=True, null=True)
+    parent_segment = models.ForeignKey('self', on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
 
     def __str__(self):
         return str(self.name)
@@ -70,7 +70,7 @@ class Server(models.Model):
     hostname = models.CharField(max_length=50)
     model = models.CharField(max_length=50, blank=True)  # separate table?
     is_physical = models.BooleanField(default=True)
-    host_machine = models.ForeignKey('self', on_delete=models.CASCADE, default=None, blank=True, null=True)
+    host_machine = models.ForeignKey('self', on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
     is_on = models.BooleanField(default=True)
     os = models.CharField(max_length=50, blank=True)  # separate table?
     purpose = models.CharField(max_length=200, blank=True)
@@ -83,7 +83,7 @@ class Server(models.Model):
     unit = models.IntegerField(blank=True, null=True)
     location = models.IntegerField(blank=True, null=True)
     # unit = models.OneToOneField(Unit, on_delete=models.CASCADE, default=None, blank=True, null=True)
-    rack = models.ForeignKey(Rack, on_delete=models.DO_NOTHING, default=None, blank=True, null=True)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
 
     def __str__(self):
         return self.hostname
@@ -106,7 +106,9 @@ class Ip(models.Model):
     def __str__(self):
         return Ip.get_string_ip(self.ip_as_int)
 
-
+    def save(self, *args, **kwargs):
+        self.ip_as_string = self.__str__()
+        super().save(*args, **kwargs)
 
     @staticmethod
     def get_string_ip(ip_as_int):

@@ -114,7 +114,7 @@
     {% for tabid, tabname in tabs.items %}
     <button class="tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
 
-            <button value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">edit</button>
+            <button value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">view</button>
 
     </button>
     {% endfor %}
