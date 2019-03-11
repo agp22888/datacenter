@@ -89,7 +89,7 @@
         for (let i = 0; i < tabcontent.length; i++){
             tabcontent[i].style.display="none";
         }
-        tabcontent[0].style.display = "block";диаг
+        tabcontent[0].style.display = "block";
 
     }
 {% endblock %}
@@ -103,15 +103,17 @@
     {% endfor %}
 </div>
 
-<div class="tab" > <!-- вкладки -->
+ <!-- вкладки -->
+    <ul class="nav nav-tabs">
     {% for tabid, tabname in tabs.items %}
-    <a href="#" class="btn btn-sm btn-link tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
-
+    <li class="nav-item">
+    <a href="#" class="nav-link btn btn-sm tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
             <button class ="btn btn-sm btn-outline-secondary" value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">view</button>
-
     </a>
+    </li>
     {% endfor %}
-</div>
+    </ul>
+
 
 {% for ter, room_dict in servers.items %}
 <div id="{{ter}}" class="tabcontent bg-light ">
@@ -119,7 +121,7 @@
     <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
     {% for rack, ser_dict in rack_dict.items %}
     <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-    <table width="100%" class="table  table-hover table-sm" >
+    <table width="100%" class="table  table-hover table-sm " >
         <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
         {% for id, row in ser_dict.items %}
