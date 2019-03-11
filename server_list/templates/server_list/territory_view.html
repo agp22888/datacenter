@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Карточка территории</title>
-</head>
-<body>
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка территории{% endblock %}
+{% block content %}
 <p>Название: {{territory.name}}</p>
 <p>Расположение: {{territory.address}}</p>
 <p>Описание: {{room.description}}</p>
@@ -13,5 +9,4 @@
 <p><a href="{% url 'room_view' room_id %}">{{room_name}}</a></p>
 {% endfor %}
 <p><a href="{% url 'territory_edit' territory.id %}">Редактировать</a></p>
-</body>
-</html>
+{% endblock %}

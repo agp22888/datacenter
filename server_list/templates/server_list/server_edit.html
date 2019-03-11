@@ -1,14 +1,8 @@
-<html xmlns:form.server_rack>
-<head>
-    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-    <script>
+{% extends 'server_list/navbar.html' %}
 
 {% load server_list_extras %}
 {% load widget_tweaks %}
-
-
-
-
+{% block script %}
 var territory_id={{form.server_territory.value|convert_none}};
 var room_id={{form.server_room.value|convert_none}};
 var rack_id={{form.server_rack.value|convert_none}};
@@ -172,17 +166,13 @@ function ajax_delete_ip(ip_id){
 {% include "server_list/js_reload_call.html" %}
 
 
-    </script>
-</head>
+    {% endblock %}
 
-<p style="text-align:right;">Пользователь: {{ user.get_username }}. <a
-        href="/admin/logout/?next=/servers/list">выйти</a></p>
+{% block content %}
 
-{% comment %}
-{{form.fields_to_hide}}
-{{ form.server_is_physical|negate }}
-{% endcomment %}
 
+
+<div class="container" >
 <form method="post">
     {% csrf_token %}
 
@@ -211,10 +201,11 @@ function ajax_delete_ip(ip_id){
         </tr>
 
         <tr>
-            <th colspan="2"><input type="submit" value="Submit"></th>
+            <th colspan="2"><input class="btn btn-outline-success my-2 my-sm-1" type="submit" value="Отправить"></th>
         </tr>
     </table>
 
 
 </form>
-</html>
+    </div>
+{% endblock %}

@@ -193,7 +193,7 @@ def ip_edit(request, ip_id):
         raise Http404("IP not found")
     if request.method == 'GET':
         data = {'segment_id': ip.segment.id,
-                'ip': ip.get_string_ip()}
+                'ip': ip.__str__()}
         form = IpForm(data)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     elif request.method == 'POST':

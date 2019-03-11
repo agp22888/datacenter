@@ -1,13 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<script>
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка сегмента{% endblock %}
+
+
+{% block script %}
     {% include "server_list/js_open_window.html" %}
     {% include "server_list/js_reload_call.html" %}
-</script>
+{% endblock %}
+{% block content %}
 <body>
 <form method="post">
     <table>
@@ -28,4 +27,4 @@
     <input type="submit" value="submit" onclick="opener.call_reload()">
 </form>
 </body>
-</html>
+{% endblock %}

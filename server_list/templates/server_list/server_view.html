@@ -1,64 +1,62 @@
-<!DOCTYPE html>
+{% extends 'server_list/navbar.html' %}
 {% load server_list_extras %}
-<head>
-    <title>
-        Карточка сервера
-    </title>
-    <style>
-        .spoiler-trigger{
-            color: #0b70db;
-            text-decoration: none;
-        }
 
-        .spoiler-trigger>span{
-            border-bottom: 1px dashed #0b70db;
-            padding:0 3px;
-        }
-        .spoiler-trigger:hover>span{
-            border-bottom-style: solid;
-        }
-        .spoiler-block{
-            display: none;
-        }
+{% block title %}Карточка сервера{% endblock %}
 
-    </style>
-    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-    <script>
-        $(document).on('click','.spoiler-trigger',function(e){
-            e.preventDefault();
-            if (!$(this).hasClass('active')){
-                $(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
-                $.ajax({
-                    url: "{% url 'ajax' %}",
-                    type: 'GET',
-                    data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
-                    dataType: "text",
-                    success: function(resp){
-                        console.log(resp)
-                        $(".spoiler-block").text(resp)
+{% block style %}
+.spoiler-trigger{
+color: #0b70db;
+text-decoration: none;
+}
 
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.log(errorThrown)
-                    }
-                });
-            }else{
-                $(".spoiler-trigger").empty().append($('<span></span>').text('Показать пароли'));
-            }
-            $('.spoiler-block').slideToggle(300);
-            $(this).toggleClass('active');
+.spoiler-trigger>span{
+border-bottom: 1px dashed #0b70db;
+padding:0 3px;
+}
+.spoiler-trigger:hover>span{
+border-bottom-style: solid;
+}
+.spoiler-block{
+display: none;
+}
+{% endblock %}
 
-        })
+{% block otherscript %}{% endblock %}
 
-    </script>
+{% block script %}
+$(document).on('click','.spoiler-trigger',function(e){
+e.preventDefault();
+if (!$(this).hasClass('active')){
+$(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
+$.ajax({
+url: "{% url 'ajax' %}",
+type: 'GET',
+data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
+dataType: "text",
+success: function(resp){
+console.log(resp)
+$(".spoiler-block").text(resp)
 
-</head>
+},
+error: function(jqXHR, textStatus, errorThrown) {
+console.log(errorThrown)
+}
+});
+}else{
+$(".spoiler-trigger").empty().append($('<span></span>').text('Показать пароли'));
+}
+$('.spoiler-block').slideToggle(300);
+$(this).toggleClass('active');
 
+})
 
+{% endblock %}
+
+{% block content %}
 {% if user.is_authenticated %}
-    <p style="text-align:right;">Пользователь: {{ user.get_username }}. <a href="/admin/logout/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">выйти</a></p>
+<p style="text-align:right;">Пользователь: {{ user.get_username }}. <a href="/admin/logout/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">выйти</a></p>
 {% else %}
-   <p style="text-align:right;"><a href="/admin/login/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">Войти</a></p>
+<p style="text-align:right;"><a href="/admin/login/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">Войти</a></p>
 {% endif %}
 <header>
     <h1>Сервер: {{ server_dict|get_dict_item:"hostname" }}
@@ -84,8 +82,8 @@
 <p>Назначение: {{server_dict|get_dict_item:"purpose"}}</p>
 <p>Операционная система: {{server_dict|get_dict_item:"os"}}</p>
 {% if server_dict|get_dict_item:"is_physical" %}
-<p>Расположен: <a href ="{% url 'territory_view' server_dict.territory.id %} ">{{server_dict.territory.name}}</a>,
-    <a href ="{% url 'room_view' server_dict.room.id %} ">{{server_dict.room.name}}</a>,
+<p>Расположен: <a href="{% url 'territory_view' server_dict.territory.id %} ">{{server_dict.territory.name}}</a>,
+    <a href="{% url 'room_view' server_dict.room.id %} ">{{server_dict.room.name}}</a>,
     <a href="{% url 'rack_view' server_dict.rack.id  %}">{{server_dict.rack.name}}, unit {{server_dict|get_dict_item:"unit"}}</a></p>
 {%endif%}
 {% for ip in server_dict|get_dict_item:"ip_list"%}
@@ -109,4 +107,4 @@
 <p><a href="/servers/edit/{{server_dict|get_dict_item:'server_id'}}">Редактировать</a></p>
 {% endif %}
 
-</html>
+{% endblock %}

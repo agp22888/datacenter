@@ -30,7 +30,7 @@ class Room(models.Model):
     territory = models.ForeignKey(Territory, on_delete=models.SET_DEFAULT, default=None)
 
     def __str__(self):
-        return self.territory.__str__() if self.territory is not None else 'None' + ", " + str(self.name)
+        return self.territory.__str__() if self.territory is not None else 'None' + ", " + self.name
 
 
 class Rack(models.Model):
@@ -42,7 +42,7 @@ class Rack(models.Model):
     topdown = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.room.__str__() if self.room is not None else 'None' + ", " + str(self.name)
+        return self.room.__str__() if self.room is not None else 'None' + ", " + self.name
 
 
 class Segment(models.Model):

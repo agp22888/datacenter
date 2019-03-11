@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Все серверы</title>
-</head>
-<body>
+{% extends 'server_list/navbar.html' %}
+{% block title%}Все серверы{% endblock %}
+{% block content %}
 <table>
     {% for s in servers %}
     <tr>
@@ -24,5 +20,4 @@
     {% endfor %}
     {% endfor %}
 </table>
-</body>
-</html>
+{% endblock %}

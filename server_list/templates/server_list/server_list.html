@@ -1,11 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "server_list/navbar.html" %}
 {% load server_list_extras %}
-<head>
-    <title>
-        Список серверов
-    </title>
-    <style>
+
+{% block title %}Список серверов{% endblock %}
+
+{% comment %}
+{% block style %}
        /* Style the tab */
         .tab {
             overflow: hidden;
@@ -61,14 +60,10 @@
         tr:nth-child(even) {
             background-color: #dddddd;
         }
+{% endblock %}
+{% endcomment %}
 
-
-
-
-
-    </style>
-
-    <script>
+{% block script %}
     function openCity(evt, cityName) {
         // Declare all variables
         var i, tabcontent, tablinks;
@@ -89,20 +84,18 @@
         document.getElementById(cityName).style.display = "block";
         evt.currentTarget.className += " active";
     }
+    window.onload = function(){
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (let i = 0; i < tabcontent.length; i++){
+            tabcontent[i].style.display="none";
+        }
+        tabcontent[0].style.display = "block";диаг
 
+    }
+{% endblock %}
 
-
-
-
-
-    </script>
-</head>
-{% if user.is_authenticated %}
-<p style="text-align:right;">Пользователь: {{ user.get_username }}. <a
-        href="/admin/logout/?next={{request.get_full_path}}">выйти</a></p>
-{% else %}
-<p style="text-align:right;"><a href="/admin/login/?next={{request.get_full_path}}">Войти</a></p>
-{% endif %}
+{% block content %}
+<div class="container">
 <div>
     <!-- ссылки на сегменты -->
     {% for id, name in links.items %}
@@ -110,26 +103,27 @@
     {% endfor %}
 </div>
 
-<div class="tab"> <!-- вкладки -->
+<div class="tab" > <!-- вкладки -->
     {% for tabid, tabname in tabs.items %}
-    <button class="tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
+    <a href="#" class="btn btn-sm btn-link tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
 
-            <button value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">view</button>
+            <button class ="btn btn-sm btn-outline-secondary" value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">view</button>
 
-    </button>
+    </a>
     {% endfor %}
 </div>
 
 {% for ter, room_dict in servers.items %}
-<div id="{{ter}}" class="tabcontent">
+<div id="{{ter}}" class="tabcontent bg-light ">
     {% for room, rack_dict in room_dict.items %}
     <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
     {% for rack, ser_dict in rack_dict.items %}
     <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-    <table width="100%">
+    <table width="100%" class="table  table-hover table-sm" >
         <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
         {% for id, row in ser_dict.items %}
+        {% if forloop.first %}<thead>{%elif forloop.counter0 == 1%}<tbody>{%endif%}
         <tr>
             {% for col in row %}
             {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
@@ -153,10 +147,15 @@
             <!--|linebreaks-->
             {%endif%}
             {% endfor %}
+
         </tr>
+        {% if forloop.first %}</thead>{%elif forloop.last%}</tbody>{%endif%}
         {% endfor %}
     </table>
     {% endfor %}
     {% endfor %}
 </div>
+
 {% endfor %}
+</div>
+{% endblock %}

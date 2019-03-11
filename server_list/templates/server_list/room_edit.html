@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Карточка помещения</title>
-</head>
-<body>
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка помещения{% endblock %}
+{% block content %}
 <form method="post">
     {%csrf_token%}
     {{form.as_p}}
     <p><input type="submit" value="Submit"></p>
 </form>
-</body>
-</html>
+{% endblock %}

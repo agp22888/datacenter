@@ -1,161 +1,160 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Карточка стойки</title>
-    <script>
-        function init(){
-            canvas = document.getElementById("myCanvas");
-            canvas.addEventListener("mousemove",mouseDown,false);
-            canvas.addEventListener("click",mouseClick,false);
+{% extends 'server_list/navbar.html' %}
 
-            ctx = canvas.getContext("2d");
-            rackSize = {{rack.size}};
-            front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
-            back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
-            windowWidth = Math.round(window.innerWidth/2);
-            windowHeight = window.innerHeight-100;
-            ctx.canvas.width = windowWidth;
-            ctx.canvas.height = windowHeight;
-            rackWidth = Math.round(windowWidth*.3);
-            rackGap = Math.round(windowWidth*.1);
-            horMargin = 0.5+Math.round(windowWidth-rackWidth*2-rackGap)/2;
-            verMargin = 0.5+Math.round(windowHeight*.05);
-            rackHeight = windowHeight-2*verMargin;
-            unitHeight = Math.round(rackHeight/rackSize);
-            rackHeight = unitHeight*rackSize;
-            topDown = {{rack.topdown|yesno:"true,false"}};
-            fontSize = Math.round(unitHeight-2);
-            unitCoords = [];
-            for (let i = 0; i<=rackSize; i++){
-                // [y, xStart1, xEnd1, xStart2, xEnd2];
-                unitCoords.push([0.5+Math.round(verMargin + unitHeight * i), horMargin, horMargin + rackWidth, horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap]);
-            }
-            console.log(unitCoords);
-            drawRack();
+{% block title %}Карточка стойки{% endblock %}
+
+{% block script %}
+
+    function init(){
+        canvas = document.getElementById("myCanvas");
+        canvas.addEventListener("mousemove",mouseDown,false);
+        canvas.addEventListener("click",mouseClick,false);
+
+        ctx = canvas.getContext("2d");
+        rackSize = {{rack.size}};
+        front = { {% for t, v in front.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+        back = { {% for t, v in back.items %} "{{t}}":{{v}}{%if not forloop.last%},{% endif %}{% endfor %} };
+        windowWidth = Math.round(window.innerWidth/2);
+        windowHeight = window.innerHeight-100;
+        ctx.canvas.width = windowWidth;
+        ctx.canvas.height = windowHeight;
+        rackWidth = Math.round(windowWidth*.3);
+        rackGap = Math.round(windowWidth*.1);
+        horMargin = 0.5+Math.round(windowWidth-rackWidth*2-rackGap)/2;
+        verMargin = 0.5+Math.round(windowHeight*.05);
+        rackHeight = windowHeight-2*verMargin;
+        unitHeight = Math.round(rackHeight/rackSize);
+        rackHeight = unitHeight*rackSize;
+        topDown = {{rack.topdown|yesno:"true,false"}};
+        fontSize = Math.round(unitHeight-2);
+        unitCoords = [];
+        for (let i = 0; i<=rackSize; i++){
+            // [y, xStart1, xEnd1, xStart2, xEnd2];
+            unitCoords.push([0.5+Math.round(verMargin + unitHeight * i), horMargin, horMargin + rackWidth, horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap]);
         }
+        console.log(unitCoords);
+        drawRack();
+    }
 
 
 
-        function drawRack(){
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 1;
-            //ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
-            //ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
+    function drawRack(){
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 1;
+        //ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
+        //ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
+        ctx.beginPath();
+        ctx.moveTo(unitCoords[0][1],unitCoords[0][0]);
+        ctx.lineTo(unitCoords[rackSize ][1],unitCoords[rackSize][0]);
+        ctx.stroke();
+        ctx.moveTo(unitCoords[0][2],unitCoords[0][0]);
+        ctx.lineTo(unitCoords[rackSize][2],unitCoords[rackSize][0]);
+        ctx.stroke();
+        ctx.moveTo(unitCoords[0][3],unitCoords[0][0]);
+        ctx.lineTo(unitCoords[rackSize][3],unitCoords[rackSize][0]);
+        ctx.stroke();
+        ctx.moveTo(unitCoords[0][4],unitCoords[0][0]);
+        ctx.lineTo(unitCoords[rackSize][4],unitCoords[rackSize][0]);
+        ctx.stroke();
+        ctx.closePath();
+        ctx.font =  fontSize + "px Arial";
+        var numDisplacement = ctx.measureText("00").width +2;
+
+        for (let i = 0; i <= rackSize; i++){
             ctx.beginPath();
-            ctx.moveTo(unitCoords[0][1],unitCoords[0][0]);
-            ctx.lineTo(unitCoords[rackSize ][1],unitCoords[rackSize][0]);
-            ctx.stroke();
-            ctx.moveTo(unitCoords[0][2],unitCoords[0][0]);
-            ctx.lineTo(unitCoords[rackSize][2],unitCoords[rackSize][0]);
-            ctx.stroke();
-            ctx.moveTo(unitCoords[0][3],unitCoords[0][0]);
-            ctx.lineTo(unitCoords[rackSize][3],unitCoords[rackSize][0]);
-            ctx.stroke();
-            ctx.moveTo(unitCoords[0][4],unitCoords[0][0]);
-            ctx.lineTo(unitCoords[rackSize][4],unitCoords[rackSize][0]);
+            ctx.fillStyle="black";
+            coordArray = unitCoords[i];
+            ctx.moveTo(coordArray[1],coordArray[0]);
+            ctx.lineTo(coordArray[2],coordArray[0]);
+            ctx.moveTo(coordArray[3],coordArray[0]);
+            ctx.lineTo(coordArray[4],coordArray[0]);
             ctx.stroke();
             ctx.closePath();
-            ctx.font =  fontSize + "px Arial";
-            var numDisplacement = ctx.measureText("00").width +2;
+            if (i >0){
+                ctx.fillText(topDown?i:rackSize +1 - i, coordArray[1]-numDisplacement, coordArray[0]- 2);
+                ctx.fillText(topDown?i:rackSize +1 - i, coordArray[3]-numDisplacement, coordArray[0]- 2);
+            }
+        }
 
-            for (let i = 0; i <= rackSize; i++){
-                ctx.beginPath();
-                ctx.fillStyle="black";
-                coordArray = unitCoords[i];
-                ctx.moveTo(coordArray[1],coordArray[0]);
-                ctx.lineTo(coordArray[2],coordArray[0]);
-                ctx.moveTo(coordArray[3],coordArray[0]);
-                ctx.lineTo(coordArray[4],coordArray[0]);
-                ctx.stroke();
-                ctx.closePath();
-                if (i >0){
-                    ctx.fillText(topDown?i:rackSize +1 - i, coordArray[1]-numDisplacement, coordArray[0]- 2);
-                    ctx.fillText(topDown?i:rackSize +1 - i, coordArray[3]-numDisplacement, coordArray[0]- 2);
+        for (let server in front){
+            ctx.fillStyle = "yellow";
+            serverUnit = topDown?front[server][0]-1:(rackSize-front[server][0] - front[server][1]+1);
+            //console.log(serverUnit);
+            coordArray = unitCoords[serverUnit];
+            ctx.fillRect(coordArray[1], coordArray[0] , rackWidth, unitHeight*front[server][1]);
+            ctx.fillStyle = "black";
+            ctx.fillText(server,coordArray[1] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ front[server][1]*unitHeight/2 + fontSize/2 -2 );
+        }
+
+        for (let server in back){
+            ctx.fillStyle = "yellow";
+            serverUnit = topDown?back[server][0]-1:(rackSize-back[server][0] - back[server][1]+1);
+            //console.log(serverUnit);
+            coordArray = unitCoords[serverUnit];
+            ctx.fillRect(coordArray[3], coordArray[0] , rackWidth, unitHeight*back[server][1]);
+            ctx.fillStyle = "black";
+            ctx.fillText(server,coordArray[3] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ back[server][1]*unitHeight/2 + fontSize/2 -2);
+        }
+   }
+
+   function mouseDown(event){
+        correctionRect = canvas.getBoundingClientRect();
+        //console.log(correctionRect);
+        x = event.pageX - correctionRect.left;
+        y = event.pageY - correctionRect.top;
+
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        drawRack();
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 3;
+        for(let i = 0; i<rackSize; i++){
+            if (y < unitCoords[i+1][0] && y > unitCoords[i][0]){
+                if (x > unitCoords[i][1] && x < unitCoords[i][2]){
+                    ctx.strokeRect(unitCoords[i][1], unitCoords[i][0], rackWidth, unitHeight);
+                    return [topDown?i+1:rackSize-i,0];
+                }else if(x > unitCoords[i][3] && x < unitCoords[i][4]){
+                    ctx.strokeRect(unitCoords[i][3], unitCoords[i][0], rackWidth, unitHeight);
+                    return [topDown?i+1:rackSize-i,1];
                 }
             }
+        }
+        return [0,0];
 
-            for (let server in front){
-                ctx.fillStyle = "yellow";
-                serverUnit = topDown?front[server][0]-1:(rackSize-front[server][0] - front[server][1]+1);
-                //console.log(serverUnit);
-                coordArray = unitCoords[serverUnit];
-                ctx.fillRect(coordArray[1], coordArray[0] , rackWidth, unitHeight*front[server][1]);
-                ctx.fillStyle = "black";
-                ctx.fillText(server,coordArray[1] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ front[server][1]*unitHeight/2 + fontSize/2 -2 );
-            }
+   }
 
-            for (let server in back){
-                ctx.fillStyle = "yellow";
-                serverUnit = topDown?back[server][0]-1:(rackSize-back[server][0] - back[server][1]+1);
-                //console.log(serverUnit);
-                coordArray = unitCoords[serverUnit];
-                ctx.fillRect(coordArray[3], coordArray[0] , rackWidth, unitHeight*back[server][1]);
-                ctx.fillStyle = "black";
-                ctx.fillText(server,coordArray[3] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ back[server][1]*unitHeight/2 + fontSize/2 -2);
-            }
-       }
+   function mouseClick(event){
+        data = mouseDown(event);
+        console.log(data);
+        //console.log(front);
+        if (data[0] == 0) return;
+        front_ids = { {% for s in front %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
+        back_ids  = { {% for s in back %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
 
-       function mouseDown(event){
-            correctionRect = canvas.getBoundingClientRect();
-            //console.log(correctionRect);
-            x = event.pageX - correctionRect.left;
-            y = event.pageY - correctionRect.top;
-
-
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            drawRack();
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 3;
-            for(let i = 0; i<rackSize; i++){
-                if (y < unitCoords[i+1][0] && y > unitCoords[i][0]){
-                    if (x > unitCoords[i][1] && x < unitCoords[i][2]){
-                        ctx.strokeRect(unitCoords[i][1], unitCoords[i][0], rackWidth, unitHeight);
-                        return [topDown?i+1:rackSize-i,0];
-                    }else if(x > unitCoords[i][3] && x < unitCoords[i][4]){
-                        ctx.strokeRect(unitCoords[i][3], unitCoords[i][0], rackWidth, unitHeight);
-                        return [topDown?i+1:rackSize-i,1];
+        switch(data[1]){
+            case 0:
+                for(let server in front){
+                    if (data[0]<= front[server][0] + front[server][1] -1 && data[0]>= front[server][0]){
+                        console.log("success", front[server], front_ids[server]);
+                        window.open('{% url 'server_view_without_parameters'%}'+ front_ids[server],  "_self");
                     }
                 }
-            }
-            return [0,0];
-
-       }
-
-       function mouseClick(event){
-            data = mouseDown(event);
-            console.log(data);
-            //console.log(front);
-            if (data[0] == 0) return;
-            front_ids = { {% for s in front %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
-            back_ids  = { {% for s in back %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
-
-            switch(data[1]){
-                case 0:
-                    for(let server in front){
-                        if (data[0]<= front[server][0] + front[server][1] -1 && data[0]>= front[server][0]){
-                            console.log("success", front[server], front_ids[server]);
-                            window.open('{% url 'server_view_without_parameters'%}'+ front_ids[server],  "_self");
-                        }
+                break;
+            case 1:
+                for(let server in back){
+                    if (data[0]<= back[server][0] + back[server][1] -1 && data[0]>= back[server][0]){
+                        console.log("success", back[server], back_ids[server]);
+                        window.open('{% url 'server_view_without_parameters'%}'+ back_ids[server],  "_self");
                     }
-                    break;
-                case 1:
-                    for(let server in back){
-                        if (data[0]<= back[server][0] + back[server][1] -1 && data[0]>= back[server][0]){
-                            console.log("success", back[server], back_ids[server]);
-                            window.open('{% url 'server_view_without_parameters'%}'+ back_ids[server],  "_self");
-                        }
-                    }
-                    break;
+                }
+                break;
 
-            }
-       }
+        }
+   }
+window.onload = init;
+{% endblock %}
 
 
-
-    </script>
-</head>
-<body onload="init();">
+{% block content %}
 <div style="width:100%; overflow: hidden;">
     <div style="float: left;" class="block1">
         <p>{{rack.name}}</p>
@@ -171,6 +170,4 @@
         <canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;"></canvas>
     </div>
 </div>
-
-</body>
-</html>
+{% endblock %}
