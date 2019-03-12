@@ -389,22 +389,34 @@ def ajax(request):  # todo добавить верификацию юзера
         # print('search query', "'" + search_query + "'")
         pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
         if re.match(pattern, search_query):
-            matching_ips = []
+            matching_ips = []  # todo 10.21.62.4 10.21.62.44
             search_query = search_query.rstrip('.')
-            octets = search_query.split('.')
-            number_of_octets = len(octets)
-            octets_as_int = 0
-            for i in range(len(octets)):
-                octets_as_int += int(octets[i]) * (256 ** (len(octets) - i - 1))
-            mask = (1 << 8 * number_of_octets) - 1
-            for ip in Ip.objects.all():
-                for k in range(4 - number_of_octets + 1):
-                    bit_len = 8 * k
-                    mask_len = mask << (bit_len)
-                    result_of_and = ip.ip_as_int & mask_len
-                    octets_shifted = octets_as_int << bit_len
-                    if result_of_and == octets_shifted:
-                        matching_ips.append({'pk': ip.id, 'fields': {'ip': Ip.get_string_ip(ip.ip_as_int)}, 'model': 'server_list.ip'})  # todo проверить не находится ли уже ip в списке
+            split_ip = search_query.split('.')
+            generated_octets = [split_ip]
+            last_octet = int(split_ip[-1]) * 10
+            inc = 1
+            while last_octet < 256 and inc < 10:
+                q = split_ip[:-1]
+                q.append(str(last_octet))
+                generated_octets.append(q)
+                last_octet += 1
+                inc += 1
+            # print('queries', generated_octets)
+            number_of_octets = len(split_ip)
+            for octets in generated_octets:
+                octets_as_int = 0
+                for i in range(len(octets)):
+                    octets_as_int += int(octets[i]) * (256 ** (len(octets) - i - 1))
+                mask = (1 << 8 * number_of_octets) - 1
+                for ip in Ip.objects.all():
+                    for k in range(4 - number_of_octets + 1):
+                        bit_len = 8 * k
+                        mask_len = mask << bit_len
+                        result_of_and = ip.ip_as_int & mask_len
+                        octets_shifted = octets_as_int << bit_len
+                        if result_of_and == octets_shifted:
+                            matching_ips.append(
+                                {'pk': ip.id, 'fields': {'ip': Ip.get_string_ip(ip.ip_as_int)}, 'model': 'server_list.ip'})  # todo проверить не находится ли уже ip в списке
             print(matching_ips)
             return HttpResponse(json.dumps(matching_ips))
 

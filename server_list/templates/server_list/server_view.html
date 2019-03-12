@@ -53,11 +53,6 @@ $(this).toggleClass('active');
 {% endblock %}
 
 {% block content %}
-{% if user.is_authenticated %}
-<p style="text-align:right;">Пользователь: {{ user.get_username }}. <a href="/admin/logout/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">выйти</a></p>
-{% else %}
-<p style="text-align:right;"><a href="/admin/login/?next=/servers/view/{{server_dict|get_dict_item:'server_id'}}">Войти</a></p>
-{% endif %}
 <header>
     <h1>Сервер: {{ server_dict|get_dict_item:"hostname" }}
         {% if server_dict|get_dict_item:"power_state" %}|
@@ -101,10 +96,10 @@ $(this).toggleClass('active');
 <p>Виртуальные машины:</p>
 {% endif %}
 {% for s in server_dict|get_dict_item:"vm_list"%}
-<p><a href="/servers/view/{{s.id}}">{{s.hostname}}</a></p>
+<p><a href="{% url 'server_view' s.id %}">{{s.hostname}}</a></p>
 {% endfor %}
 {%if request.user.is_authenticated %}
-<p><a href="/servers/edit/{{server_dict|get_dict_item:'server_id'}}">Редактировать</a></p>
+<p><a href="{% url 'server_edit' server_dict|get_dict_item:'server_id'%}">Редактировать</a></p>
 {% endif %}
 
 {% endblock %}

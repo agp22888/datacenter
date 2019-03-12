@@ -7,9 +7,73 @@
     <script type="text/javascript" src="{% static 'server_list/js/bootstrap.min.js' %}"></script>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %} </title>
-    {% block otherscript %}
-    {% endblock %}
+
     <script> {% block script %}{% endblock %} </script>
+    <script>
+$(document).ready(function() {
+    //document.getElementById("myInput").addEventListener("focusout", blur);
+    //document.getElementById("myInput").addEventListener("focus", searchFunction);
+    document.getElementById("myInput").addEventListener('input', searchFunction);
+    //document.getElementById("myInput").onchange=searchFunction();
+});
+
+function blur() {
+    console.log("blur")
+    //document.getElementById("myDropdown").innerHTML="";
+};
+
+function searchFunction(){
+    input = document.getElementById('myInput');
+
+    $.ajax({
+        url: "{% url 'ajax' %}",
+        type: 'GET',
+        data: {'action': 'search', 'query':document.getElementById('myInput').value},
+        dataType: "json",
+        success: function(resp){
+            document.getElementById("resultlist").innerHTML="";
+            $.each(resp, function(idx, obj) {
+                    //console.log(idx);
+                    //console.log('obj',obj);
+                    element = document.createElement('option');
+                    element.dataset.id=obj.pk;
+                    element.dataset.model=obj.model;
+                    if (obj.model.split('.')[1].localeCompare('server')==0){
+                        element.innerHTML = obj.fields.hostname;
+                    }else if (obj.model.split('.')[1].localeCompare('ip')==0){
+                        element.innerHTML = obj.fields.ip;
+                    }
+                    //console.log(obj.fields.hostname);
+                    document.getElementById("resultlist").appendChild(element);
+                });
+            val = input.value;
+            list = input.getAttribute('list');
+
+            options = Array.from(document.getElementById(list).childNodes);
+
+           // for (let i = 0; i < options.length; i++){
+           //     //console.log(options[i].innerText);
+           //     if (val == options[i].innerText){
+           //         console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
+           //     }
+           // }
+            //console.log('options', options);
+            //console.log(options.length);
+            if (options.length == 1){
+                console.log('item selected _', val, 'url:'+'servers/' + options[0].dataset.model.split('.')[1]+'/'+ options[0].dataset.id);
+                document.getElementById('form_model').value=options[0].dataset.model;
+                document.getElementById('form_id').value=options[0].dataset.id;
+                document.getElementById('form_complete').value='True';
+                //document.getElementById('searchform').submit();
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown+'initial load');
+        }
+    });
+};
+</script>
+
     <style> {% block style %}{% endblock %} </style>
 </head>
 <body class="bg-light">
@@ -52,9 +116,18 @@
         <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
       </li>
     </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+
+    <form id="searchform" class="form-inline my-2 my-lg-0" method="POST" autocomplete="off" action="{% url 'search'%}">
+        {% csrf_token %}
+        <input  class="form-control mr-sm-2" name="searchInput" list="resultlist" type="search" placeholder="Поиск..." id="myInput">
+        <datalist id="resultlist">
+            <option data-id="1" data-model="server_list.ip">10.21.62.1</option>
+            <option data-id="2" data-model="server_list.ip">10.21.62.2</option>
+        </datalist>
+        <input id="form_model" name="form_model" type="hidden">
+        <input id="form_id" name="form_id" type="hidden">
+        <input id="form_complete" name="form_complete" type="hidden" value="False">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
     </form>
   </div>
 </nav>
