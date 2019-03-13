@@ -11,7 +11,7 @@
     <script> {% block script %}{% endblock %} </script>
     <script>
 $(document).ready(function() {
-    //document.getElementById("myInput").addEventListener("focusout", blur);
+    document.getElementById("myInput").addEventListener("focusout", checkDataList);
     //document.getElementById("myInput").addEventListener("focus", searchFunction);
     document.getElementById("myInput").addEventListener('input', searchFunction);
     //document.getElementById("myInput").onchange=searchFunction();
@@ -49,14 +49,14 @@ function searchFunction(){
             val = input.value;
             list = input.getAttribute('list');
 
-            options = Array.from(document.getElementById(list).childNodes);
-
-           // for (let i = 0; i < options.length; i++){
-           //     //console.log(options[i].innerText);
-           //     if (val == options[i].innerText){
-           //         console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
-           //     }
-           // }
+            //options = Array.from(document.getElementById(list).childNodes);
+//
+            //for (let i = 0; i < options.length; i++){
+            //    //console.log(options[i].innerText);
+            //    if (val == options[i].innerText){
+            //        console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
+            //    }
+            //}
             //console.log('options', options);
             //console.log(options.length);
             if (options.length == 1){

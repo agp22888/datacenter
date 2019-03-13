@@ -1,10 +1,61 @@
 <html>
 <head>
+    <style>
+
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        <!--input {-->
+          <!--border: 1px solid transparent;-->
+          <!--background-color: #f1f1f1;-->
+          <!--padding: 10px;-->
+          <!--font-size: 16px;-->
+        <!--}-->
+        <!--input[type=text] {-->
+          <!--background-color: #f1f1f1;-->
+          <!--width: 100%;-->
+        <!--}-->
+        <!--input[type=submit] {-->
+          <!--background-color: DodgerBlue;-->
+          <!--color: #fff;-->
+        <!--}-->
+
+        .autocomplete-items {
+          position: absolute;
+          border: 1px solid #d4d4d4;
+          border-bottom: none;
+          border-top: none;
+          z-index: 99;
+          /*position the autocomplete items to be the same width as the container:*/
+          top: 100%;
+          left: 0;
+          right: 0;
+        }
+        .autocomplete-items div {
+          padding: 10px;
+          cursor: pointer;
+          background-color: #fff;
+          border-bottom: 1px solid #d4d4d4;
+        }
+        .autocomplete-items div:hover {
+          /*when hovering an item:*/
+          background-color: #e9e9e9;
+        }
+        .autocomplete-active {
+          /*when navigating through the items using the arrow keys:*/
+          background-color: DodgerBlue !important;
+          color: #ffffff;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
     <script>
 $(document).ready(function() {
     //document.getElementById("myInput").addEventListener("focusout", blur);
     //document.getElementById("myInput").addEventListener("focus", searchFunction);
+    document.getElementById('autocomplete-items').innerHTML="";
     document.getElementById("myInput").addEventListener('input', searchFunction);
     //document.getElementById("myInput").onchange=searchFunction();
 });
@@ -16,62 +67,65 @@ function blur() {
 
 function searchFunction(){
     input = document.getElementById('myInput');
-
+    list = document.getElementById('autocomplete-items');
+    list.innerHTML="";
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'action': 'search', 'query':document.getElementById('myInput').value},
         dataType: "json",
         success: function(resp){
-            document.getElementById("resultlist").innerHTML="";
             $.each(resp, function(idx, obj) {
-                    //console.log(idx);
-                    //console.log('obj',obj);
-                    element = document.createElement('option');
-                    element.dataset.id=obj.pk;
-                    element.dataset.model=obj.model;
+                    a = document.createElement("div");
+
+                    val = "";
+
                     if (obj.model.split('.')[1].localeCompare('server')==0){
-                        element.innerHTML = obj.fields.hostname;
+                        val = obj.fields.hostname;
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
-                        element.innerHTML = obj.fields.ip;
+                        val = obj.fields.ip;
                     }
-                    //console.log(obj.fields.hostname);
-                    document.getElementById("resultlist").appendChild(element);
+                    a.innerHTML+='<strong>' + input.value + '</strong>' + val.substr(input.value.length);
+                    a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>"
+                    a.addEventListener("click", function(e){
+                        //console.log(this.getElementsByTagName("input"));
+                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
+                    });
+                    list.appendChild(a);
                 });
-            val = input.value;
-            list = input.getAttribute('list');
-
-            options = Array.from(document.getElementById(list).childNodes);
-
-           // for (let i = 0; i < options.length; i++){
-           //     //console.log(options[i].innerText);
-           //     if (val == options[i].innerText){
-           //         console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
-           //     }
-           // }
-            //console.log('options', options);
-            //console.log(options.length);
-            if (options.length == 1){
-                console.log('item selected _', val, options[0].dataset.model, options[0].dataset.id);
-            }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'initial load');
+            alert('error: ' + errorThrown);
         }
     });
 };
-</script>
+
+
+    </script>
 
 </head>
 <body>
 <form method="POST" autocomplete="off" action="{% url 'search'%}">
     {% csrf_token %}
-    <input name="searchInput" list="resultlist" type="text" placeholder="Поиск..." id="myInput">
-    <datalist id="resultlist">
-        <option value="1" id=1></option>
-        <option value="2"></option>
-    </datalist>
+    <div class="autocomplete" style="width:300px;">
+        <input name="searchInput" type="text" placeholder="Поиск..." id="myInput" style="width:100%">
+        <div id="autocomplete-items" class="autocomplete-items">
+            <div>1
+                <input value="1" type="hidden">
+            </div>
+            <div>2
+                <input value="2" type="hidden">
+            </div>
+        </div>
+    </div>
     <input type="submit" value="Submit">
 </form>
+<p>1kek</p>
+<p>2kek</p>
+<p>3kek</p>
+<p>4kek</p>
+<p>5kek</p>
+<p>6kek</p>
+<p>7kek</p>
 </body>
 </html>
