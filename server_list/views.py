@@ -530,13 +530,11 @@ def custom_logout(request):
 
 def custom_login(request):
     redirect_to = request.GET.get('next')
-    print(redirect_to)
     if request.method == 'GET':
         form = UserForm()
         return render(request, os.path.join('server_list', 'login.html'), {'form': form})
     elif request.method == 'POST':
         form = UserForm(request.POST)
-        print("it's all good, man!")
         if form.is_valid():
             username = request.POST['username']
             password = request.POST['password']
