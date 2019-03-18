@@ -29,7 +29,7 @@
         unitCoords = [];
         for (let i = 0; i<=rackSize; i++){
             // [y, xStart1, xEnd1, xStart2, xEnd2];
-            unitCoords.push([0.5+Math.round(verMargin + unitHeight * i), horMargin, horMargin + rackWidth, horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap]);
+            unitCoords.push([0.5+Math.round(verMargin + unitHeight * i),  horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap,horMargin, horMargin + rackWidth]);
         }
         console.log(unitCoords);
         drawRack();

@@ -27,4 +27,6 @@ urlpatterns = [
     url(r'territory_edit/(?P<territory_id>\d*)', views.territory_edit, name="territory_edit"),
     url(r'^test$', views.test, name='test'),
     url(r'^search$', views.search, name='search'),
+    url(r'^login$', views.custom_login, name='custom_login'),
+    url(r'^logout$', views.custom_logout, name='custom_logout'),
 ]

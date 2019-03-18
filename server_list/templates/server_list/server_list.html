@@ -39,7 +39,7 @@
 <div>
     <!-- ссылки на сегменты -->
     {% for id, name in links.items %}
-    <a href={% url 'list' %}?segment={{ id }}>{{name}}</a>
+    <a href="{% url 'list' %}?segment={{ id }}">{{name}}</a>
     {% endfor %}
 </div>
 

@@ -1,12 +1,17 @@
 import os, re, json
 
+from django.conf.urls import url
+from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse, reverse_lazy
+
 from . import utils
 from django.core import serializers
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render, get_object_or_404, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerForm, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm
+from .forms import ServerForm, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm
 from django.http import Http404
 
 
@@ -73,10 +78,12 @@ def servers(request):
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
+    actions = [{'link': '#', 'divider': False, 'name': 'Action 1'}, {'link': '#', 'divider': False, 'name': 'Action 2'}, {'link': '', 'divider': True, 'name': ''},
+               {'link': '#', 'divider': False, 'name': 'Action 3'}]
+    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
-    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict})
 
-
+@login_required(login_url=reverse_lazy('custom_login'))
 def server_edit(request, server_id):
     print('user_auth', request.user.is_authenticated)
     if not request.user.is_authenticated:
@@ -140,10 +147,12 @@ def server_edit(request, server_id):
         if server.is_physical:
             rack = server.rack
             room = rack.room
-            form_dict.update({'server_territory': room.territory.id,
+            form_dict.update({'server_location': server.location,
+                              'server_territory': room.territory.id,
                               'server_room': room.id,
                               'server_rack': rack.id})
         form = ServerForm(form_dict, server_id=server_id)
+
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
@@ -512,3 +521,32 @@ def search(request):
         print(request)
         return HttpResponse(request.POST.items())
     return HttpResponse('search')
+
+
+def custom_logout(request):
+    logout(request)
+    return redirect(reverse('list'))
+
+
+def custom_login(request):
+    redirect_to = request.GET.get('next')
+    print(redirect_to)
+    if request.method == 'GET':
+        form = UserForm()
+        return render(request, os.path.join('server_list', 'login.html'), {'form': form})
+    elif request.method == 'POST':
+        form = UserForm(request.POST)
+        print("it's all good, man!")
+        if form.is_valid():
+            username = request.POST['username']
+            password = request.POST['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect(redirect_to if redirect_to is not None else reverse('list'))
+            else:
+                form.add_error(None, 'Пользователь не существует')
+            return render(request, os.path.join('server_list', 'login.html'), {'form': form})
+        else:
+            return render(request, os.path.join('server_list', 'login.html'), {'form': form})
+    return HttpResponse('login')

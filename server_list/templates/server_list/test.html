@@ -3,11 +3,6 @@
     <style>
 
 
-        .autocomplete {
-            position: relative;
-            display: inline-block;
-        }
-
         <!--input {-->
           <!--border: 1px solid transparent;-->
           <!--background-color: #f1f1f1;-->
@@ -22,6 +17,11 @@
           <!--background-color: DodgerBlue;-->
           <!--color: #fff;-->
         <!--}-->
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
 
         .autocomplete-items {
           position: absolute;
@@ -53,16 +53,12 @@
     <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
     <script>
 $(document).ready(function() {
-    //document.getElementById("myInput").addEventListener("focusout", blur);
-    //document.getElementById("myInput").addEventListener("focus", searchFunction);
     document.getElementById('autocomplete-items').innerHTML="";
     document.getElementById("myInput").addEventListener('input', searchFunction);
-    //document.getElementById("myInput").onchange=searchFunction();
 });
 
 function blur() {
     console.log("blur")
-    //document.getElementById("myDropdown").innerHTML="";
 };
 
 function searchFunction(){
@@ -77,9 +73,7 @@ function searchFunction(){
         success: function(resp){
             $.each(resp, function(idx, obj) {
                     a = document.createElement("div");
-
                     val = "";
-
                     if (obj.model.split('.')[1].localeCompare('server')==0){
                         val = obj.fields.hostname;
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
@@ -88,7 +82,6 @@ function searchFunction(){
                     a.innerHTML+='<strong>' + input.value + '</strong>' + val.substr(input.value.length);
                     a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>"
                     a.addEventListener("click", function(e){
-                        //console.log(this.getElementsByTagName("input"));
                         console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
                     });
                     list.appendChild(a);

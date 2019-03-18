@@ -83,24 +83,26 @@ class ServerForm(forms.Form):
                 'server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
-            unit_low = self.cleaned_data['server_unit']
-            unit_high = unit_low + self.cleaned_data['server_height'] - 1
+            this_unit_low = self.cleaned_data['server_unit']
+            this_unit_high = this_unit_low + self.cleaned_data['server_height'] - 1
+            this_location = int(self.cleaned_data['server_location'])
             rack = Rack.objects.get(pk=int(self.cleaned_data['server_rack']))
-            if unit_high > rack.size:
+            if this_unit_high > rack.size or this_unit_low <= 0:
                 self.errors.update({'server_unit': ['расположение сервера выходит за размеры стойки']})
-            for s in rack.server_set.all():
-                if self.server_id is not None and s.id == int(self.server_id):
+            for check_s in rack.server_set.all():
+                if self.server_id is not None and check_s.id == int(self.server_id):
                     continue
-                s_unit_low = s.unit
-                s_unit_high = s_unit_low + s.height - 1
-                s_location = s.location
-                print('server location is', self.cleaned_data['server_location'], s_location)
-                if ((s_unit_low <= unit_low <= s_unit_high or s_unit_low <= unit_high <= s_unit_high) \
-                    or (unit_low < s_unit_low and unit_high > s_unit_high)) \
-                        and (s_location == int(self.cleaned_data['server_location']) or s_location == 3):
+                check_s_unit_low = check_s.unit
+                check_s_unit_high = check_s_unit_low + check_s.height - 1
+                check_s_location = check_s.location
+                print('server location is', self.cleaned_data['server_location'], check_s_location)
+
+                if (check_s_location == this_location or check_s_location == 2 or this_location == 2) \
+                        and ((check_s_unit_low <= this_unit_low <= check_s_unit_high or check_s_unit_low <= this_unit_high <= check_s_unit_high)
+                             or (this_unit_low < check_s_unit_low and this_unit_high > check_s_unit_high)):
                     self.errors.update({'server_unit': [
-                        'unit already in use by ' + s.hostname + '; units: ' +
-                        s.get_unit_string() + Server.locations.get(s.location)]})
+                        'unit already in use by ' + check_s.hostname + '; units: ' +
+                        check_s.get_unit_string() + Server.locations.get(check_s.location)]})
                     # todo добавить ссылку на сервер, с которым идёт пересечение?
 
     def __init__(self, *args, **kwargs, ):
@@ -185,3 +187,12 @@ class TerritoryForm(ModelForm):
     class Meta:
         model = Territory
         fields = '__all__'
+
+
+class UserForm(forms.Form):
+    username = forms.CharField(max_length=50)
+    password = forms.CharField(max_length=30, widget=forms.PasswordInput)
+
+    def clean(self):
+        if len(self.cleaned_data['password']) < 3:
+            self.errors.update({'password': ['Пароль слишком короткий']})

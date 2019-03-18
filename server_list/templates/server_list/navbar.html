@@ -3,7 +3,8 @@
 <html lang="en">
 <head>
     <script src="{% include 'server_list/js_jquery.html' %}"></script>
-    <link type="text/css" rel="stylesheet" href="{% static 'server_list/css/bootstrap.min.css' %}" media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="{% static 'server_list/css/bootstrap.min.css' %}"
+          media="screen,projection"/>
     <script type="text/javascript" src="{% static 'server_list/js/bootstrap.min.js' %}"></script>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %} </title>
@@ -11,125 +12,173 @@
     <script> {% block script %}{% endblock %} </script>
     <script>
 $(document).ready(function() {
-    document.getElementById("myInput").addEventListener("focusout", checkDataList);
-    //document.getElementById("myInput").addEventListener("focus", searchFunction);
+    document.getElementById('autocomplete-items').innerHTML="";
     document.getElementById("myInput").addEventListener('input', searchFunction);
-    //document.getElementById("myInput").onchange=searchFunction();
 });
 
 function blur() {
     console.log("blur")
-    //document.getElementById("myDropdown").innerHTML="";
 };
 
 function searchFunction(){
     input = document.getElementById('myInput');
-
+    list = document.getElementById('autocomplete-items');
+    list.innerHTML="";
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'action': 'search', 'query':document.getElementById('myInput').value},
         dataType: "json",
         success: function(resp){
-            document.getElementById("resultlist").innerHTML="";
             $.each(resp, function(idx, obj) {
-                    //console.log(idx);
-                    //console.log('obj',obj);
-                    element = document.createElement('option');
-                    element.dataset.id=obj.pk;
-                    element.dataset.model=obj.model;
+                    a = document.createElement("div");
+                    val = "";
                     if (obj.model.split('.')[1].localeCompare('server')==0){
-                        element.innerHTML = obj.fields.hostname;
+                        val = obj.fields.hostname;
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
-                        element.innerHTML = obj.fields.ip;
+                        val = obj.fields.ip;
                     }
-                    //console.log(obj.fields.hostname);
-                    document.getElementById("resultlist").appendChild(element);
+                    a.innerHTML+='<strong>' + input.value + '</strong>' + val.substr(input.value.length);
+                    a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>"
+                    a.addEventListener("click", function(e){
+                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
+                    });
+                    list.appendChild(a);
                 });
-            val = input.value;
-            list = input.getAttribute('list');
-
-            //options = Array.from(document.getElementById(list).childNodes);
-//
-            //for (let i = 0; i < options.length; i++){
-            //    //console.log(options[i].innerText);
-            //    if (val == options[i].innerText){
-            //        console.log('item selected', val, options[i].dataset.model, options[i].dataset.id);
-            //    }
-            //}
-            //console.log('options', options);
-            //console.log(options.length);
-            if (options.length == 1){
-                console.log('item selected _', val, 'url:'+'servers/' + options[0].dataset.model.split('.')[1]+'/'+ options[0].dataset.id);
-                document.getElementById('form_model').value=options[0].dataset.model;
-                document.getElementById('form_id').value=options[0].dataset.id;
-                document.getElementById('form_complete').value='True';
-                //document.getElementById('searchform').submit();
-            }
         },
         error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'initial load');
+            alert('error: ' + errorThrown);
         }
     });
 };
-</script>
 
-    <style> {% block style %}{% endblock %} </style>
+
+
+
+
+
+    </script>
+
+    <style> {% block style %}{% endblock %}
+             .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        .autocomplete-items {
+          position: absolute;
+          border: 1px solid #d4d4d4;
+          border-bottom: none;
+          border-top: none;
+          z-index: 99;
+          /*position the autocomplete items to be the same width as the container:*/
+          top: 100%;
+          left: 0;
+          right: 0;
+        }
+        .autocomplete-items div {
+          padding: 10px;
+          cursor: pointer;
+          background-color: #fff;
+          border-bottom: 1px solid #d4d4d4;
+        }
+        .autocomplete-items div:hover {
+          /*when hovering an item:*/
+          background-color: #e9e9e9;
+        }
+        .autocomplete-active {
+          /*when navigating through the items using the arrow keys:*/
+          background-color: DodgerBlue !important;
+          color: #ffffff;
+        }
+
+        .divider-vertical {
+            height: 50px;
+            margin: 0 9px;
+            /*border-left: 1px solid #F2F2F2;*/
+            /*border-right: 1px solid #FFF;*/
+        }
+
+
+
+
+
+    </style>
 </head>
 <body class="bg-light">
- <!--<nav>-->
-    <!--<div class="nav-wrapper">-->
-      <!--&lt;!&ndash;<a href="#" class="brand-logo"></a>&ndash;&gt;-->
-      <!--<ul id="nav-mobile" class="right hide-on-med-and-down">-->
-        <!--<li><a href="sass.html">Sass</a></li>-->
-        <!--<li><a href="badges.html">Components</a></li>-->
-        <!--<li><a href="collapsible.html">JavaScript</a></li>-->
-      <!--</ul>-->
-    <!--</div>-->
-  <!--</nav>-->
- <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <a class="navbar-brand" href="{% url 'list' %}">Список серверов</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+<!--<nav>-->
+<!--<div class="nav-wrapper">-->
+<!--&lt;!&ndash;<a href="#" class="brand-logo"></a>&ndash;&gt;-->
+<!--<ul id="nav-mobile" class="right hide-on-med-and-down">-->
+<!--<li><a href="sass.html">Sass</a></li>-->
+<!--<li><a href="badges.html">Components</a></li>-->
+<!--<li><a href="collapsible.html">JavaScript</a></li>-->
+<!--</ul>-->
+<!--</div>-->
+<!--</nav>-->
+<nav class="nav navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="{% url 'list' %}">Список серверов</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Dropdown
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="#">Action</a>
-          <a class="dropdown-item" href="#">Another action</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Something else here</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-      </li>
-    </ul>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="nav navbar-nav mr-auto">
+            <!--<li class="nav-item active">-->
+                <!--<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
+            <!--</li>-->
+            <!--<li class="nav-item">-->
+                <!--<a class="nav-link" href="#">Link</a>-->
+            <!--</li>-->
+            {% if actions %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                   aria-haspopup="true" aria-expanded="false">
+                    Действия
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    {% for action in actions %}
+                    {% if action.divider %}
+                    <div class="dropdown-divider"></div>
+                    {% else %}
+                    <a class="dropdown-item" href="{{action.link}}">{{action.name}}</a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </li>
+            {% endif %}
+            <!--<li class="nav-item">-->
+                <!--<a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>-->
+            <!--</li>-->
+        </ul>
+        <ul class="nav navbar-nav">
+            <li class="nav-item">
+                <form id="searchform" class="form-inline my-2 my-lg-0" method="POST" autocomplete="off"
+                      action="{% url 'search'%}">
+                    {% csrf_token %}
 
-    <form id="searchform" class="form-inline my-2 my-lg-0" method="POST" autocomplete="off" action="{% url 'search'%}">
-        {% csrf_token %}
-        <input  class="form-control mr-sm-2" name="searchInput" list="resultlist" type="search" placeholder="Поиск..." id="myInput">
-        <datalist id="resultlist">
-            <option data-id="1" data-model="server_list.ip">10.21.62.1</option>
-            <option data-id="2" data-model="server_list.ip">10.21.62.2</option>
-        </datalist>
-        <input id="form_model" name="form_model" type="hidden">
-        <input id="form_id" name="form_id" type="hidden">
-        <input id="form_complete" name="form_complete" type="hidden" value="False">
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>
-  </div>
+                    <div class="autocomplete" style="width:300px;">
+                        <input class="form-control mr-sm-2" name="searchInput" type="search" placeholder="Поиск..."
+                               id="myInput" style="width:100%">
+                        <div id="autocomplete-items" class="autocomplete-items">
+
+                        </div>
+                    </div>
+
+                    <input id="form_model" name="form_model" type="hidden">
+                    <input id="form_id" name="form_id" type="hidden">
+                    <input id="form_complete" name="form_complete" type="hidden" value="False">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
+                </form>
+            </li>
+            <li class="divider-vertical"></li>
+            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a href="{%url 'custom_logout'%}" class="navbar-link">выйти</a></p>
+                {% else %}<a href="{% url 'custom_login' %}" class="navbar-link">Войти</a>
+                {% endif %}
+            </li>
+        </ul>
+    </div>
 </nav>
 <p></p>
 {% block content %}
