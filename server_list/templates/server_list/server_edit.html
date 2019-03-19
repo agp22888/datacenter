@@ -161,6 +161,7 @@ function ajax_delete_ip(ip_id){
     });
 }
 
+
 {% include "server_list/js_open_window.html" %}
 
 {% include "server_list/js_reload_call.html" %}
@@ -184,8 +185,12 @@ function ajax_delete_ip(ip_id){
             <th>{{ field.label}}</th>
 
             <th>{{ field }}</th>
+            {% if '_rack' in field.name %}
+            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'rack_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_new' %}', 'rack_add');">Добавить</a> </th>
+            {% endif %}
             {% if 'ip_' in field.name %}
-            <th><a href="javascript:void(0);" onClick="ajax_delete_ip({{field.name|get_ip_num}})">Удалить</a></th>
+            <th><a href="javascript:void(0);" onclick="ajax_delete_ip({{field.name|get_ip_num}})">Удалить</a></th>
             {% endif %}
             {% for error in field.errors %}
             <th><font color="red">{{error}}</font></th>
@@ -194,11 +199,14 @@ function ajax_delete_ip(ip_id){
         </tr>
 
         {% endfor %}
+
+        {% if not form.new %}
         <tr>
             <th colspan="2">
                 <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick="open_window('{% url 'ip_new' form.server_id %}', 'Добавить ip');">Добавить ip</a>
             </th>
         </tr>
+        {% endif %}
 
         <tr>
             <th colspan="2"><input class="btn btn-outline-success my-2 my-sm-1" type="submit" value="Отправить"></th>

@@ -1,9 +1,11 @@
 {% extends 'server_list/navbar.html' %}
 {% block title %}Карточка территории{% endblock %}
 {% block content %}
-<form method="post">
-    {%csrf_token%}
-    {{form.as_p}}
-    <p><input type="submit" value="Submit"></p>
-</form>
+<div class="container">
+    <form method="post">
+        {%csrf_token%}
+        {{form.as_p}}
+        <p><input class="btn btn-outline-success" type="submit" value="Submit"></p>
+    </form>
+</div>
 {% endblock %}

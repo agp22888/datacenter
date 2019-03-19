@@ -1,9 +1,16 @@
 {% extends 'server_list/navbar.html' %}
 {% block title %}Карточка помещения{% endblock %}
+{% block sript %}
+{% include "server_list/js_open_window.html" %}
+
+{% include "server_list/js_reload_call.html" %}
+{% endblock %}
 {% block content %}
+
+
 <form method="post">
     {%csrf_token%}
     {{form.as_p}}
-    <p><input type="submit" value="Submit"></p>
+    <p><input type="submit" value="Submit" onclick="opener.call_reload()"></p>
 </form>
 {% endblock %}

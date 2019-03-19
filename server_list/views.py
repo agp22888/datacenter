@@ -17,7 +17,7 @@ from django.http import Http404
 
 # Create your views here.
 def proof(request):
-    return HttpResponse('blank')
+    return HttpResponseRedirect(reverse('list'))
 
 
 def server_view_all(request):
@@ -33,8 +33,8 @@ def servers(request):
     target_segment = request.GET.get('segment')
 
     if target_segment is None:
-        return render(request, os.path.join('server_list', 'server_list.html'),
-                      {"links": links, "tabs": {}, "servers": {}})
+        return HttpResponseRedirect(reverse('list') + '?segment=' + str(Segment.objects.filter(is_root_segment=True).first().id))
+        # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
     for server in Segment.objects.get(pk=target_segment).server_set.all():
         if not server.is_physical:
             continue
@@ -78,16 +78,12 @@ def servers(request):
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-    actions = [{'link': '#', 'divider': False, 'name': 'Action 1'}, {'link': '#', 'divider': False, 'name': 'Action 2'}, {'link': '', 'divider': True, 'name': ''},
-               {'link': '#', 'divider': False, 'name': 'Action 3'}]
+    actions = [{'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def server_edit(request, server_id):
-    print('user_auth', request.user.is_authenticated)
-    if not request.user.is_authenticated:
-        return HttpResponseForbidden()
     try:
         server = Server.objects.get(id=server_id)
     except Server.DoesNotExist:
@@ -156,10 +152,8 @@ def server_edit(request, server_id):
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def server_new(request):
-    print('user_auth', request.user.is_authenticated)
-    if not request.user.is_authenticated:
-        raise PermissionDenied  # todo https://stackoverflow.com/questions/21123559/django-redirect-all-non-authenticated-users-to-landing-page
     if request.method == 'GET':
         form = ServerForm(new_server=True)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
@@ -192,9 +186,8 @@ def server_new(request):
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def ip_edit(request, ip_id):
-    if not request.user.is_authenticated:
-        raise PermissionDenied
     try:
         ip = Ip.objects.get(pk=ip_id)
     except Ip.DoesNotExist:
@@ -217,9 +210,8 @@ def ip_edit(request, ip_id):
 
 # todo на странице просмотра сервера если много ip из корневых сегментов, то расположение дублируется
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def ip_new(request, server_id):
-    if not request.user.is_authenticated:
-        raise PermissionDenied
     try:
         server = Server.objects.get(pk=server_id)
     except Server.DoesNotExist:
@@ -241,9 +233,8 @@ def ip_new(request, server_id):
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def segment_new(request):
-    if not request.user.is_authenticated:
-        return PermissionDenied
     if request.method == 'GET':
         form = SegmentForm()
         return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
@@ -256,9 +247,8 @@ def segment_new(request):
             return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def segment_edit(request, segment_id):
-    if not request.user.is_authenticated:
-        return PermissionDenied
     if request.method == 'GET':
         try:
             form = SegmentForm(instance=Segment.objects.get(pk=segment_id))
@@ -292,9 +282,10 @@ def rack_view(request, rack_id):
     return render(request, os.path.join('server_list', 'rack_view.html'), {'rack': rack, 'front': rack_front, 'back': rack_back})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def rack_edit(request, rack_id):
-    if not request.user.is_authenticated:
-        return PermissionDenied
+    print('post', request.POST.get('close'))
+    print('get', request.GET.get('close'))
     try:
         rack = Rack.objects.get(pk=rack_id)
     except Rack.DoesNotExists:
@@ -307,6 +298,8 @@ def rack_edit(request, rack_id):
         form = RackForm(request.POST, instance=rack)
         if form.is_valid():
             form.save()
+            if request.GET.get('close') == 'True':
+                return HttpResponse("<script>window.close()</script>")
             return redirect('rack_view', rack_id)
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
@@ -392,12 +385,12 @@ def ajax(request):  # todo добавить верификацию юзера
         except Ip.DoesNotExist:
             raise Http404
         return HttpResponse('ok')
-    if request.GET.get('action') == 'search':  # todo searh by ip address
+    if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
         # print('search query', "'" + search_query + "'")
         pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
         if re.match(pattern, search_query):
-            matching_ips = []  # todo 10.21.62.4 10.21.62.44
+            matching_ips = []
             # search_query = search_query.rstrip('.')
             # split_ip = search_query.split('.')
             # generated_octets = [split_ip]
@@ -443,13 +436,13 @@ def ajax(request):  # todo добавить верификацию юзера
     return None
 
 
+# todo по закрытию окна редактирования вместо перезагрузки страницы, перезагрузить списки
 def segment_view():
     return None
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def room_edit(request, room_id):
-    if not request.user.is_authenticated:
-        return PermissionDenied
     try:
         room = Room.objects.get(pk=room_id)
     except Room.DoesNotExists:
@@ -461,6 +454,8 @@ def room_edit(request, room_id):
         form = TerritoryForm(request.POST, instance=room)
         if form.is_valid():
             form.save()
+            if request.GET.get('close') == 'True':
+                return HttpResponse("<script>window.close()</script>")
             return redirect('room_view', room_id)
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
@@ -489,9 +484,8 @@ def territory_view(request, territory_id):
     return render(request, os.path.join('server_list', 'territory_view.html'), {'territory': territory, 'rooms': rooms})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def territory_edit(request, territory_id):
-    if not request.user.is_authenticated:
-        return PermissionDenied
     try:
         territory = Territory.objects.get(pk=territory_id)
     except Room.DoesNotExists:
@@ -525,7 +519,7 @@ def search(request):
 
 def custom_logout(request):
     logout(request)
-    return redirect(reverse('list'))
+    return redirect(request.GET.get('next'))
 
 
 def custom_login(request):
@@ -548,3 +542,29 @@ def custom_login(request):
         else:
             return render(request, os.path.join('server_list', 'login.html'), {'form': form})
     return HttpResponse('login')
+
+
+def rack_new(request):
+    if request.method == 'GET':
+        form = RackForm()
+        return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = RackForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+
+
+def room_new(request):
+    if request.method == 'GET':
+        form = RoomForm()
+        return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = RoomForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
