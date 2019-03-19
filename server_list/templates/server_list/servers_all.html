@@ -1,23 +1,25 @@
 {% extends 'server_list/navbar.html' %}
 {% block title%}Все серверы{% endblock %}
 {% block content %}
-<table>
-    {% for s in servers %}
-    <tr>
-        <th><a href="/servers/view/{{s.id}}">{{s.hostname}}</a></th>
-        <th><a href="{% url 'rack_view' s.rack.id %}">{{s.rack.name}}</a>,
-            <a href="{% url 'room_view' s.rack.room.id %}">{{s.rack.room.name}}</a>,
-            <a href="{% url 'territory_view' s.rack.room.territory.id %}">{{s.rack.room.territory.name}}</a></th>
+<div class="container">
+    <table>
+        {% for s in servers %}
+        <tr>
+            <th><a href="{% url 'server_view' s.id%}">{{s.hostname}}</a></th>
+            <th><a href="{% url 'rack_view' s.rack.id %}">{{s.rack.name}}</a>,
+                <a href="{% url 'room_view' s.rack.room.id %}">{{s.rack.room.name}}</a>,
+                <a href="{% url 'territory_view' s.rack.room.territory.id %}">{{s.rack.room.territory.name}}</a></th>
 
 
-    </tr>
-    {% for vm in s.server_set.all%}
-    <tr>
-        <th></th>
-        <th align="left"><a href="/servers/view/{{vm.id}}">{{vm.hostname}}</a></th>
+        </tr>
+        {% for vm in s.server_set.all%}
+        <tr>
+            <th></th>
+            <th align="left"><a href="{% url 'server_view' vm.id %}">{{vm.hostname}}</a></th>
 
-    </tr>
-    {% endfor %}
-    {% endfor %}
-</table>
+        </tr>
+        {% endfor %}
+        {% endfor %}
+    </table>
+</div>
 {% endblock %}

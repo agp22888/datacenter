@@ -173,8 +173,8 @@ function searchFunction(){
                 </form>
             </li>
             <li class="divider-vertical"></li>
-            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a href="{%url 'custom_logout'%}" class="navbar-link">выйти</a></p>
-                {% else %}<a href="{% url 'custom_login' %}" class="navbar-link">Войти</a>
+            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a href="{%url 'custom_logout'%}?next={{request.get_full_path}}" class="navbar-link">выйти</a></p>
+                {% else %}<a href="{% url 'custom_login' %}?next={{request.get_full_path}}" class="navbar-link">Войти</a>
                 {% endif %}
             </li>
         </ul>

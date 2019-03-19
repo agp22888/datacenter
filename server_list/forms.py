@@ -167,10 +167,11 @@ class SegmentForm(ModelForm):
 class RackForm(ModelForm):
     class Meta:
         model = Rack
-        fields = '__all__'  # todo в методе clean при изменении размера стойки нужно проверить, не выходит ли размещение
-        # серверов за границы стойки опционально удалить сервер из стойки
+        fields = '__all__'  # todo в методе clean при изменении размера стойки нужно проверить, не выходит ли размещение серверов за границы стойки опционально удалить сервер из стойки
 
     def clean(self):
+        if int(self.cleaned_data['size']) <= 0:
+            self.errors.update({'size': ["Неверный размер"]})
         for server in self.instance.server_set.all():
             if server.unit + server.height - 1 > self.cleaned_data['size']:
                 self.errors.update(
