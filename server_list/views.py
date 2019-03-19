@@ -306,7 +306,7 @@ def rack_edit(request, rack_id):
 
     return HttpResponse('ok')
 
-
+# git
 def server_view(request, server_id):
     try:
         server = Server.objects.get(pk=server_id)
