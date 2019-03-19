@@ -166,8 +166,18 @@ function ajax_delete_ip(ip_id){
 
 {% include "server_list/js_reload_call.html" %}
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    {% endblock %}
+ async function call_reload(){
+    console.log('reload called');
+    console.log("listener triggered, sleeping 1s");
+    await sleep(500);
+    location.reload();
+}
+
+{% endblock %}
 
 {% block content %}
 
