@@ -21,7 +21,7 @@ def proof(request):
 
 
 def server_view_all(request):
-    server_list = Server.objects.filter(is_physical=True).filter(ip__segment__is_root_segment=True)
+    server_list = Server.objects.filter(is_physical=True)
     return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
 
 
@@ -78,7 +78,7 @@ def servers(request):
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-    actions = [{'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
+    actions = [{'link': reverse('server_view_all'), 'divider':False, 'name': 'Все серверы'}, {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
@@ -451,7 +451,7 @@ def room_edit(request, room_id):
         form = RoomForm(instance=room)
         return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = TerritoryForm(request.POST, instance=room)
+        form = RoomForm(request.POST, instance=room)
         if form.is_valid():
             form.save()
             if request.GET.get('close') == 'True':
@@ -544,6 +544,7 @@ def custom_login(request):
     return HttpResponse('login')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def rack_new(request):
     if request.method == 'GET':
         form = RackForm()
@@ -557,6 +558,7 @@ def rack_new(request):
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def room_new(request):
     if request.method == 'GET':
         form = RoomForm()
@@ -568,3 +570,17 @@ def room_new(request):
             return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def territory_new(request):
+    if request.method == 'GET':
+        form = TerritoryForm()
+        return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = TerritoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
