@@ -5,7 +5,7 @@
     <form method="post">
         {%csrf_token%}
         {{form.as_p}}
-        <p><input class="btn btn-outline-success" type="submit" value="Submit" onclick="opener.call_reload()"></p>
+        <p><input class="btn btn-outline-success" type="submit" value="Submit" onclick="if(opener != null) opener.call_reload()"></p>
     </form>
 </div>
 {% endblock %}

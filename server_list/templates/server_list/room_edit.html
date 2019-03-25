@@ -21,6 +21,6 @@
         {% endif %}
     </p>
     {% endfor %}
-    <p><input type="submit" value="Submit" onclick="opener.call_reload()"></p>
+    <p><input type="submit" value="Submit" onclick="if(opener != null) opener.call_reload()"></p>
 </form>
 {% endblock %}

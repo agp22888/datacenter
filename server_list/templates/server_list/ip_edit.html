@@ -24,7 +24,7 @@
         </tr>
         {% endfor %}
     </table>
-    <input type="submit" value="submit" onclick="opener.call_reload()">
+    <input type="submit" value="submit" onclick="if(opener != null) opener.call_reload()">
 </form>
 </body>
 {% endblock %}
