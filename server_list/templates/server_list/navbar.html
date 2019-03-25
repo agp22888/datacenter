@@ -12,17 +12,28 @@
     <script> {% block script %}{% endblock %} </script>
     <script>
 $(document).ready(function() {
-    document.getElementById('autocomplete-items').innerHTML="";
-    document.getElementById("myInput").addEventListener('input', searchFunction);
+    let autocompleteItems = document.getElementById('autocomplete-items');
+    let input = document.getElementById("myInput");
+    autocompleteItems.innerHTML="";
+    autocompleteItems.style.display="none";
+    input.addEventListener('input', searchFunction);
+    input.addEventListener('click', function(e){
+        document.getElementById('autocomplete-items').style.display="block";
+    });
+    document.body.onclick=function(e){
+        let pNode = e.target.parentNode;
+        if( pNode != document.getElementById('autocomplete-items') && pNode != document.getElementById('autocomplete')){
+            document.getElementById('autocomplete-items').style.display="none";
+        }
+    };
+
 });
 
-function blur() {
-    console.log("blur")
-};
 
 function searchFunction(){
     input = document.getElementById('myInput');
     list = document.getElementById('autocomplete-items');
+    list.style.display="block";
     list.innerHTML="";
     $.ajax({
         url: "{% url 'ajax' %}",
@@ -38,7 +49,9 @@ function searchFunction(){
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
                         val = obj.fields.ip;
                     }
-                    a.innerHTML+='<strong>' + input.value + '</strong>' + val.substr(input.value.length);
+                    let first = val.substr(0,val.indexOf(input.value));
+                    let last = val.substr(first.length + input.value.length);
+                    a.innerHTML+=first + '<strong>' + input.value + '</strong>' + last;
                     a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>"
                     a.addEventListener("click", function(e){
                         console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
@@ -158,10 +171,10 @@ function searchFunction(){
                       action="{% url 'search'%}">
                     {% csrf_token %}
 
-                    <div class="autocomplete" style="width:300px;">
+                    <div class="autocomplete" id="autocomplete" style="width:300px;">
                         <input class="form-control mr-sm-2" name="searchInput" type="search" placeholder="Поиск..."
                                id="myInput" style="width:100%">
-                        <div id="autocomplete-items" class="autocomplete-items">
+                        <div id="autocomplete-items" class="autocomplete-items" style="height:auto; max-height:300px; overflow:auto;">
 
                         </div>
                     </div>

@@ -78,7 +78,7 @@ def servers(request):
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-    actions = [{'link': reverse('server_view_all'), 'divider':False, 'name': 'Все серверы'}, {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
+    actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'}, {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
@@ -106,7 +106,7 @@ def server_edit(request, server_id):
                 server.model = form.cleaned_data['server_model']  #
                 server.specs = form.cleaned_data['server_specs']  #
                 server.serial_num = form.cleaned_data['server_serial_number']  #
-                server.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
+                server.rack = form.cleaned_data['server_rack']
                 server.host_machine = None
             else:
                 server.unit = 0
@@ -175,9 +175,9 @@ def server_new(request):
                 s.unit = form.cleaned_data['server_unit']
                 s.height = form.cleaned_data['server_height']
                 s.location = form.cleaned_data['server_location']
-                s.rack = Rack.objects.get(pk=form.cleaned_data['server_rack'])
+                s.rack = form.cleaned_data['server_rack']
             else:
-                s.host_machine = Server.objects.get(pk=int(form.cleaned_data['host_machine']))
+                s.host_machine = form.cleaned_data['host_machine']
             s.save()
             return redirect("server_view", s.id)
         else:
@@ -497,6 +497,8 @@ def territory_edit(request, territory_id):
         form = TerritoryForm(request.POST, instance=territory)
         if form.is_valid():
             form.save()
+            if request.GET.get('close') == 'True':
+                return HttpResponse("<script>window.close()</script>")
             return redirect('territory_view', territory_id)
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})

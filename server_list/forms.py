@@ -39,15 +39,15 @@ class ServerForm(forms.Form):
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
     try:
-        host_machine = forms.ChoiceField(label="Физический сервер", required=False,
-                                         choices=[(str(ser.id), ser.hostname) for ser in Server.objects.filter(is_physical=True)],
-                                         initial=Server.objects.filter(pk=2))
-        server_territory = forms.ChoiceField(label="Территория", required=False,
-                                             choices=[(str(ter.id), ter.name) for ter in Territory.objects.all()])
-        server_room = forms.ChoiceField(label='Помещение', required=False,
-                                        choices=[(str(room.id), room.name) for room in Room.objects.all()])
-        server_rack = forms.ChoiceField(label='Стойка', required=False,
-                                        choices=[(str(rack.id), rack.name) for rack in Rack.objects.all()])
+        host_machine = forms.ModelChoiceField(label="Физический сервер", required=False,
+                                              queryset=Server.objects.filter(is_physical=True))
+        server_territory = forms.ModelChoiceField(label="Территория", required=False,
+                                                  queryset=Territory.objects.all())
+        server_room = forms.ModelChoiceField(label='Помещение', required=False,
+                                             queryset=Room.objects.all())
+        server_rack = forms.ModelChoiceField(label='Стойка', required=False,
+                                             queryset=Rack.objects.all())
+
     except OperationalError:
         print("operational error")
         pass
@@ -86,7 +86,7 @@ class ServerForm(forms.Form):
             this_unit_low = self.cleaned_data['server_unit']
             this_unit_high = this_unit_low + self.cleaned_data['server_height'] - 1
             this_location = int(self.cleaned_data['server_location'])
-            rack = Rack.objects.get(pk=int(self.cleaned_data['server_rack']))
+            rack = self.cleaned_data['server_rack']
             if this_unit_high > rack.size or this_unit_low <= 0:
                 self.errors.update({'server_unit': ['расположение сервера выходит за размеры стойки']})
             for check_s in rack.server_set.all():
