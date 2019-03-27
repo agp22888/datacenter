@@ -314,7 +314,7 @@ def server_view(request, server_id):
         raise Http404("No server found")
     ip_list = []
     for ip in server.ip_set.all():
-        ip_list.append((ip.segment.name, Ip.get_string_ip(ip.ip_as_int)))
+        ip_list.append((ip.segment.name, Ip.get_string_ip(ip.ip_as_int), ip.id))
     data_dict = {"server_id": server_id,
                  "model": server.model,
                  "hostname": server.hostname,

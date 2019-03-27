@@ -146,20 +146,6 @@ function ajax_request_racks_by_room(room_id){
     });
 }
 
-function ajax_delete_ip(ip_id){
-    $.ajax({
-        url: "{% url 'ajax' %}",
-        type: 'GET',
-        data: {'action':'delete_ip','ip_id':ip_id},
-        dataType: "text",
-        success: function(resp){
-                call_reload();
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'delete ip error');
-        }
-    });
-}
 
 
 {% include "server_list/js_open_window.html" %}
@@ -209,7 +195,7 @@ function sleep(ms) {
         </tr>
 
         {% endfor %}
-
+        {% comment %}
         {% if not form.new %}
         <tr>
             <th colspan="2">
@@ -217,6 +203,7 @@ function sleep(ms) {
             </th>
         </tr>
         {% endif %}
+        {% endcomment %}
 
         <tr>
             <th colspan="2"><input class="btn btn-outline-success my-2 my-sm-1" type="submit" value="Отправить"></th>

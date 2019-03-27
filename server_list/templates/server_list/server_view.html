@@ -25,49 +25,58 @@ display: none;
 
 {% block script %}
 $(document).on('click','.spoiler-trigger',function(e){
-e.preventDefault();
-if (!$(this).hasClass('active')){
-$(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
-$.ajax({
-url: "{% url 'ajax' %}",
-type: 'GET',
-data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
-dataType: "text",
-success: function(resp){
-console.log(resp)
-$(".spoiler-block").text(resp)
-
-},
-error: function(jqXHR, textStatus, errorThrown) {
-console.log(errorThrown)
-}
+    e.preventDefault();
+    if (!$(this).hasClass('active')){
+        $(".spoiler-trigger").empty().append($('<span></span>').text('Скрыть пароли'));
+        $.ajax({
+            url: "{% url 'ajax' %}",
+            type: 'GET',
+            data: {'model': 'server', 'server_id': '{{server_dict|get_dict_item:"server_id"}}'},
+            dataType: "text",
+            success: function(resp){
+                $(".spoiler-block").empty().append($('<p></p>').text(resp));
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown)
+            }
+        });
+    }else{
+        $(".spoiler-trigger").empty().append($('<span></span>').text('Показать пароли'));
+    }
+    $('.spoiler-block').slideToggle(300);
+    $(this).toggleClass('active');
 });
-}else{
-$(".spoiler-trigger").empty().append($('<span></span>').text('Показать пароли'));
-}
-$('.spoiler-block').slideToggle(300);
-$(this).toggleClass('active');
 
-})
+function ajax_delete_ip(ip_id){
+    $.ajax({
+        url: "{% url 'ajax' %}",
+        type: 'GET',
+        data: {'action':'delete_ip','ip_id':ip_id},
+        dataType: "text",
+        success: function(resp){
+                call_reload();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown+'delete ip error');
+        }
+    });
+};
+
+{% include "server_list/js_reload_call.html" %}
+{% include "server_list/js_open_window.html" %}
 
 {% endblock %}
 
 {% block content %}
 <div class="container">
     <header>
-        <h1>Сервер: {{ server_dict|get_dict_item:"hostname" }}
-            {% if server_dict|get_dict_item:"power_state" %}|
-            <font color="green">On</font>
-            {% else %}
-            <font color="red">Off</font>
-            {%endif%}
+        <h1><p>Сервер: {{ server_dict|get_dict_item:"hostname" }}{% if server_dict|get_dict_item:"power_state" %}|<font color="green">On</font>{% else %}<font color="red">Off</font>{%endif%}</p>
         </h1>
         <h2>
             {% if server_dict|get_dict_item:"is_physical" %}
             <p>Физический сервер</p>
             {%else%}
-            <p>Виртуальная машина на <a href="{% url 'server_view' server_dict|get_dict_item:'host_machine_id' %}">{{server_dict|get_dict_item:"host_machine"}}</a>
-            </p>
+            <p>Виртуальная машина на <a href="{% url 'server_view' server_dict|get_dict_item:'host_machine_id' %}">{{server_dict|get_dict_item:"host_machine"}}</a></p>
             {%endif%}
         </h2>
     </header>
@@ -83,17 +92,21 @@ $(this).toggleClass('active');
         <a href="{% url 'rack_view' server_dict.rack.id  %}">{{server_dict.rack.name}}, unit
             {{server_dict|get_dict_item:"unit"}}</a></p>
     {%endif%}
-    {% for ip in server_dict|get_dict_item:"ip_list"%}
-    <p>{{ip.0}} : {{ip.1}}</p>
-    {% endfor %}
+
     {% if server_dict|get_dict_item:"is_physical" %}
     <!--<p>Характеристики:</p>-->
     <p>Модель: {{server_dict|get_dict_item:"model"}}</p>
     <p>Серийный номер: {{server_dict|get_dict_item:"serial_number"}}</p>
     <p>Железо: {{server_dict|get_dict_item:"specs"}}</p>
     {% endif %}
-    </p><a href="#" class="spoiler-trigger"><span>Показать пароли</span></a>
-    <div class="spoiler-block" style="display:none">Ошибка</div>
+    <p><a href="#" class="spoiler-trigger"><span>Показать пароли</span></a></p>
+    <div class="spoiler-block" style="display:none"><p>Ошибка</p></div>
+    <p><strong>Ip адреса:</strong></p>
+    {% for ip in server_dict|get_dict_item:"ip_list"%}
+    <p>{{ip.0}} : {{ip.1}} <a href="javascript:void(0);" onclick="open_window('{% url 'ip_edit' ip.2 %}', 'Edit ip');">Редактировать</a>
+        <a href="javascript:void(0);" onclick="ajax_delete_ip({{ip.2}})">Удалить</a></p>
+    {% endfor %}
+    <p><a href="javascript:void(0);" onClick="open_window('{% url 'ip_new' server_dict.server_id %}', 'Добавить ip');">Добавить ip</a></p>
     {% if server_dict|get_dict_item:"vm_list" %}
     <p>Виртуальные машины:</p>
     {% endif %}

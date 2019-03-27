@@ -109,11 +109,11 @@ class ServerForm(forms.Form):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)
         super(ServerForm, self).__init__(*args, **kwargs)
-        if not self.new:
-            ser = Server.objects.get(pk=self.server_id)
-            for ip in ser.ip_set.all():
-                field_name = r'ip_' + str(ip.id)
-                self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
+        # if not self.new:
+        #     ser = Server.objects.get(pk=self.server_id)
+        #     for ip in ser.ip_set.all():
+        #         field_name = r'ip_' + str(ip.id)
+        #         self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
 
 
 class IpForm(forms.Form):
