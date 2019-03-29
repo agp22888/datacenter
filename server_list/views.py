@@ -3,6 +3,7 @@ import os, re, json
 from django.conf.urls import url
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.core.files import File
 from django.urls import reverse, reverse_lazy
 
 from . import utils
@@ -505,8 +506,19 @@ def territory_edit(request, territory_id):
     return HttpResponse('ok')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def test(request):
-    return render(request, os.path.join('server_list', 'test.html'))
+    # f = open(os.path.join('server_list', 'templates', 'server_list', 'test.html'), 'r')
+    # my_file = File(f)
+    s = ''
+    s += serializers.serialize('json', Ip.objects.all())
+    s += serializers.serialize('json', Server.objects.all())
+    d = serializers.deserialize('json', s)
+    print(dir(d))
+    response = HttpResponse(s, content_type='application/plain-text')
+    response['Content-Disposition'] = 'attachment; filename=backup_ip.txt'
+    return response
+    # return render(request, os.path.join('server_list', 'test.html'))
 
 
 def search(request):

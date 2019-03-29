@@ -4,100 +4,105 @@
 {% block title %}Список серверов{% endblock %}
 
 {% block script %}
-    function openCity(evt, cityName) {
-        // Declare all variables
-        var i, tabcontent, tablinks;
+function openCity(evt, cityName) {
+// Declare all variables
+var i, tabcontent, tablinks;
 
-        // Get all elements with class="tabcontent" and hide them
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            tabcontent[i].style.display = "none";
-        }
+// Get all elements with class="tabcontent" and hide them
+tabcontent = document.getElementsByClassName("tabcontent");
+for (i = 0; i < tabcontent.length; i++) {
+tabcontent[i].style.display = "none";
+}
 
-        // Get all elements with class="tablinks" and remove the class "active"
-        tablinks = document.getElementsByClassName("tablinks");
-        for (i = 0; i < tablinks.length; i++) {
-            tablinks[i].className = tablinks[i].className.replace(" active", "");
-        }
+// Get all elements with class="tablinks" and remove the class "active"
+tablinks = document.getElementsByClassName("tablinks");
+for (i = 0; i < tablinks.length; i++) {
+tablinks[i].className = tablinks[i].className.replace(" active", "");
+}
 
-        // Show the current tab, and add an "active" class to the button that opened the tab
-        document.getElementById(cityName).style.display = "block";
-        evt.currentTarget.className += " active";
-    }
-    window.onload = function(){
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (let i = 0; i < tabcontent.length; i++){
-            tabcontent[i].style.display="none";
-        }
-        tabcontent[0].style.display = "block";
+// Show the current tab, and add an "active" class to the button that opened the tab
+document.getElementById(cityName).style.display = "block";
+evt.currentTarget.className += " active";
+}
+window.onload = function(){
+tabcontent = document.getElementsByClassName("tabcontent");
+for (let i = 0; i < tabcontent.length; i++){
+tabcontent[i].style.display="none";
+}
+tabcontent[0].style.display = "block";
 
-    }
+}
 {% endblock %}
 
 {% block content %}
-<div class="container">
-<div>
-    <!-- ссылки на сегменты -->
-    {% for id, name in links.items %}
-    <a href="{% url 'list' %}?segment={{ id }}">{{name}}</a>
-    {% endfor %}
-</div>
+<div style="margin:50px auto;">
+    <div>
+        <!-- ссылки на сегменты -->
+        {% for id, name in links.items %}
+        <a href="{% url 'list' %}?segment={{ id }}">{{name}}</a>
+        {% endfor %}
+    </div>
 
- <!-- вкладки -->
+    <!-- вкладки -->
     <ul class="nav nav-tabs">
-    {% for tabid, tabname in tabs.items %}
-    <li class="nav-item">
-    <a href="#" class="nav-link btn btn-sm tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
-            <button class ="btn btn-sm btn-outline-secondary" value="Edit" onclick="window.location.href ='{% url 'territory_view' tabid %}'">view</button>
-    </a>
-    </li>
-    {% endfor %}
+        {% for tabid, tabname in tabs.items %}
+        <li class="nav-item">
+            <a href="#" class="nav-link btn btn-sm tablinks" onclick="openCity(event, '{{tabname}}')">{{tabname}}
+                <button class="btn btn-sm btn-outline-secondary" value="Edit"
+                        onclick="window.location.href ='{% url 'territory_view' tabid %}'">view
+                </button>
+            </a>
+        </li>
+        {% endfor %}
     </ul>
 
 
-{% for ter, room_dict in servers.items %}
-<div id="{{ter}}" class="tabcontent bg-light ">
-    {% for room, rack_dict in room_dict.items %}
-    <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
-    {% for rack, ser_dict in rack_dict.items %}
-    <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-    <table width="100%" class="table  table-hover table-sm " >
-        <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
+    {% for ter, room_dict in servers.items %}
+    <div id="{{ter}}" class="tabcontent bg-light ">
+        {% for room, rack_dict in room_dict.items %}
+        <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
+        {% for rack, ser_dict in rack_dict.items %}
+        <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
+        <table width="100%" class="table  table-hover table-sm ">
+            <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
-        {% for id, row in ser_dict.items %}
-        {% if forloop.first %}<thead>{%elif forloop.counter0 == 1%}<tbody>{%endif%}
-        <tr>
-            {% for col in row %}
-            {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
-            <th><a href="{% url 'server_view' id %}">{{col}}</a></th>
-            {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " "%}
-            <th><a href="{% url 'server_view' id %}">{{col}}</a></th>
-            {%else%}
+            {% for id, row in ser_dict.items %}
+            {% if forloop.first %}
+            <thead>{%elif forloop.counter0 == 1%}
+            <tbody>{%endif%}
+            <tr>
+                {% for col in row %}
+                {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
+                <th><a href="{% url 'server_view' id %}">{{col}}</a></th>
+                {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " "%}
+                <th><a href="{% url 'server_view' id %}">{{col}}</a></th>
+                {%else%}
 
-            <th>
-                {%if col|is_list%}
-                {% for c in col %}
-                {% if not forloop.first %}
-                <br/>
-                {% endif%}
-                {{c}}
+                <th>
+                    {%if col|is_list%}
+                    {% for c in col %}
+                    {% if not forloop.first %}
+                    <br/>
+                    {% endif%}
+                    {{c}}
+                    {% endfor %}
+                    {% else %}
+                    {{col}}
+                    {% endif %}
+                </th>
+                <!--|linebreaks-->
+                {%endif%}
                 {% endfor %}
-                {% else %}
-                {{col}}
-                {% endif %}
-            </th>
-            <!--|linebreaks-->
-            {%endif%}
+
+            </tr>
+            {% if forloop.first %}
+            </thead>{%elif forloop.last%}</tbody>{%endif%}
             {% endfor %}
-
-        </tr>
-        {% if forloop.first %}</thead>{%elif forloop.last%}</tbody>{%endif%}
+        </table>
         {% endfor %}
-    </table>
-    {% endfor %}
-    {% endfor %}
-</div>
+        {% endfor %}
+    </div>
 
-{% endfor %}
+    {% endfor %}
 </div>
 {% endblock %}
