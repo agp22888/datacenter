@@ -44,15 +44,21 @@ function searchFunction(){
             $.each(resp, function(idx, obj) {
                     a = document.createElement("div");
                     val = "";
+                    console.log(obj);
                     if (obj.model.split('.')[1].localeCompare('server')==0){
                         val = obj.fields.hostname;
                     }else if (obj.model.split('.')[1].localeCompare('ip')==0){
                         val = obj.fields.ip;
                     }
-                    let first = val.substr(0,val.indexOf(input.value));
-                    let last = val.substr(first.length + input.value.length);
-                    a.innerHTML+=first + '<strong>' + input.value + '</strong>' + last;
-                    a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>"
+                    if (val.includes(input.value)){
+                        let first = val.substr(0,val.toLowerCase().indexOf(input.value));
+                        let last = val.substr(first.length + input.value.length);
+                        a.innerHTML+=first + '<strong>' + input.value + '</strong>' + last;
+
+                    } else {
+                        a.innerHTML = val;
+                    }
+                    a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>";
                     a.addEventListener("click", function(e){
                         console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
                     });
