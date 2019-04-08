@@ -34,8 +34,12 @@ def servers(request):
     target_segment = request.GET.get('segment')
 
     if target_segment is None:
-        return HttpResponseRedirect(reverse('list') + '?segment=' + str(Segment.objects.filter(is_root_segment=True).first().id))
+        first = Segment.objects.filter(is_root_segment=True).first()
+        if first is None:
+            return HttpResponse('no segments')
+        return HttpResponseRedirect(reverse('list') + '?segment=' + str(first.id))
         # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
+
     for server in Segment.objects.get(pk=target_segment).server_set.all():
         if not server.is_physical:
             continue
@@ -54,10 +58,10 @@ def servers(request):
                 ser_list = {}
                 row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
                 for seg in seg_list:
-                    row.append(seg)
+                    row.append(seg.name)
                 row.append("s/n")
                 row.append("хар-ки")
-                ser_list.update({-1: row})
+                ser_list.update({"header": row})
                 for server in rack.server_set.all():
                     if not len(server.segments.filter(id=target_segment)) == 0:
                         row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
@@ -401,7 +405,8 @@ def ajax(request):  # todo добавить верификацию юзера
         # sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query), fields=('pk', 'hostname'))
 
         query_set = Server.objects.filter(hostname__icontains=search_query)
-        query_set |= Server.objects.filter(purpose__icontains=search_query) # todo icontains doesn't work with russian text https://stackoverflow.com/questions/47946879/how-to-search-text-containing-non-ascii-characters-with-django-icontains-query#47954143
+        query_set |= Server.objects.filter(
+            purpose__icontains=search_query)  # todo icontains doesn't work with russian text https://stackoverflow.com/questions/47946879/how-to-search-text-containing-non-ascii-characters-with-django-icontains-query#47954143
         # query_set |= Server.objects.filter(ip__ip_as_string__contains=search_query)
         query_set.distinct()
         print(query_set)

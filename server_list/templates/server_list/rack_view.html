@@ -98,16 +98,17 @@
 
    function mouseDown(event){
         correctionRect = canvas.getBoundingClientRect();
-        //console.log(correctionRect);
-        x = event.pageX - correctionRect.left;
-        y = event.pageY - correctionRect.top;
+        var xy_pos = get
+        console.log(event.pageX, event.pageY,);
+        x = event.pageX - correctionRect.left +document.body.scrollLeft;
+        y = event.pageY - correctionRect.top +document.body.scrollTop;
 
 
         ctx.clearRect(0,0,canvas.width,canvas.height);
         drawRack();
         ctx.strokeStyle = "red";
         ctx.lineWidth = 3;
-        for(let i = 0; i<rackSize; i++){
+        for(let i = 0; i < rackSize; i++){
             if (y < unitCoords[i+1][0] && y > unitCoords[i][0]){
                 if (x > unitCoords[i][1] && x < unitCoords[i][2]){
                     ctx.strokeRect(unitCoords[i][1], unitCoords[i][0], rackWidth, unitHeight);
@@ -151,12 +152,13 @@
         }
    }
 window.onload = init;
+window.onresize=init;
 {% endblock %}
 
 
 {% block content %}
-<div class="container">
-<div style="width:100%; overflow: hidden;">
+
+<div >
     <div style="float: left;" class="block1">
         <p>{{rack.name}}</p>
         <p>Расположение: {{rack.room}}</p>
@@ -167,9 +169,9 @@ window.onload = init;
         <p><a href="{% url 'rack_edit' rack.id %}">Редактировать</a></p>
     </div>
 
-    <div style="margin-left;" class="block2">
+    <div ">
         <canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;"></canvas>
     </div>
 </div>
-    </div>
+
 {% endblock %}
