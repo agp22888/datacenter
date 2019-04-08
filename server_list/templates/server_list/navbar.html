@@ -118,11 +118,14 @@ function searchFunction(){
             /*border-right: 1px solid #FFF;*/
         }
 
-
-
+body {
+  font-size: .8rem;
+}
 
 
     </style>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body class="bg-light">
 <!--<nav>-->
@@ -200,7 +203,9 @@ function searchFunction(){
     </div>
 </nav>
 <p></p>
+<div class="container-fluid">
 {% block content %}
 {% endblock %}
+<div class="container-fluid">
 </body>
 </html>
