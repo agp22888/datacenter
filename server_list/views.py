@@ -121,7 +121,7 @@ def server_edit(request, server_id):
                 server.specs = ''
                 server.serial_num = ''
                 server.rack = None
-                server.host_machine = Server.objects.get(pk=form.cleaned_data['host_machine'])
+                server.host_machine = form.cleaned_data['host_machine']
 
             for seg in (x for x in form.cleaned_data if 'ip_' in x):
                 num = int(seg.split('_')[1])
@@ -407,7 +407,7 @@ def ajax(request):  # todo добавить верификацию юзера
         query_set = Server.objects.filter(hostname__icontains=search_query)
         query_set |= Server.objects.filter(
             purpose__icontains=search_query)  # todo icontains doesn't work with russian text https://stackoverflow.com/questions/47946879/how-to-search-text-containing-non-ascii-characters-with-django-icontains-query#47954143
-        # query_set |= Server.objects.filter(ip__ip_as_string__contains=search_query)
+        query_set |= Server.objects.filter(ip__ip_as_string__contains=search_query)
         query_set.distinct()
         print(query_set)
         # print(filt.count())
