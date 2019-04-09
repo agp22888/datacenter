@@ -119,4 +119,4 @@ dmypy.json
 
 venv_linux/
 
-db.sqlite3
+#db.sqlite3

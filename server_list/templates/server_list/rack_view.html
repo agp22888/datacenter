@@ -31,7 +31,6 @@
             // [y, xStart1, xEnd1, xStart2, xEnd2];
             unitCoords.push([0.5+Math.round(verMargin + unitHeight * i),  horMargin + rackWidth + rackGap, horMargin + rackWidth*2 + rackGap,horMargin, horMargin + rackWidth]);
         }
-        console.log(unitCoords);
         drawRack();
     }
 
@@ -40,8 +39,6 @@
     function drawRack(){
         ctx.strokeStyle = "black";
         ctx.lineWidth = 1;
-        //ctx.strokeRect(horMargin, verMargin, rackWidth, rackHeight);
-        //ctx.strokeRect(horMargin+rackWidth+rackGap, verMargin, rackWidth, rackHeight);
         ctx.beginPath();
         ctx.moveTo(unitCoords[0][1],unitCoords[0][0]);
         ctx.lineTo(unitCoords[rackSize ][1],unitCoords[rackSize][0]);
@@ -78,7 +75,6 @@
         for (let server in front){
             ctx.fillStyle = "yellow";
             serverUnit = topDown?front[server][0]-1:(rackSize-front[server][0] - front[server][1]+1);
-            //console.log(serverUnit);
             coordArray = unitCoords[serverUnit];
             ctx.fillRect(coordArray[1], coordArray[0] , rackWidth, unitHeight*front[server][1]);
             ctx.fillStyle = "black";
@@ -88,7 +84,6 @@
         for (let server in back){
             ctx.fillStyle = "yellow";
             serverUnit = topDown?back[server][0]-1:(rackSize-back[server][0] - back[server][1]+1);
-            //console.log(serverUnit);
             coordArray = unitCoords[serverUnit];
             ctx.fillRect(coordArray[3], coordArray[0] , rackWidth, unitHeight*back[server][1]);
             ctx.fillStyle = "black";
@@ -96,12 +91,13 @@
         }
    }
 
+
    function mouseDown(event){
         correctionRect = canvas.getBoundingClientRect();
-        var xy_pos = get
-        console.log(event.pageX, event.pageY,);
-        x = event.pageX - correctionRect.left +document.body.scrollLeft;
-        y = event.pageY - correctionRect.top +document.body.scrollTop;
+        var scrollTop = document.documentElement ? document.documentElement.scrollTop :document.body.scrollTop;
+        var scrollLeft = document.documentElement ? document.documentElement.scrollLeft :document.body.scrollLeft;
+        x = event.pageX - correctionRect.left -scrollLeft;
+        y = event.pageY - correctionRect.top -scrollTop;
 
 
         ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -125,8 +121,6 @@
 
    function mouseClick(event){
         data = mouseDown(event);
-        console.log(data);
-        //console.log(front);
         if (data[0] == 0) return;
         front_ids = { {% for s in front %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
         back_ids  = { {% for s in back %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
@@ -158,8 +152,8 @@ window.onresize=init;
 
 {% block content %}
 
-<div >
-    <div style="float: left;" class="block1">
+<div class="row">
+    <div class="col-sm">
         <p>{{rack.name}}</p>
         <p>Расположение: {{rack.room}}</p>
         <p>Размер в юнитах: {{rack.size}} </p>
@@ -169,7 +163,7 @@ window.onresize=init;
         <p><a href="{% url 'rack_edit' rack.id %}">Редактировать</a></p>
     </div>
 
-    <div ">
+    <div class="col-sm">
         <canvas id="myCanvas" width="200" height="200" style="border: 1px solid #000000;"></canvas>
     </div>
 </div>
