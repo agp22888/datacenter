@@ -136,13 +136,18 @@ class ServerForm(forms.Form):
 class IpFormTest(ModelForm):
     class Meta:
         model = Ip
-        fields = ['segment', 'ip_as_string']
+        fields = ['segment', 'ip_as_string', 'server']
+        widgets = {'server': forms.HiddenInput()}
 
     def clean(self):
         # if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
         #    self.errors.update({'segment_id': ['invalid segment']})
+        # inst = self.save(commit=False)
+        for ip in Ip.objects.filter(ip_as_string=self.cleaned_data['ip_as_string']):
+            if (not ip.ip_as_string == self.cleaned_data['ip_as_string']) or (self.cleaned_data['server'] == ip.server and ip.segment == self.cleaned_data['segment']):
+                self.errors.update({'ip_as_string': ['данный ip уже существует']})
         if not Ip.check_ip(self.cleaned_data['ip_as_string']):
-            self.errors.update({'ip': ['invalid ip']})
+            self.errors.update({'ip_as_string': ['invalid ip']})
 
 
 class SegmentForm(ModelForm):

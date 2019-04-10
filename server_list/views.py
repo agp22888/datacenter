@@ -202,8 +202,6 @@ def ip_edit(request, ip_id):
     except Ip.DoesNotExist:
         raise Http404("IP not found")
     if request.method == 'GET':
-        # data = {'segment_id': ip.segment.id,
-        #        'ip': ip.__str__()}
         form = IpFormTest(instance=ip)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     elif request.method == 'POST':
@@ -224,7 +222,9 @@ def ip_new(request, server_id):
     except Server.DoesNotExist:
         raise Http404("Server not found")
     if request.method == 'GET':
-        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpFormTest()})
+        ip = Ip()
+        ip.server = server
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpFormTest(instance=ip)})
     elif request.method == 'POST':
         form = IpFormTest(request.POST)
         if form.is_valid():
