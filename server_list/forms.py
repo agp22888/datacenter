@@ -15,6 +15,12 @@ class ServerFormNameField(CharField):
         return value
 
 
+class ServerFormTest(ModelForm):
+    class Meta:
+        model = Server
+        fields = '__all__'
+
+
 class ServerForm(forms.Form):
     field_order = ['server_name',
                    'server_purpose',
@@ -38,19 +44,15 @@ class ServerForm(forms.Form):
     is_physical = forms.BooleanField(label="Физический сервер", required=False, initial=True)
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
-    try:
-        host_machine = forms.ModelChoiceField(label="Физический сервер", required=False,
-                                              queryset=Server.objects.filter(is_physical=True))
-        server_territory = forms.ModelChoiceField(label="Территория", required=False,
-                                                  queryset=Territory.objects.all())
-        server_room = forms.ModelChoiceField(label='Помещение', required=False,
-                                             queryset=Room.objects.all())
-        server_rack = forms.ModelChoiceField(label='Стойка', required=False,
-                                             queryset=Rack.objects.all())
+    # try:
+    host_machine = forms.ModelChoiceField(label="Физический сервер", required=False, queryset=Server.objects.filter(is_physical=True), to_field_name='hostname')
+    server_territory = forms.ModelChoiceField(label="Территория", required=False, queryset=Territory.objects.all())
+    server_room = forms.ModelChoiceField(label='Помещение', required=False, queryset=Room.objects.all())
+    server_rack = forms.ModelChoiceField(label='Стойка', required=False, queryset=Rack.objects.all())
 
-    except OperationalError:
-        print("operational error")
-        pass
+    # except OperationalError:
+    #     print("operational error")
+    #     pass
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
@@ -62,21 +64,18 @@ class ServerForm(forms.Form):
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
-        print("form_clean, server_id is:", self.server_id)
-
-        self.cleaned_data['server_name'] = re.sub(r'\s+', ' ', self.cleaned_data['server_name'].strip())
-
+        self.cleaned_data['server_name'] = re.sub(r'\s+', ' ', self.cleaned_data['server_name'].strip())  # getting rid of double spaces
         if self.new and Server.objects.filter(hostname=self.cleaned_data['server_name']).count() > 0:
             self.errors.update({'server_name': ['Имя уже используется']})
 
-        if not self.cleaned_data['is_physical']:
-            if self.cleaned_data['host_machine'] == self.server_id:
-                self.errors.update({'host_machine': ['Виртуальная машина не может хоститься сама на себе!']})
-        for field in self.fields:
-            if 'ip_' in field:
-                data = self.cleaned_data[field]
-                if not Ip.check_ip(data):
-                    self.errors.update({field: ['invalid ip']})
+        # if not self.cleaned_data['is_physical']:
+        #     if self.cleaned_data['host_machine'] == self.server_id:
+        #         self.errors.update({'host_machine': ['Виртуальная машина не может хоститься сама на себе!']})
+        # for field in self.fields:
+        #     if 'ip_' in field:
+        #         data = self.cleaned_data[field]
+        #         if not Ip.check_ip(data):
+        #             self.errors.update({field: ['invalid ip']})
 
         if self.cleaned_data['is_physical']:
             if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:

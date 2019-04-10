@@ -1,4 +1,5 @@
 import os
+from itertools import chain
 
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -8,8 +9,8 @@ from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
-from django.http import HttpResponse,  HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
+from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerFormTest
 from django.http import Http404
 
 
@@ -80,7 +81,10 @@ def servers(request):
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-    actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'}, {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'}]
+    actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
+               {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
+               {'divider': True},
+               {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
@@ -149,7 +153,10 @@ def server_edit(request, server_id):
                               'server_territory': room.territory.id,
                               'server_room': room.id,
                               'server_rack': rack.id})
+        else:
+            form_dict.update({'host_machine': server.host_machine})
         form = ServerForm(form_dict, server_id=server_id)
+        # form = ServerFormTest(instance=server)
 
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
@@ -208,8 +215,6 @@ def ip_edit(request, ip_id):
             return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
-
-
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -491,15 +496,45 @@ def territory_edit(request, territory_id):
 def test(request):
     # f = open(os.path.join('server_list', 'templates', 'server_list', 'test.html'), 'r')
     # my_file = File(f)
-    s = ''
-    s += serializers.serialize('json', Ip.objects.all())
-    s += serializers.serialize('json', Server.objects.all())
-    d = serializers.deserialize('json', s)
-    print(dir(d))
-    response = HttpResponse(s, content_type='application/plain-text')
-    response['Content-Disposition'] = 'attachment; filename=backup_ip.txt'
+    fmt = 'xml'
+    qs_room = Room.objects.all()
+    qs_territory = Territory.objects.all()
+    qs_rack = Rack.objects.all()
+    qs_segment = Segment.objects.all()
+    qs_server = Server.objects.all()
+    qs_ip = Ip.objects.all()
+    qs_combined = list(chain(qs_room, qs_territory, qs_rack, qs_segment, qs_server, qs_ip))
+    ser = serializers.serialize(fmt, qs_combined)
+    # s = ''
+    # s += serializers.serialize('json', Ip.objects.all())
+    # s += serializers.serialize('json', Server.objects.all())
+    d = serializers.deserialize(fmt, ser)
+    for obj in d:
+        print(obj)
+    response = HttpResponse(ser, content_type='application/plain-text')
+    response['Content-Disposition'] = 'attachment; filename=backup_base.' + fmt
+    # return HttpResponse('ok')
     return response
     # return render(request, os.path.join('server_list', 'test.html'))
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def dump(request):
+    fmt = 'xml'
+    qs_room = Room.objects.all()
+    qs_territory = Territory.objects.all()
+    qs_rack = Rack.objects.all()
+    qs_segment = Segment.objects.all()
+    qs_server = Server.objects.all()
+    qs_ip = Ip.objects.all()
+    qs_combined = list(chain(qs_room, qs_territory, qs_rack, qs_segment, qs_server, qs_ip))
+    ser = serializers.serialize(fmt, qs_combined)
+    # d = serializers.deserialize(fmt, ser)
+    # for obj in d:
+    #     print(obj)
+    response = HttpResponse(ser, content_type='application/plain-text')
+    response['Content-Disposition'] = 'attachment; filename=backup_base.' + fmt
+    return response
 
 
 def search(request):

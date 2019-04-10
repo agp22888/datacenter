@@ -35,4 +35,6 @@ urlpatterns = [
     url(r'^search$', views.search, name='search'),
     url(r'^login$', views.custom_login, name='custom_login'),
     url(r'^logout$', views.custom_logout, name='custom_logout'),
+    url(r'^dump$', views.dump, name='dump'),
+
 ]

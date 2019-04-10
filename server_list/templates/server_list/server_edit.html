@@ -11,13 +11,14 @@ var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %} "#tr_id_{{fie
 var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
 var host_machine = {{form.host_machine_id}}
 
-console.log("{{form.server_name.value}}");
+//console.log("{{form.server_name.value}}");
 //console.log(territory_id,room_id,rack_id, is_physical);
 $(document).ready(function() {
 
     //$("#id_host_machine").val(host_machine).attr('selected', 'selected');
 
-    $.ajax({
+    /*$.ajax({
+
         url: "{% url 'ajax' %}",
         type: 'GET',
         data: {'model': 'vm'},
@@ -26,6 +27,7 @@ $(document).ready(function() {
             $("#id_host_machine").empty();
             $.each(resp, function(idx, obj) {
                 //console.log(obj);
+                console.log('fck');
                 if (obj.pk == host_machine){
                     $("#id_host_machine").append($('<option></option>').attr('value', parseInt(obj.pk)).attr('selected','selected').text(obj.fields.hostname));
                 }else{
@@ -37,7 +39,7 @@ $(document).ready(function() {
             alert(errorThrown+'vm_id');
         }
 
-    });
+    });*/
 
     $.ajax({
         url: "{% url 'ajax' %}",
@@ -196,15 +198,7 @@ function sleep(ms) {
         </tr>
 
         {% endfor %}
-        {% comment %}
-        {% if not form.new %}
-        <tr>
-            <th colspan="2">
-                <a href="javascript:void(0);" NAME="My Window Name" title="My title here" onClick="open_window('{% url 'ip_new' form.server_id %}', 'Добавить ip');">Добавить ip</a>
-            </th>
-        </tr>
-        {% endif %}
-        {% endcomment %}
+
 
         <tr>
             <th colspan="2"><input class="btn btn-outline-success my-2 my-sm-1" type="submit" value="Отправить"></th>
