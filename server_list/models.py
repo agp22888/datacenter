@@ -55,16 +55,6 @@ class Segment(models.Model):
         return str(self.name)
 
 
-# class Unit(models.Model):
-#     number = models.IntegerField()
-#     rack = models.ForeignKey(Rack, on_delete=models.CASCADE, default=None, blank=True, null=True)  # todo to be deleted
-#
-#     # server = models.OneToOneField(Server, on_delete=models.CASCADE, default=None, blank=True, null=True)
-#
-#     def __str__(self):
-#         return str(self.number)
-
-
 class Server(models.Model):
     locations = {0: "front", 1: "back", 2: "full"}
     hostname = models.CharField(max_length=50)
@@ -96,7 +86,7 @@ class Server(models.Model):
 
 
 class Ip(models.Model):
-    ip_as_int = models.IntegerField()
+    # ip_as_int = models.IntegerField()
     mask_as_int = models.IntegerField()
     gateway_as_int = models.IntegerField()
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
@@ -104,24 +94,24 @@ class Ip(models.Model):
     ip_as_string = models.CharField(max_length=20)
 
     def __str__(self):
-        return Ip.get_string_ip(self.ip_as_int)
+        return self.ip_as_string
 
-    def save(self, *args, **kwargs):
-        self.ip_as_string = self.__str__()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #    self.ip_as_string = self.__str__()
+    #    super().save(*args, **kwargs)
 
-    @staticmethod
-    def get_string_ip(ip_as_int):
-        counter = 0
-        mask = 255
-        result = ""
-        while counter < 32:
-            if len(result) != 0:
-                result = "." + result
-            t = ip_as_int & (mask << counter)
-            result = str(t >> counter) + result
-            counter += 8
-        return result
+    # @staticmethod
+    # def get_string_ip(ip_as_int):
+    #     counter = 0
+    #     mask = 255
+    #     result = ""
+    #     while counter < 32:
+    #         if len(result) != 0:
+    #             result = "." + result
+    #         t = ip_as_int & (mask << counter)
+    #         result = str(t >> counter) + result
+    #         counter += 8
+    #     return result
 
     @staticmethod
     def get_ip_from_string(ip_str):

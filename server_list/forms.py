@@ -29,9 +29,9 @@ class ServerForm(forms.Form):
                    'server_unit',
                    'server_height',
                    'server_location',
-                   'server_rack',
+                   'server_territory',
                    'server_room',
-                   'server_territory']
+                   'server_rack', ]
     server_name = ServerFormNameField(label="Имя", required=True, initial="Новый сервер")
     server_purpose = forms.CharField(label="Назначение", required=False)
     power_state = forms.BooleanField(label="Питание", required=False, initial=True)
@@ -79,8 +79,7 @@ class ServerForm(forms.Form):
                     self.errors.update({field: ['invalid ip']})
 
         if self.cleaned_data['is_physical']:
-            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data[
-                'server_height'] <= 0:
+            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
             this_unit_low = self.cleaned_data['server_unit']
@@ -116,32 +115,35 @@ class ServerForm(forms.Form):
         #         self.fields[field_name] = forms.CharField(label=ip.segment.name, max_length=100)
 
 
-class IpForm(forms.Form):
-    try:
-        segment_id = forms.ChoiceField(label="Сегмент", required=False, choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
-    except OperationalError:
-        pass
-    ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")
-
-    def __init__(self, *args, **kwargs):
-        super(IpForm, self).__init__(*args, **kwargs)
-        self.fields['segment_id'] = forms.ChoiceField(
-            choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
-
-    def clean(self):
-        if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
-            self.errors.update({'segment_id': ['invalid segment']})
-        if not Ip.check_ip(self.cleaned_data['ip']):
-            self.errors.update({'ip': ['invalid ip']})
+# class IpForm(forms.Form):
+#     try:
+#         segment_id = forms.ChoiceField(label='Сегмент', required=False, choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
+#     except OperationalError:
+#         pass
+#     ip = forms.CharField(label="IP", required=True, initial="0.0.0.0")
+#
+#     def __init__(self, *args, **kwargs):
+#         super(IpForm, self).__init__(*args, **kwargs)
+#         self.fields['segment_id'] = forms.ChoiceField(label='Сегмент',
+#                                                       choices=[(str(seg.id), seg.name) for seg in Segment.objects.all()])
+#
+#     def clean(self):
+#         if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
+#             self.errors.update({'segment_id': ['invalid segment']})
+#         if not Ip.check_ip(self.cleaned_data['ip']):
+#             self.errors.update({'ip': ['invalid ip']})
 
 
 class IpFormTest(ModelForm):
     class Meta:
         model = Ip
-        fields = '__all__'
-        field_classes = {
-            'ip_as_int': GenericIPAddressField
-        }
+        fields = ['segment', 'ip_as_string']
+
+    def clean(self):
+        # if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
+        #    self.errors.update({'segment_id': ['invalid segment']})
+        if not Ip.check_ip(self.cleaned_data['ip_as_string']):
+            self.errors.update({'ip': ['invalid ip']})
 
 
 class SegmentForm(ModelForm):
@@ -167,7 +169,7 @@ class SegmentForm(ModelForm):
 class RackForm(ModelForm):
     class Meta:
         model = Rack
-        fields = '__all__'  # todo в методе clean при изменении размера стойки нужно проверить, не выходит ли размещение серверов за границы стойки опционально удалить сервер из стойки
+        fields = '__all__'
 
     def clean(self):
         if int(self.cleaned_data['size']) <= 0:

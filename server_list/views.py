@@ -1,18 +1,15 @@
-import os, re, json
+import os
 
-from django.conf.urls import url
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.core.files import File
 from django.urls import reverse, reverse_lazy
 
 from . import utils
 from django.core import serializers
-from django.core.exceptions import PermissionDenied
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerForm, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm
+from django.http import HttpResponse,  HttpResponseRedirect, HttpResponseBadRequest
+from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm
 from django.http import Http404
 
 
@@ -69,7 +66,7 @@ def servers(request):
                                "on" if server.is_on else "off",
                                "", server.os, server.purpose]
                         for seg in seg_list:
-                            row.append([Ip.get_string_ip(x.ip_as_int) for x in list(server.ip_set.filter(segment=seg))])
+                            row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
                         row.append(server.serial_num)
                         row.append(server.specs)
                         ser_list.update({server.id: row})
@@ -78,7 +75,7 @@ def servers(request):
                             for seg in seg_list:  # segment dict
 
                                 vm_row.append(
-                                    [Ip.get_string_ip(x.ip_as_int) for x in list(vm.ip_set.filter(segment=seg))])
+                                    [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
                             vm_row.append("")
                             vm_row.append("")
                             ser_list.update({vm.id: vm_row})
@@ -143,8 +140,8 @@ def server_edit(request, server_id):
                      'sensitive_data': server.sensitive_data,
                      'is_physical': server.is_physical,
                      }
-        for ip in server.ip_set.all():
-            form_dict.update({'ip_' + str(ip.id): Ip.get_string_ip(ip.ip_as_int)})
+        # for ip in server.ip_set.all():
+        #    form_dict.update({'ip_' + str(ip.id): ip.ip_as_string})
         if server.is_physical:
             rack = server.rack
             room = rack.room
@@ -198,22 +195,22 @@ def ip_edit(request, ip_id):
     except Ip.DoesNotExist:
         raise Http404("IP not found")
     if request.method == 'GET':
-        data = {'segment_id': ip.segment.id,
-                'ip': ip.__str__()}
-        form = IpForm(data)
+        # data = {'segment_id': ip.segment.id,
+        #        'ip': ip.__str__()}
+        form = IpFormTest(instance=ip)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     elif request.method == 'POST':
-        form = IpForm(request.POST)
+        form = IpFormTest(request.POST)
         if form.is_valid():
-            ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
-            ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
+            ip.ip_as_string = form.cleaned_data['ip_as_string']
+            ip.segment = form.cleaned_data['segment']
             ip.save()
             return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
 
 
-# todo на странице просмотра сервера если много ip из корневых сегментов, то расположение дублируется
+
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def ip_new(request, server_id):
@@ -222,13 +219,14 @@ def ip_new(request, server_id):
     except Server.DoesNotExist:
         raise Http404("Server not found")
     if request.method == 'GET':
-        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpForm()})
+        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpFormTest()})
     elif request.method == 'POST':
-        form = IpForm(request.POST)
+        form = IpFormTest(request.POST)
         if form.is_valid():
             ip = Ip()
-            ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
-            ip.segment = Segment.objects.get(pk=form.cleaned_data['segment_id'])
+            # ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
+            ip.segment = form.cleaned_data['segment']
+            ip.ip_as_string = form.cleaned_data['ip_as_string']
             ip.mask_as_int = 0
             ip.gateway_as_int = 0
             ip.server = server
@@ -319,7 +317,7 @@ def server_view(request, server_id):
         raise Http404("No server found")
     ip_list = []
     for ip in server.ip_set.all():
-        ip_list.append((ip.segment.name, Ip.get_string_ip(ip.ip_as_int), ip.id))
+        ip_list.append((ip.segment.name, ip.ip_as_string, ip.id))
     data_dict = {"server_id": server_id,
                  "model": server.model,
                  "hostname": server.hostname,

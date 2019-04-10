@@ -2,6 +2,7 @@
 {% block title %}Добавление сегмента{% endblock %}
 
 {% block content %}
+ <h6>Редактирование сегмента</h6>
 <form method="post">
     {% csrf_token %}
     {{form.as_p}}
