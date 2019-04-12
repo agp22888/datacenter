@@ -24,6 +24,14 @@ class Territory(models.Model):
         return server_query_set
 
 
+class ServerGroup(models.Model):
+    name = models.CharField(max_length=50)
+    description = models.CharField(max_length=200, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Room(models.Model):
     name = models.CharField(max_length=50)
     description = models.CharField(max_length=500, blank=True)
@@ -74,6 +82,7 @@ class Server(models.Model):
     location = models.IntegerField(blank=True, null=True)
     # unit = models.OneToOneField(Unit, on_delete=models.CASCADE, default=None, blank=True, null=True)
     rack = models.ForeignKey(Rack, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
+    group = models.ForeignKey(ServerGroup, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
 
     def __str__(self):
         return self.hostname

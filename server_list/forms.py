@@ -3,7 +3,7 @@ import re
 from django import forms
 from django.forms import CharField, ModelForm, GenericIPAddressField
 
-from server_list.models import Server, Rack, Room, Territory, Segment, Ip
+from server_list.models import Server, Rack, Room, Territory, Segment, Ip, ServerGroup
 from django.db.utils import OperationalError
 
 
@@ -24,6 +24,7 @@ class ServerFormTest(ModelForm):
 class ServerForm(forms.Form):
     field_order = ['server_name',
                    'server_purpose',
+                   'server_group',
                    'power_state',
                    'is_physical',
                    'host_machine',
@@ -40,6 +41,7 @@ class ServerForm(forms.Form):
                    'server_rack', ]
     server_name = ServerFormNameField(label="Имя", required=True, initial="Новый сервер")
     server_purpose = forms.CharField(label="Назначение", required=False)
+    server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), to_field_name='name')
     power_state = forms.BooleanField(label="Питание", required=False, initial=True)
     is_physical = forms.BooleanField(label="Физический сервер", required=False, initial=True)
     server_os = forms.CharField(label="Операционная система", required=False)
@@ -60,7 +62,7 @@ class ServerForm(forms.Form):
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
     server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
                                         choices=[(i, n) for i, n in Server.locations.items()])
-    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location']
+    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location','server_group']
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):

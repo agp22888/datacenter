@@ -8,7 +8,7 @@ from django.urls import reverse, reverse_lazy
 from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
-from server_list.models import Server, Segment, Ip, Rack, Room, Territory
+from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerFormTest
 from django.http import Http404
@@ -88,6 +88,68 @@ def servers(request):
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
+def servers_test(request):
+    links = {}
+    for group in ServerGroup.objects.all():
+        links.update({group.id: group.name})
+    territories = []
+    target_group = request.GET.get('group')
+
+    if target_group is None:
+        first = ServerGroup.objects.first()
+        if first is None:
+            return HttpResponse('no segments')
+        return HttpResponseRedirect(reverse('list') + '?group=' + str(first.id))
+        # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
+
+    for server in ServerGroup.objects.get(pk=target_group).server_set.all().filter(is_physical=True):
+        territory = server.get_territory()
+        if territory not in territories:
+            territories.append(territory)
+    tabs = {}  # список территорий для вкладок
+    ser_dict = {}  # список серверов (список списков по территориям?)
+    # {territory:{room:{rack::server_list}}}
+    for t in territories:
+        tabs.update({t.id: t.name})
+        seg_list = Segment.objects.filter(server__in=t.get_servers(target_group)).distinct()
+
+        for room in t.room_set.all():
+            for rack in room.rack_set.all():
+                ser_list = {}
+                row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
+                for seg in seg_list:
+                    row.append(seg.name)
+                row.append("s/n")
+                row.append("хар-ки")
+                ser_list.update({"header": row})
+                for server in rack.server_set.all():
+                    if not len(server.segments.filter(id=target_group)) == 0:
+                        row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
+                               server.hostname,
+                               "on" if server.is_on else "off",
+                               "", server.os, server.purpose]
+                        for seg in seg_list:
+                            row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
+                        row.append(server.serial_num)
+                        row.append(server.specs)
+                        ser_list.update({server.id: row})
+                        for vm in server.server_set.all():
+                            vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
+                            for seg in seg_list:  # segment dict
+
+                                vm_row.append(
+                                    [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
+                            vm_row.append("")
+                            vm_row.append("")
+                            ser_list.update({vm.id: vm_row})
+                        ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
+    actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
+               {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
+               {'divider': True},
+               {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
+    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
+
+
 @login_required(login_url=reverse_lazy('custom_login'))
 def server_edit(request, server_id):
     try:
@@ -114,6 +176,7 @@ def server_edit(request, server_id):
                 server.serial_num = form.cleaned_data['server_serial_number']  #
                 server.rack = form.cleaned_data['server_rack']
                 server.host_machine = None
+                server.group = form.cleaned_data['server_group']
             else:
                 server.unit = 0
                 server.height = 0
@@ -122,11 +185,8 @@ def server_edit(request, server_id):
                 server.specs = ''
                 server.serial_num = ''
                 server.rack = None
+                server.group = None
                 server.host_machine = form.cleaned_data['host_machine']
-
-            for seg in (x for x in form.cleaned_data if 'ip_' in x):
-                num = int(seg.split('_')[1])
-                server.ip_set.get(pk=num).ip_as_int = Ip.get_ip_from_string(form.cleaned_data[seg])
 
             server.save()
         return redirect('server_view', server_id=server.id)
@@ -152,7 +212,8 @@ def server_edit(request, server_id):
             form_dict.update({'server_location': server.location,
                               'server_territory': room.territory.id,
                               'server_room': room.id,
-                              'server_rack': rack.id})
+                              'server_rack': rack.id,
+                              'server_group': server.group})
         else:
             form_dict.update({'host_machine': server.host_machine})
         form = ServerForm(form_dict, server_id=server_id)
@@ -332,7 +393,8 @@ def server_view(request, server_id):
                  "ip_list": ip_list,
                  "serial_number": server.serial_num,
                  "specs": server.specs,
-                 "root_ip_list": (server.ip_set.filter(segment__is_root_segment=True)),
+                 "root_ip_list": (server.ip_set.filter(segment__is_root_segment=True).distinct()),
+                 "group": server.group,
                  }
     if server.is_physical:
         rack = server.rack
@@ -494,28 +556,21 @@ def territory_edit(request, territory_id):
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def test(request):
-    # f = open(os.path.join('server_list', 'templates', 'server_list', 'test.html'), 'r')
-    # my_file = File(f)
-    fmt = 'xml'
-    qs_room = Room.objects.all()
-    qs_territory = Territory.objects.all()
-    qs_rack = Rack.objects.all()
-    qs_segment = Segment.objects.all()
-    qs_server = Server.objects.all()
-    qs_ip = Ip.objects.all()
-    qs_combined = list(chain(qs_room, qs_territory, qs_rack, qs_segment, qs_server, qs_ip))
-    ser = serializers.serialize(fmt, qs_combined)
-    # s = ''
-    # s += serializers.serialize('json', Ip.objects.all())
-    # s += serializers.serialize('json', Server.objects.all())
-    d = serializers.deserialize(fmt, ser)
-    for obj in d:
-        print(obj)
-    response = HttpResponse(ser, content_type='application/plain-text')
-    response['Content-Disposition'] = 'attachment; filename=backup_base.' + fmt
-    # return HttpResponse('ok')
-    return response
-    # return render(request, os.path.join('server_list', 'test.html'))
+    for seg in Segment.objects.filter(is_root_segment=True):
+        if ServerGroup.objects.filter(name=seg.name).count() == 0:
+            g = ServerGroup()
+            g.name = seg.name
+            g.save()
+        l = [x.server for x in seg.ip_set.all().filter(is_physical=False)]
+        for ser in l:
+            if ser.group is not None:
+                print(ser)
+            else:
+                gr = ServerGroup.objects.filter(name=seg.name).first()
+                ser.group = gr
+                ser.save()
+
+    return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

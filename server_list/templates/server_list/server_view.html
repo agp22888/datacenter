@@ -80,10 +80,11 @@ function ajax_delete_ip(ip_id){
             {%endif%}
         </h2>
     </header>
-
-    {% for ip in server_dict|get_dict_item:"root_ip_list" %}
-    <p>Сегмент: <a href="{%url 'list'%}?segment={{ip.segment.id}}">{{ip.segment}}</a></p>
-    {% endfor %}
+    {% with group=server_dict|get_dict_item:"group" %}
+    {% if group %}
+    <p>Группа: <a href="{%url 'list'%}?group={{group.id}}">{{group.name}}</a></p>
+    {% endif %}
+    {% endwith %}
     <p>Назначение: {{server_dict|get_dict_item:"purpose"}}</p>
     <p>Операционная система: {{server_dict|get_dict_item:"os"}}</p>
     {% if server_dict|get_dict_item:"is_physical" %}

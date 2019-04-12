@@ -40,7 +40,7 @@ tabcontent[0].style.display = "block";
         <!-- ссылки на сегменты -->
         <p>
             {% for id, name in links.items %}
-            <a href="{% url 'list' %}?segment={{ id }}">{{name}}</a>
+            <a href="{% url 'list' %}?group={{ id }}">{{name}}</a>
             {% endfor %}
         </p>
     </div>
