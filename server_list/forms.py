@@ -62,7 +62,7 @@ class ServerForm(forms.Form):
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
     server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
                                         choices=[(i, n) for i, n in Server.locations.items()])
-    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location','server_group']
+    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location', 'server_group']
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
@@ -80,6 +80,8 @@ class ServerForm(forms.Form):
         #             self.errors.update({field: ['invalid ip']})
 
         if self.cleaned_data['is_physical']:
+            if self.cleaned_data['server_group'] is None:
+                self.errors.update({'server_group':['Это поле не должно быть пустым']})
             if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
@@ -104,6 +106,9 @@ class ServerForm(forms.Form):
                         'unit already in use by ' + check_s.hostname + '; units: ' +
                         check_s.get_unit_string() + Server.locations.get(check_s.location)]})
                     # todo добавить ссылку на сервер, с которым идёт пересечение?
+        else:
+            if self.cleaned_data['host_machine'] is None:
+                self.errors.update({'host_machine': ['Это поле не должно быть пустым']})
 
     def __init__(self, *args, **kwargs, ):
         self.server_id = kwargs.pop('server_id', None)

@@ -45,11 +45,11 @@ function searchFunction(){
                     a = document.createElement("div");
                     val = "";
                     console.log(obj);
-                    if (obj.model.split('.')[1].localeCompare('server')==0){
-                        val = obj.fields.hostname;
-                    }else if (obj.model.split('.')[1].localeCompare('ip')==0){
-                        val = obj.fields.ip;
-                    }
+
+                    val = obj.fields.hostname;
+
+                    val_ip = obj.fields.ips;
+
                     if (val.includes(input.value)){
                         let first = val.substr(0,val.toLowerCase().indexOf(input.value));
                         let last = val.substr(first.length + input.value.length);

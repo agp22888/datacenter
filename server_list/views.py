@@ -123,7 +123,7 @@ def servers_test(request):
                 row.append("хар-ки")
                 ser_list.update({"header": row})
                 for server in rack.server_set.all():
-                    if not len(server.segments.filter(id=target_group)) == 0:
+                    if not len(server.segments.filter(id=target_group)) == 0:  # todo server.segments на server.server_group
                         row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                                server.hostname,
                                "on" if server.is_on else "off",
@@ -472,6 +472,8 @@ def ajax(request):  # todo добавить верификацию юзера
         query_set = Server.objects.filter(hostname__icontains=search_query)
         query_set |= Server.objects.filter(
             purpose__icontains=search_query)  # todo icontains doesn't work with russian text https://stackoverflow.com/questions/47946879/how-to-search-text-containing-non-ascii-characters-with-django-icontains-query#47954143
+        # from django.db.models.functions import Lower
+        # qs = MyModel.objects.annotate(field1_lower=Lower('field1'))  # annotate each item in the queryset with the code_lower # todo работает для английского, попробовать написать свою функцию
         query_set |= Server.objects.filter(ip__ip_as_string__contains=search_query)
         query_set.distinct()
         print(query_set)

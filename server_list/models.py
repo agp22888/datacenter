@@ -132,13 +132,24 @@ class Ip(models.Model):
 
     @staticmethod
     def check_ip(ip_str):
-        data_split = ip_str.split('.')
-        if len(data_split) != 4:
+        split = ip_str.split('/')
+        if len(split) not in (1, 2):
             return False
-        for split in data_split:
+        if len(split) == 2:
             try:
-                if int(split) > 255 or int(split) < 0:
+                if not 0 <= int(split[1]) <= 32:
                     return False
-            except ValueError:
+            except(ValueError, TypeError) as e:
+                print('error', e)
+                return False
+        ip = split[0].split('.')
+        if len(ip) != 4:
+            return False
+        for octet in ip:
+            try:
+                if not 0 <= int(octet) <= 255:
+                    return False
+            except (ValueError, TypeError) as e:
+                print('error', e)
                 return False
         return True

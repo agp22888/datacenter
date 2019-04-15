@@ -120,3 +120,5 @@ dmypy.json
 venv_linux/
 
 #db.sqlite3
+
+.directory

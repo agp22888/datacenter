@@ -97,7 +97,13 @@ tabcontent[0].style.display = "block";
                             {{c}}
                             {% endfor %}
                             {% else %}
+                            {% if col == 'on' %}
+                            <font color="green">On</font>
+                            {% elif col == 'off'%}
+                            <font color="red">Off</font>
+                            {% else %}
                             {{col}}
+                            {% endif %}
                             {% endif %}
                         </p>
                     </td>
