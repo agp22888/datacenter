@@ -81,7 +81,7 @@ class ServerForm(forms.Form):
 
         if self.cleaned_data['is_physical']:
             if self.cleaned_data['server_group'] is None:
-                self.errors.update({'server_group':['Это поле не должно быть пустым']})
+                self.errors.update({'server_group': ['Это поле не должно быть пустым']})
             if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
@@ -138,6 +138,16 @@ class ServerForm(forms.Form):
 #             self.errors.update({'segment_id': ['invalid segment']})
 #         if not Ip.check_ip(self.cleaned_data['ip']):
 #             self.errors.update({'ip': ['invalid ip']})
+
+
+class GroupForm(ModelForm):
+    class Meta:
+        model = ServerGroup
+        fields = '__all__'
+
+    def clean(self):
+        if ServerGroup.objects.filter(name=self.cleaned_data['name']).exists():
+            self.errors.update({'name': ['группа с таким именем уже существует']})  # todo при редактировании существующей группы здесь будет ошибка
 
 
 class IpFormTest(ModelForm):

@@ -539,7 +539,7 @@ def territory_view(request, territory_id):
 def territory_edit(request, territory_id):
     try:
         territory = Territory.objects.get(pk=territory_id)
-    except Room.DoesNotExists:
+    except Territory.DoesNotExists:
         raise Http404("No rack found")
     if request.method == 'GET':
         form = TerritoryForm(instance=territory)
@@ -553,6 +553,35 @@ def territory_edit(request, territory_id):
             return redirect('territory_view', territory_id)
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
+    return HttpResponse('ok')
+
+
+def group_view(request, group_id):
+    try:
+        group = ServerGroup.objects.get(pk=group_id)
+    except ServerGroup.DoesntExist:
+        raise Http404
+    return render(request, os.path.join('server_list', 'group_view.html'), {'group': group})
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def group_edit(request, group_id):
+    try:
+        group = ServerGroup.objects.get(pk=group_id)
+    except ServerGroup.DoesNotExists:
+        raise Http404("Нет такой группы")
+    if request.method == 'GET':
+        form = GroupForm(instance=group)
+        return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = GroupForm(request.POST, instance=group)
+        if form.is_valid():
+            form.save()
+            if request.GET.get('close') == 'True':
+                return HttpResponse("<script>window.close()</script>")
+            return redirect('group_view', group_id)
+        else:
+            return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
     return HttpResponse('ok')
 
 
