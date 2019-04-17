@@ -1,7 +1,7 @@
 import re
 
 from django import forms
-from django.forms import CharField, ModelForm, GenericIPAddressField
+from django.forms import CharField, ModelForm, GenericIPAddressField, Select
 
 from server_list.models import Server, Rack, Room, Territory, Segment, Ip, ServerGroup
 from django.db.utils import OperationalError
@@ -16,9 +16,36 @@ class ServerFormNameField(CharField):
 
 
 class ServerFormTest(ModelForm):
+    room = forms.ModelChoiceField(label="Помещение", queryset=Room.objects.all())
+    territory = forms.ModelChoiceField(label="Территория", queryset=Territory.objects.all())
+
+    field_order = ['hostname',
+                   'purpose',
+                   'group',
+                   'is_on',
+                   'is_physical',
+                   'host_machine',
+                   'os',
+                   'model',
+                   'specs',
+                   'sn',
+                   'sensitive_data',
+                   'unit',
+                   'height',
+                   'location',
+                   'territory',
+                   'room',
+                   'rack', ]
+
     class Meta:
         model = Server
-        fields = '__all__'
+        exclude = ('segments',)
+        widgets = {
+            'room': Select(attrs={'pk': 'select'}),
+            'territory': Select(attrs={'pk': 'select'}),
+            'rack': Select(attrs={'pk': 'select'}),
+            'host_machine': Select(attrs={'pk': 'select'})
+        }
 
 
 class ServerForm(forms.Form):
@@ -41,7 +68,7 @@ class ServerForm(forms.Form):
                    'server_rack', ]
     server_name = ServerFormNameField(label="Имя", required=True, initial="Новый сервер")
     server_purpose = forms.CharField(label="Назначение", required=False)
-    server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), to_field_name='name')
+    server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), initial=ServerGroup.objects.first())
     power_state = forms.BooleanField(label="Питание", required=False, initial=True)
     is_physical = forms.BooleanField(label="Физический сервер", required=False, initial=True)
     server_os = forms.CharField(label="Операционная система", required=False)
@@ -146,8 +173,9 @@ class GroupForm(ModelForm):
         fields = '__all__'
 
     def clean(self):
-        if ServerGroup.objects.filter(name=self.cleaned_data['name']).exists():
-            self.errors.update({'name': ['группа с таким именем уже существует']})  # todo при редактировании существующей группы здесь будет ошибка
+        for group in ServerGroup.objects.filter(name=self.cleaned_data['name']):
+            if group.name == self.cleaned_data['name'] and group != self.instance:
+                self.errors.update({'name': ['группа с таким именем уже существует']})  # todo при редактировании существующей группы здесь будет ошибка
 
 
 class IpFormTest(ModelForm):
@@ -177,8 +205,9 @@ class SegmentForm(ModelForm):
         self.fields['name'].initial = "Новый сегмент"
 
     def clean(self):
-        if self.cleaned_data['name'] in [x.name for x in Segment.objects.all()]:
-            self.errors.update({'name': ['Сегмент с таким именем уже существует']})
+        for seg in Segment.objects.filter(name=self.cleaned_data['name']):
+            if seg.name == self.cleaned_data['name'] and seg != self.instance:
+                self.errors.update({'name': ['Сегмент с таким именем уже существует']})
         parent_segment = self.cleaned_data['parent_segment']
         if self.cleaned_data['is_root_segment'] is False and parent_segment == -1:
             self.errors.update(

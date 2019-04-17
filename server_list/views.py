@@ -10,7 +10,7 @@ from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerFormTest
+from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerFormTest, GroupForm
 from django.http import Http404
 
 
@@ -225,8 +225,8 @@ def server_edit(request, server_id):
 @login_required(login_url=reverse_lazy('custom_login'))
 def server_new(request):
     if request.method == 'GET':
-        form = ServerForm(new_server=True)
-        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+        form = ServerFormTest()  # (new_server=True)
+        return render(request, os.path.join('server_list', 'server_edit_test.html'), {'form': form})
     elif request.method == 'POST':
         form = ServerForm(request.POST, new_server=True)
         if form.is_valid():
@@ -318,14 +318,16 @@ def segment_new(request):
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def segment_edit(request, segment_id):
+    try:
+        instance = Segment.objects.get(pk=segment_id)
+
+    except Segment.DoesNotExist:
+        raise Http404("No segment found")
     if request.method == 'GET':
-        try:
-            form = SegmentForm(instance=Segment.objects.get(pk=segment_id))
-        except Segment.DoesNotExist:
-            raise Http404("No segment found")
+        form = SegmentForm(instance=instance)
         return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = SegmentForm(request.POST)
+        form = SegmentForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
             return HttpResponse("<script>window.close()</script>")
@@ -421,6 +423,7 @@ def ajax(request):  # todo добавить верификацию юзера
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'room':
         ter = request.GET.get('territory')
+        print("ter", ter)
         if ter is None:
             ter = 1
             print("ajax request ter is None")
@@ -484,11 +487,6 @@ def ajax(request):  # todo добавить верификацию юзера
             serialize,
             content_type='application/json')
 
-    return None
-
-
-# todo по закрытию окна редактирования вместо перезагрузки страницы, перезагрузить списки
-def segment_view():
     return None
 
 
@@ -579,10 +577,18 @@ def group_edit(request, group_id):
             form.save()
             if request.GET.get('close') == 'True':
                 return HttpResponse("<script>window.close()</script>")
-            return redirect('group_view', group_id)
+            return redirect('list')
         else:
             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
     return HttpResponse('ok')
+
+
+def group_add(request):
+    if request.method == 'GET':
+        form = GroupForm()
+        render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+
+    return None
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

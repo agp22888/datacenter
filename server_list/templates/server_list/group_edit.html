@@ -1,0 +1,22 @@
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка группы{% endblock %}
+{% block script %}
+{% include "server_list/js_open_window.html" %}
+
+{% include "server_list/js_reload_call.html" %}
+{% endblock %}
+{% block content %}
+ <h6>Редактирование группы</h6>
+<form method="post">
+    {%csrf_token%}
+    {% for field in form %}
+    <p>{{field.label}} {{field}}
+        {% for error in field.errors %}
+            {{error}}
+        {% endfor %}
+    </p>
+    {% endfor %}
+    <p><input type="submit" value="Submit" onclick="if(opener != null) opener.call_reload()"></p>
+</form>
+
+{% endblock %}

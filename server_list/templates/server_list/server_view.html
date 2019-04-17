@@ -81,7 +81,8 @@ function ajax_delete_ip(ip_id){
         </h2>
     </header>
     {% with group=server_dict|get_dict_item:"group" %}
-    {% if group %}
+
+    {% if group != 'none'%}
     <p>Группа: <a href="{%url 'list'%}?group={{group.id}}">{{group.name}}</a></p>
     {% endif %}
     {% endwith %}
