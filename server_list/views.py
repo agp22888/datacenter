@@ -10,7 +10,7 @@ from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerForm, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerFormTest, GroupForm
+from .forms import ServerFormOld, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, GroupForm
 from django.http import Http404
 
 
@@ -156,103 +156,29 @@ def server_edit(request, server_id):
         server = Server.objects.get(id=server_id)
     except Server.DoesNotExist:
         raise Http404("No server found")
-
-    if request.method == 'POST':
-        form = ServerForm(request.POST, server_id=server_id)
+    if request.method == 'GET':
+        form = ServerForm(instance=server)
+        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+    elif request.method == 'POST':
+        form = ServerForm(request.POST, instance=server)
         if not form.is_valid():
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
         else:
-            server.hostname = form.cleaned_data['server_name']
-            server.is_on = form.cleaned_data['power_state']
-            server.purpose = form.cleaned_data['server_purpose']
-            server.sensitive_data = form.cleaned_data['sensitive_data']
-            server.os = form.cleaned_data['server_os']
-            server.is_physical = form.cleaned_data['is_physical']
-            if form.cleaned_data['is_physical']:
-                server.unit = form.cleaned_data['server_unit']  #
-                server.height = form.cleaned_data['server_height']  #
-                server.model = form.cleaned_data['server_model']  #
-                server.specs = form.cleaned_data['server_specs']  #
-                server.serial_num = form.cleaned_data['server_serial_number']  #
-                server.rack = form.cleaned_data['server_rack']
-                server.host_machine = None
-                server.group = form.cleaned_data['server_group']
-            else:
-                server.unit = 0
-                server.height = 0
-                server.location = None
-                server.model = ''
-                server.specs = ''
-                server.serial_num = ''
-                server.rack = None
-                server.group = None
-                server.host_machine = form.cleaned_data['host_machine']
-
-            server.save()
+            form.save()
         return redirect('server_view', server_id=server.id)
-
-    elif request.method == 'GET':
-        form_dict = {'server_name': server.hostname,
-                     'power_state': server.is_on,
-                     'server_unit': server.unit if server.unit is not None else -1,
-                     'server_height': server.height,
-                     'server_model': server.model,
-                     'server_os': server.os,
-                     'server_specs': server.specs,
-                     'server_serial_number': server.serial_num,
-                     'server_purpose': server.purpose,
-                     'sensitive_data': server.sensitive_data,
-                     'is_physical': server.is_physical,
-                     }
-        # for ip in server.ip_set.all():
-        #    form_dict.update({'ip_' + str(ip.id): ip.ip_as_string})
-        if server.is_physical:
-            rack = server.rack
-            room = rack.room
-            form_dict.update({'server_location': server.location,
-                              'server_territory': room.territory.id,
-                              'server_room': room.id,
-                              'server_rack': rack.id,
-                              'server_group': server.group})
-        else:
-            form_dict.update({'host_machine': server.host_machine})
-        form = ServerForm(form_dict, server_id=server_id)
-        # form = ServerFormTest(instance=server)
-
-        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def server_new(request):
     if request.method == 'GET':
-        form = ServerFormTest()  # (new_server=True)
-        return render(request, os.path.join('server_list', 'server_edit_test.html'), {'form': form})
+        form = ServerForm()
+        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
     elif request.method == 'POST':
-        form = ServerForm(request.POST, new_server=True)
+        form = ServerForm(request.POST)
         if form.is_valid():
-            s = Server()
-            s.hostname = form.cleaned_data['server_name']
-
-            s.purpose = form.cleaned_data['server_purpose']
-            s.is_on = form.cleaned_data['power_state']
-            s.is_physical = form.cleaned_data['is_physical']
-            s.os = form.cleaned_data['server_os']
-            s.sensitive_data = form.cleaned_data['sensitive_data']
-            if s.is_physical:
-                s.model = form.cleaned_data['server_model']
-                s.specs = form.cleaned_data['server_specs']
-                s.serial_num = form.cleaned_data['server_serial_number']
-                s.unit = form.cleaned_data['server_unit']
-                s.height = form.cleaned_data['server_height']
-                s.location = form.cleaned_data['server_location']
-                s.rack = form.cleaned_data['server_rack']
-            else:
-                s.host_machine = form.cleaned_data['host_machine']
-            s.save()
-            return redirect("server_view", s.id)
+            form.save()
+            return redirect("server_view", form.instance.id)
         else:
-            print("not valid")
-            print("bound", form.is_bound)
             return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
@@ -418,7 +344,6 @@ def server_view(request, server_id):
 
 
 def ajax(request):  # todo добавить верификацию юзера
-    print('test, requested: ', request.GET.get('model'))
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'room':

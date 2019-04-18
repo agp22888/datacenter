@@ -3,81 +3,43 @@
 {% load server_list_extras %}
 {% load widget_tweaks %}
 {% block script %}
-var territory_id={{form.server_territory.value|convert_none}};
-var room_id={{form.server_room.value|convert_none}};
-var rack_id={{form.server_rack.value|convert_none}};
-var is_physical = {{form.is_physical.value|yesno:"true,false"}};
-var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
-var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
-var host_machine = {{form.host_machine_id}}
 
-//console.log("{{form.server_name.value}}");
-//console.log(territory_id,room_id,rack_id, is_physical);
+var territory_id={{form.territory.value|convert_none}};
+var room_id={{form.room.value|convert_none}};
+var rack_id={{form.rack.value|convert_none}};
+var is_physical = {{form.is_physical.value|yesno:"true,false"}};
+var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %}"#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
+var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
+var host_machine = {{form.host_machine.value|convert_none}}
+
+
 $(document).ready(function() {
 
-    //$("#id_host_machine").val(host_machine).attr('selected', 'selected');
+    empty_room_list();
+    empty_rack_list();
 
-    /*$.ajax({
+    if(territory_id != null){
 
-        url: "{% url 'ajax' %}",
-        type: 'GET',
-        data: {'model': 'vm'},
-        dataType: "json",
-        success: function(resp){
-            $("#id_host_machine").empty();
-            $.each(resp, function(idx, obj) {
-                //console.log(obj);
-                console.log('fck');
-                if (obj.pk == host_machine){
-                    $("#id_host_machine").append($('<option></option>').attr('value', parseInt(obj.pk)).attr('selected','selected').text(obj.fields.hostname));
-                }else{
-                    $("#id_host_machine").append($('<option></option>').attr('value', parseInt(obj.pk)).text(obj.fields.hostname));
-                }
-            });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'vm_id');
-        }
+        $("#id_territory").val(territory_id);
+        ajax_request_rooms_by_territory($("#id_territory").val());
+    }
 
-    });*/
-
-    $.ajax({
-        url: "{% url 'ajax' %}",
-        type: 'GET',
-        data: {'model': 'territory'},
-        dataType: "json",
-        success: function(resp){
-            $("#id_server_territory").empty();
-            $.each(resp, function(idx, obj) {
-                if(obj.pk==territory_id){
-                    $("#id_server_territory").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
-                }else{
-                    $("#id_server_territory").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
-                }
-            });
-            ajax_request_rooms_by_territory($("#id_server_territory").val());
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'initial load');
-        }
+    $("#id_territory").change(function(){
+        console.log($("#id_territory").val());
+        ajax_request_rooms_by_territory($("#id_territory").val());
     });
 
-    $("#id_server_territory").change(function(){
-        //console.log('rack by room'+$("#id_server_territory").val());
-        ajax_request_rooms_by_territory($("#id_server_territory").val());
-    });
-
-    $("#id_server_room").change(function(){
-        //console.log('rack by room'+$("#id_server_room").val());
-        ajax_request_racks_by_room($("#id_server_room").val());
+    $("#id_room").change(function(){
+        ajax_request_racks_by_room($("#id_room").val());
     });
 
     $("#id_is_physical").change(function(){
-        //console.log("changed");
         if($("#id_is_physical").is(':checked')){
+            console.log('phys');
             unhide_fields(vm_fields_to_hide);
             hide_fields(physical_fields_to_hide);
         }else{
+            console.log('vm');
             hide_fields(vm_fields_to_hide);
             unhide_fields(physical_fields_to_hide);
         }
@@ -89,6 +51,16 @@ $(document).ready(function() {
         hide_fields(physical_fields_to_hide);
     }
 });
+
+function empty_room_list(){
+    $("#id_room").empty();
+    $("#id_room").append($('<option></option>').attr('value', "").text('**выберите территорию**'));
+}
+
+function empty_rack_list(){
+    $("#id_rack").empty();
+    $("#id_rack").append($('<option></option>').attr('value', "").text('**выберите помещение**'));
+}
 
 function hide_fields(fields){
     for (field of fields){
@@ -104,48 +76,59 @@ function unhide_fields(fields){
 
 
 function ajax_request_rooms_by_territory(territory_id){
-    $.ajax({
-        url: "{% url 'ajax' %}",
-        type: 'GET',
-        data: {'model':'room','territory': territory_id},
-        dataType: "json",
-        success: function(resp){
-            $("#id_server_room").empty();
-            $.each(resp, function(idx, obj) {
-                if(obj.pk==room_id){
-                    $("#id_server_room").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
-                }else{
-                    $("#id_server_room").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
-                }
-                });
-            ajax_request_racks_by_room($("#id_server_room").val());
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'rooms by ter'+territory_id);
-        }
-    });
+    if (territory_id == ''){
+        empty_room_list();
+        empty_rack_list();
+    }else {
+        $.ajax({
+            url: "{% url 'ajax' %}",
+            type: 'GET',
+            data: {'model':'room','territory': territory_id},
+            dataType: "json",
+            success: function(resp){
+                $("#id_room").empty();
+                $("#id_room").append($('<option></option>').attr('value', "").text('---------'));
+                $.each(resp, function(idx, obj) {
+                    if(obj.pk==room_id){
+                        $("#id_room").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                    }else{
+                        $("#id_room").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                    }
+                    });
+                ajax_request_racks_by_room($("#id_room").val());
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown+' rooms by ter '+territory_id);
+            }
+        });
+    }
 }
 
 function ajax_request_racks_by_room(room_id){
-     $.ajax({
-        url: "{% url 'ajax' %}",
-        type: 'GET',
-        data: {'model':'rack','room': room_id},
-        dataType: "json",
-        success: function(resp){
-            $("#id_server_rack").empty();
-            $.each(resp, function(idx, obj) {
-                if(obj.pk==rack_id){
-                    $("#id_server_rack").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
-                }else{
-                    $("#id_server_rack").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
-                }
-                });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert(errorThrown+'racks by room'+room_id);
-        }
-    });
+    if(room_id == ''){
+        empty_rack_list();
+    }else{
+         $.ajax({
+            url: "{% url 'ajax' %}",
+            type: 'GET',
+            data: {'model':'rack','room': room_id},
+            dataType: "json",
+            success: function(resp){
+                $("#id_rack").empty();
+                $("#id_rack").append($('<option></option>').attr('value', "").text('---------'));
+                $.each(resp, function(idx, obj) {
+                    if(obj.pk==rack_id){
+                        $("#id_rack").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                    }else{
+                        $("#id_rack").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                    }
+                    });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown+'racks by room'+room_id);
+            }
+        });
+    }
 }
 
 
