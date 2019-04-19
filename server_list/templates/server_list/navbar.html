@@ -56,35 +56,22 @@ function searchFunction(){
                             break;
                    }
 
-                });
+            });
+            for(let key in servers){
+            console.log(key, servers[key]);
+            a = document.createElement("div");
+            a.innerHTML="<p>"+servers[key].hostname + "</p><p>" + servers[key].ip + "</p>";
+            a.addEventListener("click", function(e){
+                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
+                         });
+            list.appendChild(a);
+            }
+
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert('error: ' + errorThrown);
         }
     });
-    console.log(servers);
-
-    for(let key in servers){
-        console.log(key, servers[key]);
-        a = document.createElement("div");
-        a.innerHtml="<p>"+ key + " " + servers[key].hostname + " " + servers[key].ip + "</p>";
-        a.addEventListener("click", function(e){
-                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
-                         });
-        console.log("a",a);
-        list.appendChild(a);
-    } //<!--todo да что за нахуй блять!!-->
-    var serverst = {};
-    serverst[10]={hostname:'name1',ip:[]};
-    serverst[10].ip.push('10.10.10.10');
-    serverst[20]={hostname:'name2', ip:[]};
-    serverst[20].ip.push('20.20.20.20');
-    serverst[20].ip.push('30.30.30.30');
-    //console.log("c", serverst);
-    for (let key in serverst){
-        //console.log(key, serverst[key]);
-    }
-
 };
 
 
