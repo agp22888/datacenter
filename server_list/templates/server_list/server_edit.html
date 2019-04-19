@@ -4,9 +4,9 @@
 {% load widget_tweaks %}
 {% block script %}
 
-var territory_id={{form.territory.value|convert_none}};
-var room_id={{form.room.value|convert_none}};
-var rack_id={{form.rack.value|convert_none}};
+var territory_id={{form.instance.rack.room.territory.id|convert_none}}
+var room_id={{form.instance.rack.room.id|convert_none}}
+var rack_id={{form.instance.rack.id|convert_none}};
 var is_physical = {{form.is_physical.value|yesno:"true,false"}};
 var vm_fields_to_hide = [{% for field in form.vm_fields_to_hide %}"#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];
 var physical_fields_to_hide = [{% for field in form.physical_fields_to_hide %} "#tr_id_{{field}}"{% if not forloop.last %},{% endif %}{% endfor %}];

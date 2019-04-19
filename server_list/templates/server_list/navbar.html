@@ -31,10 +31,11 @@ $(document).ready(function() {
 
 
 function searchFunction(){
-    input = document.getElementById('myInput');
-    list = document.getElementById('autocomplete-items');
+    var input = document.getElementById('myInput');
+    var list = document.getElementById('autocomplete-items');
     list.style.display="block";
     list.innerHTML="";
+    var servers =  {};
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
@@ -42,34 +43,50 @@ function searchFunction(){
         dataType: "json",
         success: function(resp){
             $.each(resp, function(idx, obj) {
-                    a = document.createElement("div");
-                    val = "";
-                    console.log(obj);
+                   switch(obj.model){
+                        case 'server_list.server':
+                            //console.log('server', obj.fields['hostname'], obj.pk);
+                            servers[obj.pk]={hostname:obj.fields['hostname'], ip:[]};
+                            break;
+                        case 'server_list.ip':
+                            //console.log('ip', obj.fields['ip_as_string'], obj.fields['server']);
+                            if (!servers[obj.fields['server']].ip.includes(obj.fields['ip_as_string'])){
+                                servers[obj.fields['server']].ip.push(obj.fields['ip_as_string']);
+                            }
+                            break;
+                   }
 
-                    val = obj.fields.hostname;
-
-                    val_ip = obj.fields.ips;
-
-                    if (val.includes(input.value)){
-                        let first = val.substr(0,val.toLowerCase().indexOf(input.value));
-                        let last = val.substr(first.length + input.value.length);
-                        a.innerHTML+=first + '<strong>' + input.value + '</strong>' + last;
-
-                    } else {
-                        a.innerHTML = val;
-                    }
-                    a.innerHTML += "<input type='hidden' data-id='" + obj.pk +"' data-model='"+obj.model+"' name='item'/>";
-                    a.addEventListener("click", function(e){
-                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
-                    });
-                    list.appendChild(a);
                 });
         },
         error: function(jqXHR, textStatus, errorThrown) {
             alert('error: ' + errorThrown);
         }
     });
+    console.log(servers);
+
+    for(let key in servers){
+        console.log(key, servers[key]);
+        a = document.createElement("div");
+        a.innerHtml="<p>"+ key + " " + servers[key].hostname + " " + servers[key].ip + "</p>";
+        a.addEventListener("click", function(e){
+                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
+                         });
+        console.log("a",a);
+        list.appendChild(a);
+    } //<!--todo да что за нахуй блять!!-->
+    var serverst = {};
+    serverst[10]={hostname:'name1',ip:[]};
+    serverst[10].ip.push('10.10.10.10');
+    serverst[20]={hostname:'name2', ip:[]};
+    serverst[20].ip.push('20.20.20.20');
+    serverst[20].ip.push('30.30.30.30');
+    //console.log("c", serverst);
+    for (let key in serverst){
+        //console.log(key, serverst[key]);
+    }
+
 };
+
 
 
 
@@ -123,6 +140,7 @@ body {
 }
 
 
+
     </style>
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -148,10 +166,10 @@ body {
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="nav navbar-nav mr-auto">
             <!--<li class="nav-item active">-->
-                <!--<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
+            <!--<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
             <!--</li>-->
             <!--<li class="nav-item">-->
-                <!--<a class="nav-link" href="#">Link</a>-->
+            <!--<a class="nav-link" href="#">Link</a>-->
             <!--</li>-->
             {% if actions %}
             <li class="nav-item dropdown">
@@ -171,7 +189,7 @@ body {
             </li>
             {% endif %}
             <!--<li class="nav-item">-->
-                <!--<a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>-->
+            <!--<a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>-->
             <!--</li>-->
         </ul>
         <ul class="nav navbar-nav">
@@ -183,7 +201,8 @@ body {
                     <div class="autocomplete" id="autocomplete" style="width:300px;">
                         <input class="form-control mr-sm-2" name="searchInput" type="search" placeholder="Поиск..."
                                id="myInput" style="width:100%">
-                        <div id="autocomplete-items" class="autocomplete-items" style="height:auto; max-height:300px; overflow:auto;">
+                        <div id="autocomplete-items" class="autocomplete-items"
+                             style="height:auto; max-height:300px; overflow:auto;">
 
                         </div>
                     </div>
@@ -195,17 +214,19 @@ body {
                 </form>
             </li>
             <li class="divider-vertical"></li>
-            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a href="{%url 'custom_logout'%}?next={{request.get_full_path}}" class="navbar-link">выйти</a></p>
-                {% else %}<a href="{% url 'custom_login' %}?next={{request.get_full_path}}" class="navbar-link">Войти</a>
+            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a
+                    href="{%url 'custom_logout'%}?next={{request.get_full_path}}" class="navbar-link">выйти</a></p>
+                {% else %}<a href="{% url 'custom_login' %}?next={{request.get_full_path}}"
+                             class="navbar-link">Войти</a>
                 {% endif %}
             </li>
         </ul>
     </div>
 </nav>
 <p></p>
-<div class="container-fluid">
-{% block content %}
-{% endblock %}
-<div class="container-fluid">
+<div class="container-fluid mx-5">
+    {% block content %}
+    {% endblock %}
+</div>
 </body>
 </html>

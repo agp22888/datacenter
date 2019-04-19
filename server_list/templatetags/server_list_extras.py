@@ -17,7 +17,7 @@ def get_dict_item(value, arg):
 
 @register.filter()
 def convert_none(value):
-    return value if value is not None else "null"  # if value is None converts Python's None to JS's null
+    return value if (value is not None and value != '') else "null"  # if value is None converts Python's None to JS's null
 
 
 @register.filter()

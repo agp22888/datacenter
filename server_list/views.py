@@ -24,68 +24,68 @@ def server_view_all(request):
     return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
 
 
-def servers(request):
-    links = {}
-    for segment in Segment.objects.filter(is_root_segment=True):
-        links.update({segment.id: segment.name})
-    territories = []
-    target_segment = request.GET.get('segment')
-
-    if target_segment is None:
-        first = Segment.objects.filter(is_root_segment=True).first()
-        if first is None:
-            return HttpResponse('no segments')
-        return HttpResponseRedirect(reverse('list') + '?segment=' + str(first.id))
-        # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
-
-    for server in Segment.objects.get(pk=target_segment).server_set.all():
-        if not server.is_physical:
-            continue
-        territory = server.get_territory()
-        if territory not in territories:
-            territories.append(territory)
-    tabs = {}  # список территорий для вкладок
-    ser_dict = {}  # список серверов (список списков по территориям?)
-    # {territory:{room:{rack::server_list}}}
-    for t in territories:
-        tabs.update({t.id: t.name})
-        seg_list = Segment.objects.filter(server__in=t.get_servers(target_segment)).distinct()
-
-        for room in t.room_set.all():
-            for rack in room.rack_set.all():
-                ser_list = {}
-                row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
-                for seg in seg_list:
-                    row.append(seg.name)
-                row.append("s/n")
-                row.append("хар-ки")
-                ser_list.update({"header": row})
-                for server in rack.server_set.all():
-                    if not len(server.segments.filter(id=target_segment)) == 0:
-                        row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
-                               server.hostname,
-                               "on" if server.is_on else "off",
-                               "", server.os, server.purpose]
-                        for seg in seg_list:
-                            row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
-                        row.append(server.serial_num)
-                        row.append(server.specs)
-                        ser_list.update({server.id: row})
-                        for vm in server.server_set.all():
-                            vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
-                            for seg in seg_list:  # segment dict
-
-                                vm_row.append(
-                                    [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
-                            vm_row.append("")
-                            vm_row.append("")
-                            ser_list.update({vm.id: vm_row})
-                        ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-    actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
-               {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
-               {'divider': True},
-               {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
-    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
+# def servers(request):
+#     links = {}
+#     for segment in Segment.objects.filter(is_root_segment=True):
+#         links.update({segment.id: segment.name})
+#     territories = []
+#     target_segment = request.GET.get('segment')
+#
+#     if target_segment is None:
+#         first = Segment.objects.filter(is_root_segment=True).first()
+#         if first is None:
+#             return HttpResponse('no segments')
+#         return HttpResponseRedirect(reverse('list') + '?segment=' + str(first.id))
+#         # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
+#
+#     for server in Segment.objects.get(pk=target_segment).server_set.all():
+#         if not server.is_physical:
+#             continue
+#         territory = server.get_territory()
+#         if territory not in territories:
+#             territories.append(territory)
+#     tabs = {}  # список территорий для вкладок
+#     ser_dict = {}  # список серверов (список списков по территориям?)
+#     # {territory:{room:{rack::server_list}}}
+#     for t in territories:
+#         tabs.update({t.id: t.name})
+#         seg_list = Segment.objects.filter(server__in=t.get_servers(target_segment)).distinct()
+#
+#         for room in t.room_set.all():
+#             for rack in room.rack_set.all():
+#                 ser_list = {}
+#                 row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
+#                 for seg in seg_list:
+#                     row.append(seg.name)
+#                 row.append("s/n")
+#                 row.append("хар-ки")
+#                 ser_list.update({"header": row})
+#                 for server in rack.server_set.all():
+#                     if not len(server.segments.filter(id=target_segment)) == 0:
+#                         row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
+#                                server.hostname,
+#                                "on" if server.is_on else "off",
+#                                "", server.os, server.purpose]
+#                         for seg in seg_list:
+#                             row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
+#                         row.append(server.serial_num)
+#                         row.append(server.specs)
+#                         ser_list.update({server.id: row})
+#                         for vm in server.server_set.all():
+#                             vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
+#                             for seg in seg_list:  # segment dict
+#
+#                                 vm_row.append(
+#                                     [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
+#                             vm_row.append("")
+#                             vm_row.append("")
+#                             ser_list.update({vm.id: vm_row})
+#                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
+#     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
+#                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
+#                {'divider': True},
+#                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
+#     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
 def servers_test(request):
@@ -98,7 +98,7 @@ def servers_test(request):
     if target_group is None:
         first = ServerGroup.objects.first()
         if first is None:
-            return HttpResponse('no segments')
+            return HttpResponse('no groups')
         return HttpResponseRedirect(reverse('list') + '?group=' + str(first.id))
         # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
 
@@ -111,7 +111,7 @@ def servers_test(request):
     # {territory:{room:{rack::server_list}}}
     for t in territories:
         tabs.update({t.id: t.name})
-        seg_list = Segment.objects.filter(server__in=t.get_servers(target_group)).distinct()
+        seg_list = Segment.objects.filter(server__in=ServerGroup.objects.get(pk=int(target_group)).server_set.all()).distinct()
 
         for room in t.room_set.all():
             for rack in room.rack_set.all():
@@ -123,26 +123,25 @@ def servers_test(request):
                 row.append("хар-ки")
                 ser_list.update({"header": row})
                 for server in rack.server_set.all():
-                    if not len(server.segments.filter(id=target_group)) == 0:  # todo server.segments на server.server_group
-                        row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
-                               server.hostname,
-                               "on" if server.is_on else "off",
-                               "", server.os, server.purpose]
-                        for seg in seg_list:
-                            row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
-                        row.append(server.serial_num)
-                        row.append(server.specs)
-                        ser_list.update({server.id: row})
-                        for vm in server.server_set.all():
-                            vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
-                            for seg in seg_list:  # segment dict
+                    row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
+                           server.hostname,
+                           "on" if server.is_on else "off",
+                           "", server.os, server.purpose]
+                    for seg in seg_list:
+                        row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
+                    row.append(server.serial_num)
+                    row.append(server.specs)
+                    ser_list.update({server.id: row})
+                    for vm in server.server_set.all():
+                        vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
+                        for seg in seg_list:  # segment dict
 
-                                vm_row.append(
-                                    [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
-                            vm_row.append("")
-                            vm_row.append("")
-                            ser_list.update({vm.id: vm_row})
-                        ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
+                            vm_row.append(
+                                [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
+                        vm_row.append("")
+                        vm_row.append("")
+                        ser_list.update({vm.id: vm_row})
+                    ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
                {'divider': True},
@@ -343,7 +342,8 @@ def server_view(request, server_id):
     return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict})
 
 
-def ajax(request):  # todo добавить верификацию юзера
+@login_required(login_url=reverse_lazy('custom_login'))
+def ajax(request):
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'room':
@@ -373,8 +373,7 @@ def ajax(request):  # todo добавить верификацию юзера
         else:
             return HttpResponse('Access Denied')
     if request.GET.get('model') == 'vm':
-        return HttpResponse(
-            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
+        return HttpResponse(serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
     if request.GET.get('action') == 'delete_ip':
         ip_id = request.GET.get('ip_id')
         try:
@@ -385,29 +384,12 @@ def ajax(request):  # todo добавить верификацию юзера
         return HttpResponse('ok')
     if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
-        # print('search query', "'" + search_query + "'")
-        # pattern = r'^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.?){0,2}(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)?)$'
-        # if re.match(pattern, search_query):
-        #     matching_ips = []
-        #     # todo проверить не находится ли уже ip в списке
-        #     for ip in Ip.objects.filter(ip_as_string__contains=search_query):
-        #         matching_ips.append({'pk': ip.id, 'fields': {'ip': Ip.get_string_ip(ip.ip_as_int)}, 'model': 'server_list.ip'})
-        #     print(matching_ips)
-        #     return HttpResponse(json.dumps(matching_ips))
-        #
-        # sers = serializers.serialize('json', Server.objects.filter(hostname__contains=search_query), fields=('pk', 'hostname'))
-
-        query_set = Server.objects.filter(hostname__icontains=search_query)
-        query_set |= Server.objects.filter(
-            purpose__icontains=search_query)  # todo icontains doesn't work with russian text https://stackoverflow.com/questions/47946879/how-to-search-text-containing-non-ascii-characters-with-django-icontains-query#47954143
-        # from django.db.models.functions import Lower
-        # qs = MyModel.objects.annotate(field1_lower=Lower('field1'))  # annotate each item in the queryset with the code_lower # todo работает для английского, попробовать написать свою функцию
-        query_set |= Server.objects.filter(ip__ip_as_string__contains=search_query)
-        query_set.distinct()
-        print(query_set)
-        # print(filt.count())
-        serialize = serializers.serialize('json', query_set, fields=('pk', 'hostname', 'ip'))
-        # print(serialize)
+        server_list = list(Server.objects.filter(hostname_lower__icontains=search_query))
+        server_list.extend([x for x in Server.objects.filter(purpose_lower__icontains=search_query) if x not in server_list])
+        server_list.extend([x for x in Server.objects.filter(ip__ip_as_string__contains=search_query) if x not in server_list])
+        server_list.extend([y for x in server_list for y in x.ip_set.all()])
+        serialize = serializers.serialize('json', server_list, fields=('pk', 'hostname', 'ip_as_string', 'server'))
+        print(serialize)
         return HttpResponse(
             serialize,
             content_type='application/json')

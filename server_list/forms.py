@@ -1,4 +1,5 @@
 import re
+from server_list import strings as st
 
 from django import forms
 from django.forms import CharField, ModelForm, GenericIPAddressField, Select
@@ -6,8 +7,6 @@ from django.forms import CharField, ModelForm, GenericIPAddressField, Select
 from server_list.models import Server, Rack, Room, Territory, Segment, Ip, ServerGroup
 from django.db.utils import OperationalError
 
-
-# todo сделать отображение виртуалок физического сервера на странице редактирования // нужно ли?
 
 class ServerFormNameField(CharField):
     def validate(self, value):
@@ -59,17 +58,40 @@ class ServerForm(ModelForm):
             'location': Select(attrs={'pk': 'select'}, choices=(('0', 'front'), ('1', 'back'), ('2', 'full')))
         }
 
+        labels = {
+            'hostname': st.STRING_HOSTNAME,
+            'purpose': st.STRING_PURPOSE,
+            'is_on': st.STRING_IS_ON,
+            'is_physical': st.STRING_IS_PHYSICAL,
+            'group': st.STRING_GROUP,
+            'host_machine': st.STRING_HOST_MACHINE,
+            'os': st.STRING_OS,
+            'model': st.STRING_MODEL,
+            'specs': st.STRING_SPECS,
+            'serial_num': st.STRING_SN,
+            'sensitive_data': st.STRING_SENSITIVE_DATA,
+            'unit': st.STRING_UNIT,
+            'height': st.STRING_HEIGHT,
+            'location': st.STRING_LOCATION,
+            'territory': st.STRING_TERRITORY,
+            'room': st.STRING_ROOM,
+            'rack': st.STRING_GROUP,
+        }
+
     def clean(self):
         self.cleaned_data['hostname'] = re.sub(r'\s+', ' ', self.cleaned_data['hostname'].strip())  # getting rid of double spaces
-        for server in Server.objects.filter(hostname=self.cleaned_data['hostname']):
-            if server.hostname == self.cleaned_data['hostname'] and server != self.instance:
+        for server in Server.objects.filter(hostname_lower=self.cleaned_data['hostname'].lower):
+            if server.hostname_lower == self.cleaned_data['hostname'].lower and server != self.instance:
                 self.errors.update({'hostname': ['Имя уже используется']})
 
         if self.cleaned_data['is_physical']:
             if self.cleaned_data['group'] is None:
-                self.errors.update({'group': ['Это поле не должно быть пустым']})
+                self.errors.update({'group': ['Укажите группу']})
+            if self.cleaned_data['rack'] is None:
+                self.errors.update({'rack': ['Укажите стойку']})
+                return
             if self.cleaned_data['unit'] is None or self.cleaned_data['height'] is None or self.cleaned_data['unit'] <= 0 or self.cleaned_data['height'] <= 0:
-                self.errors.update({'server_unit': ['Ошибка']})
+                self.errors.update({'unit': ['Ошибка']})
                 return
             this_unit_low = self.cleaned_data['unit']
             this_unit_high = this_unit_low + self.cleaned_data['height'] - 1
@@ -90,6 +112,12 @@ class ServerForm(ModelForm):
         else:
             if self.cleaned_data['host_machine'] is None:
                 self.errors.update({'host_machine': ['Это поле не должно быть пустым']})
+
+    def __init__(self, *args, **kwargs):
+
+        super(ServerForm, self).__init__(*args, **kwargs)
+        if self.instance.rack is not None:
+            print('kek')
 
 
 class ServerFormOld(forms.Form):
@@ -176,7 +204,6 @@ class ServerFormOld(forms.Form):
                     self.errors.update({'server_unit': [
                         'unit already in use by ' + check_s.hostname + '; units: ' +
                         check_s.get_unit_string() + Server.locations.get(check_s.location)]})
-                    # todo добавить ссылку на сервер, с которым идёт пересечение?
         else:
             if self.cleaned_data['host_machine'] is None:
                 self.errors.update({'host_machine': ['Это поле не должно быть пустым']})
@@ -219,7 +246,7 @@ class GroupForm(ModelForm):
     def clean(self):
         for group in ServerGroup.objects.filter(name=self.cleaned_data['name']):
             if group.name == self.cleaned_data['name'] and group != self.instance:
-                self.errors.update({'name': ['группа с таким именем уже существует']})  # todo при редактировании существующей группы здесь будет ошибка
+                self.errors.update({'name': ['группа с таким именем уже существует']})
 
 
 class IpFormTest(ModelForm):

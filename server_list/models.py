@@ -83,6 +83,8 @@ class Server(models.Model):
     # unit = models.OneToOneField(Unit, on_delete=models.CASCADE, default=None, blank=True, null=True)
     rack = models.ForeignKey(Rack, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
     group = models.ForeignKey(ServerGroup, on_delete=models.SET_DEFAULT, default=None, blank=True, null=True)
+    hostname_lower = models.CharField(max_length=50, default='', editable=False)
+    purpose_lower = models.purpose = models.CharField(max_length=200, blank=True, editable=False)
 
     def __str__(self):
         return self.hostname
@@ -92,6 +94,11 @@ class Server(models.Model):
 
     def get_unit_string(self):
         return str(self.unit) if self.height == 1 else str(self.unit) + "-" + str(self.unit + self.height - 1)
+
+    def save(self, *args, **kwargs):
+        self.hostname_lower = str(self.hostname).lower()
+        self.purpose_lower = str(self.purpose).lower()
+        super(Server, self).save(*args, **kwargs)
 
 
 class Ip(models.Model):
