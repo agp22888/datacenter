@@ -46,7 +46,7 @@ function searchFunction(){
                    switch(obj.model){
                         case 'server_list.server':
                             //console.log('server', obj.fields['hostname'], obj.pk);
-                            servers[obj.pk]={hostname:obj.fields['hostname'], ip:[]};
+                            servers[obj.pk]={hostname:obj.fields['hostname'], ip:[], purpose:obj.fields['purpose']};
                             break;
                         case 'server_list.ip':
                             //console.log('ip', obj.fields['ip_as_string'], obj.fields['server']);
@@ -60,7 +60,7 @@ function searchFunction(){
             for(let key in servers){
             console.log(key, servers[key]);
             a = document.createElement("div");
-            a.innerHTML="<p>"+servers[key].hostname + "</p><p>" + servers[key].ip + "</p>";
+            a.innerHTML="<p>Имя сервера: "+servers[key].hostname + "</p><p>Описание: " + servers[key].purpose + "</p><p>Ip-адреса: "+servers[key].ip+"</p>";
             a.addEventListener("click", function(e){
                         console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
                          });
@@ -133,24 +133,15 @@ body {
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body class="bg-light">
-<!--<nav>-->
-<!--<div class="nav-wrapper">-->
-<!--&lt;!&ndash;<a href="#" class="brand-logo"></a>&ndash;&gt;-->
-<!--<ul id="nav-mobile" class="right hide-on-med-and-down">-->
-<!--<li><a href="sass.html">Sass</a></li>-->
-<!--<li><a href="badges.html">Components</a></li>-->
-<!--<li><a href="collapsible.html">JavaScript</a></li>-->
-<!--</ul>-->
-<!--</div>-->
-<!--</nav>-->
-<nav class="nav navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{% url 'list' %}">Datacenter</a>
+
+<nav class=" navbar navbar-expand-lg navbar-expand-md navbar-light bg-light">
+    <a class=" navbar-brand" href="{% url 'list' %}">Datacenter</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <div class="collapse navbar-collapse" id="navbarText">
         <ul class="nav navbar-nav mr-auto">
             <!--<li class="nav-item active">-->
             <!--<a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>-->
@@ -181,7 +172,7 @@ body {
         </ul>
         <ul class="nav navbar-nav">
             <li class="nav-item">
-                <form id="searchform" class="form-inline my-2 my-lg-0" method="POST" autocomplete="off"
+                <form id="searchform" class="form-inline my-2 my-lg-2" method="POST" autocomplete="off"
                       action="{% url 'search'%}">
                     {% csrf_token %}
 
@@ -201,17 +192,22 @@ body {
                 </form>
             </li>
             <li class="divider-vertical"></li>
-            <li>{% if user.is_authenticated %}<p class="navbar-text">{{user}} | <a
-                    href="{%url 'custom_logout'%}?next={{request.get_full_path}}" class="navbar-link">выйти</a></p>
-                {% else %}<a href="{% url 'custom_login' %}?next={{request.get_full_path}}"
-                             class="navbar-link">Войти</a>
-                {% endif %}
-            </li>
+
+
+
         </ul>
+        <span class="navbar-text">
+                {% if user.is_authenticated %}
+                    {{user}} | <a href="{%url 'custom_logout'%}?next={{request.get_full_path}}" class="navbar-link">выйти</a>
+                {% else %}
+                    <a href="{% url 'custom_login' %}?next={{request.get_full_path}}" class="navbar-link">Войти</a>
+                {% endif %}
+        </span>
     </div>
 </nav>
 <p></p>
-<div class="container-fluid mx-5">
+<div class="container mx-auto">
+    <br>
     {% block content %}
     {% endblock %}
 </div>

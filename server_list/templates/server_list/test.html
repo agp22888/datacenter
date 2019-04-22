@@ -1,55 +1,46 @@
-<html>
-<head>
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка сегмента{% endblock %}
 
-    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
-    <script>
-        function reload(){
-            select = document.getElementById('id_host_machine');
-            options={};
-            for(let i = 0; i< select.options.length;i++){
-                options[select.options[i].value]=select.options[i].innerHTML;
-            }
-            var sel = select.selectedIndex;
-            select.innerHTML="";
-            for (let option in options){
-                if (option.localeCompare('5')==0) continue;
-                let opt = document.createElement('option');
-                opt.value = option;
-                opt.innerHTML=options[option];
-                select.appendChild(opt);
-            }
-            console.log(select.options.length, sel);
-            var t = (sel>=select.options.length)?String(select.options.length-1):sel
-            console.log(t)
-            select.selectedIndex = t;
-        }
+{% block content %}
 
-    </script>
+<div class="row">
+    <div class="col-sm">
+        Unit
+    </div>
+    <div class="col-sm">
+        Model
+    </div>
+    <div class="col-sm">
+        Name
+    </div>
+    <div class="col-sm">
+        Power
+    </div>
+    <div class="col-sm">
+        VM
+    </div>
+    <div class="col-sm">
+        OS
+    </div>
+    <div class="col-sm">
+        Purpose
+    </div>
+    <div class="col-sm">
+        Local
+    </div>
+    <div class="col-sm">
+        ILO
+    </div>
+    <div class="col-sm">
+        iSCSI
+    </div>
+    <div class="col-sm">
+        s/n
+    </div>
+    <div class="col-sm">
+        Specs
+    </div>
+</div>
 
-</head>
-<body>
-<select name="host_machine" id="id_host_machine">
-    <option value="1">server 1</option>
 
-    <option value="2">server 2</option>
-
-    <option value="3">server 3</option>
-
-    <option value="5">server 4</option>
-
-    <option value="6">server 5</option>
-
-    <option value="7">server 6</option>
-
-    <option value="8">server 7</option>
-
-    <option value="9">server 8</option>
-
-    <option value="10">server 9</option>
-
-    <option value="11">server 10</option>
-
-</select>
-<button onclick="reload();">reload</button>
-</body>
-</html>
+{% endblock %}

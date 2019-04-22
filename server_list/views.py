@@ -19,6 +19,7 @@ def proof(request):
     return HttpResponseRedirect(reverse('list'))
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def server_view_all(request):
     server_list = Server.objects.filter(is_physical=True)
     return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
@@ -87,34 +88,33 @@ def server_view_all(request):
 #                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
 #     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
-
-def servers_test(request):
-    links = {}
-    for group in ServerGroup.objects.all():
-        links.update({group.id: group.name})
-    territories = []
-    target_group = request.GET.get('group')
-
-    if target_group is None:
+@login_required(login_url=reverse_lazy('custom_login'))
+def servers(request):
+    try:
+        target_group_id = int(request.GET.get('group'))
+    except TypeError:
         first = ServerGroup.objects.first()
         if first is None:
             return HttpResponse('no groups')
         return HttpResponseRedirect(reverse('list') + '?group=' + str(first.id))
-        # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
-
-    for server in ServerGroup.objects.get(pk=target_group).server_set.all().filter(is_physical=True):
+    links = {}
+    for group in ServerGroup.objects.all():
+        links.update({group.id: group.name})
+    territories = []
+    target_group = ServerGroup.objects.get(pk=int(target_group_id))
+    servers_in_target_group = target_group.server_set.all()
+    for server in servers_in_target_group.filter(is_physical=True):
         territory = server.get_territory()
         if territory not in territories:
             territories.append(territory)
     tabs = {}  # список территорий для вкладок
-    ser_dict = {}  # список серверов (список списков по территориям?)
+    ser_dict = {}
     # {territory:{room:{rack::server_list}}}
     for t in territories:
         tabs.update({t.id: t.name})
-        seg_list = Segment.objects.filter(server__in=ServerGroup.objects.get(pk=int(target_group)).server_set.all()).distinct()
-
         for room in t.room_set.all():
             for rack in room.rack_set.all():
+                seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
                 ser_list = {}
                 row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
                 for seg in seg_list:
@@ -122,7 +122,7 @@ def servers_test(request):
                 row.append("s/n")
                 row.append("хар-ки")
                 ser_list.update({"header": row})
-                for server in rack.server_set.all():
+                for server in rack.server_set.filter(group=target_group):
                     row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                            server.hostname,
                            "on" if server.is_on else "off",
@@ -262,6 +262,7 @@ def segment_edit(request, segment_id):
     return None
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def rack_view(request, rack_id):
     try:
         rack = Rack.objects.get(pk=rack_id)
@@ -303,6 +304,7 @@ def rack_edit(request, rack_id):
     return HttpResponse('ok')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def server_view(request, server_id):
     try:
         server = Server.objects.get(pk=server_id)
@@ -388,7 +390,7 @@ def ajax(request):
         server_list.extend([x for x in Server.objects.filter(purpose_lower__icontains=search_query) if x not in server_list])
         server_list.extend([x for x in Server.objects.filter(ip__ip_as_string__contains=search_query) if x not in server_list])
         server_list.extend([y for x in server_list for y in x.ip_set.all()])
-        serialize = serializers.serialize('json', server_list, fields=('pk', 'hostname', 'ip_as_string', 'server'))
+        serialize = serializers.serialize('json', server_list, fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
         print(serialize)
         return HttpResponse(
             serialize,
@@ -418,6 +420,7 @@ def room_edit(request, room_id):
     return HttpResponse('ok')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def room_view(request, room_id):
     try:
         room = Room.objects.get(pk=room_id)
@@ -429,6 +432,7 @@ def room_view(request, room_id):
     return render(request, os.path.join('server_list', 'room_view.html'), {'room': room, 'racks': racks})
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def territory_view(request, territory_id):
     try:
         territory = Territory.objects.get(pk=territory_id)
@@ -461,6 +465,7 @@ def territory_edit(request, territory_id):
     return HttpResponse('ok')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def group_view(request, group_id):
     try:
         group = ServerGroup.objects.get(pk=group_id)
@@ -490,6 +495,7 @@ def group_edit(request, group_id):
     return HttpResponse('ok')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def group_add(request):
     if request.method == 'GET':
         form = GroupForm()
@@ -500,21 +506,7 @@ def group_add(request):
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def test(request):
-    for seg in Segment.objects.filter(is_root_segment=True):
-        if ServerGroup.objects.filter(name=seg.name).count() == 0:
-            g = ServerGroup()
-            g.name = seg.name
-            g.save()
-        l = [x.server for x in seg.ip_set.all().filter(is_physical=False)]
-        for ser in l:
-            if ser.group is not None:
-                print(ser)
-            else:
-                gr = ServerGroup.objects.filter(name=seg.name).first()
-                ser.group = gr
-                ser.save()
-
-    return HttpResponse('ok')
+    return render(request, os.path.join('server_list', 'test.html'))
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -536,6 +528,7 @@ def dump(request):
     return response
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def search(request):
     if request.method == 'GET':
         print("GET")
@@ -546,6 +539,7 @@ def search(request):
     return HttpResponse('search')
 
 
+@login_required(login_url=reverse_lazy('custom_login'))
 def custom_logout(request):
     logout(request)
     return redirect(request.GET.get('next'))

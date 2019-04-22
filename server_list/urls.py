@@ -4,7 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.proof, name='proof'),
-    path('list', views.servers_test, name='list'),
+    path('list', views.servers, name='list'),
     # path('edit', views.edit, name='edit'),
     url(r'^server_edit/(?P<server_id>\d*)', views.server_edit, name='server_edit'),
     url(r'^server/$', views.server_view, name='server_view_without_parameters'),
