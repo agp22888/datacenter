@@ -70,7 +70,7 @@ tabcontent[0].style.display = "block";
         <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
         {% for rack, ser_dict in rack_dict.items %}
         <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-        <div class="table-responsive" style="position:sticky; top: 0;">
+        <div class="table-responsive" >
             <table class="table table-sm table-hover center-block">
                 <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
