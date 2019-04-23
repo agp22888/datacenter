@@ -128,13 +128,14 @@ body {
 
 
 
-    </style>
+</style>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body class="bg-light">
 
-<nav class=" navbar navbar-expand-lg navbar-expand-md navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-expand-md navbar-light bg-light sticky-top" id="navbar">
+    <div class="container">
     <a class=" navbar-brand" href="{% url 'list' %}">Datacenter</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -203,6 +204,7 @@ body {
                     <a href="{% url 'custom_login' %}?next={{request.get_full_path}}" class="navbar-link">Войти</a>
                 {% endif %}
         </span>
+    </div>
     </div>
 </nav>
 <p></p>

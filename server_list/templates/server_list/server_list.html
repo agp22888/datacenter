@@ -31,12 +31,36 @@ tabcontent[i].style.display="none";
 }
 tabcontent[0].style.display = "block";
 
+
+}
+
+window.onscroll = function() {stickyFunction()};
+
+
+
+function stickyFunction() {
+    var header = document.getElementById("table_header");
+    var navbar = document.getElementById("navbar");
+
+    var offset = navbar.style.height;
+    console.log('offset', offset);
+    console.log("sticky");
+    if (window.pageYOffset > offset) {
+        header.style.position = 'fixed';
+        header.style.top = offset;
+    } else {
+        header.style.position = 'static';
+    }
 }
 {% endblock %}
 
 {% block style %}
-.tableFixHead    { overflow-y: auto; height: 100px; }
-.tableFixHead th { position: sticky; top: 0; }
+
+.sticky{
+    position:fixed;
+    top:0;
+
+}
 {% endblock %}
 
 {% block content %}
@@ -71,25 +95,26 @@ tabcontent[0].style.display = "block";
         {% for rack, ser_dict in rack_dict.items %}
         <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
         <div class="table-responsive" >
-            <table class="table table-sm table-hover center-block">
+            <table class="table table-sm table-hover center-block" >
                 <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
-                <thead class="thead-dark">
+                <thead class="table_header thead-dark" id="table_header" style="">
                 <tr>
                 {% for n in  ser_dict|get_dict_item:"header" %}
-                <th scope="row">{{n}}</th>
+                <th scope="row" style="position: sticky; top: 0;">{{n}}</th>
                 {% endfor %}
                 </tr>
                 </thead>
+
                 <tbody>
                 {% for id, row in ser_dict.items %}
                 {% if not forloop.first %}
                 <tr>
                     {% for col in row %}
                     {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
-                    <th ><p><a href="{% url 'server_view' id %}">{{col}}</a></p></th>
+                    <td ><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
                     {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " "%}
-                    <th><p><a href="{% url 'server_view' id %}">{{col}}</a></p></th>
+                    <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
                     {%else%}
 
                     <td>
