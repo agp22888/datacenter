@@ -5,6 +5,7 @@ from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 
+from server_list import strings
 from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
@@ -24,69 +25,6 @@ def server_view_all(request):
     server_list = Server.objects.filter(is_physical=True)
     return render(request, os.path.join('server_list', 'servers_all.html'), {"servers": server_list})
 
-
-# def servers(request):
-#     links = {}
-#     for segment in Segment.objects.filter(is_root_segment=True):
-#         links.update({segment.id: segment.name})
-#     territories = []
-#     target_segment = request.GET.get('segment')
-#
-#     if target_segment is None:
-#         first = Segment.objects.filter(is_root_segment=True).first()
-#         if first is None:
-#             return HttpResponse('no segments')
-#         return HttpResponseRedirect(reverse('list') + '?segment=' + str(first.id))
-#         # return render(request, os.path.join('server_list', 'server_list.html'),{"links": links, "tabs": {}, "servers": {}})
-#
-#     for server in Segment.objects.get(pk=target_segment).server_set.all():
-#         if not server.is_physical:
-#             continue
-#         territory = server.get_territory()
-#         if territory not in territories:
-#             territories.append(territory)
-#     tabs = {}  # список территорий для вкладок
-#     ser_dict = {}  # список серверов (список списков по территориям?)
-#     # {territory:{room:{rack::server_list}}}
-#     for t in territories:
-#         tabs.update({t.id: t.name})
-#         seg_list = Segment.objects.filter(server__in=t.get_servers(target_segment)).distinct()
-#
-#         for room in t.room_set.all():
-#             for rack in room.rack_set.all():
-#                 ser_list = {}
-#                 row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
-#                 for seg in seg_list:
-#                     row.append(seg.name)
-#                 row.append("s/n")
-#                 row.append("хар-ки")
-#                 ser_list.update({"header": row})
-#                 for server in rack.server_set.all():
-#                     if not len(server.segments.filter(id=target_segment)) == 0:
-#                         row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
-#                                server.hostname,
-#                                "on" if server.is_on else "off",
-#                                "", server.os, server.purpose]
-#                         for seg in seg_list:
-#                             row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
-#                         row.append(server.serial_num)
-#                         row.append(server.specs)
-#                         ser_list.update({server.id: row})
-#                         for vm in server.server_set.all():
-#                             vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
-#                             for seg in seg_list:  # segment dict
-#
-#                                 vm_row.append(
-#                                     [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
-#                             vm_row.append("")
-#                             vm_row.append("")
-#                             ser_list.update({vm.id: vm_row})
-#                         ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
-#     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
-#                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
-#                {'divider': True},
-#                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
-#     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def servers(request):
@@ -116,11 +54,11 @@ def servers(request):
             for rack in room.rack_set.all():
                 seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
                 ser_list = {}
-                row = ["unit", "model", "Имя", "power", "VM", "OS", "Назначение"]
+                row = [strings.STRING_UNIT, strings.STRING_MODEL,strings.STRING_HOSTNAME,strings.STRING_IS_ON,strings.STRING_VM, strings.STRING_OS , strings.STRING_PURPOSE]
                 for seg in seg_list:
                     row.append(seg.name)
-                row.append("s/n")
-                row.append("хар-ки")
+                row.append(strings.STRING_SN)
+                row.append(strings.STRING_SPECS)
                 ser_list.update({"header": row})
                 for server in rack.server_set.filter(group=target_group):
                     row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
@@ -146,6 +84,7 @@ def servers(request):
                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
                {'divider': True},
                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
+
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
 
 
@@ -281,8 +220,8 @@ def rack_view(request, rack_id):
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def rack_edit(request, rack_id):
-    print('post', request.POST.get('close'))
-    print('get', request.GET.get('close'))
+    # print('post', request.POST.get('close'))
+    # print('get', request.GET.get('close'))
     try:
         rack = Rack.objects.get(pk=rack_id)
     except Rack.DoesNotExists:
@@ -350,16 +289,16 @@ def ajax(request):
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'room':
         ter = request.GET.get('territory')
-        print("ter", ter)
+        # print("ter", ter)
         if ter is None:
             ter = 1
-            print("ajax request ter is None")
+            # print("ajax request ter is None")
         return HttpResponse(
             serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'rack':
         room = request.GET.get('room')
         if room is None:
-            print("ajax request room is None")
+            # print("ajax request room is None")
             room = 1
         return HttpResponse(
             serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'), content_type='application/json')
@@ -391,7 +330,7 @@ def ajax(request):
         server_list.extend([x for x in Server.objects.filter(ip__ip_as_string__contains=search_query) if x not in server_list])
         server_list.extend([y for x in server_list for y in x.ip_set.all()])
         serialize = serializers.serialize('json', server_list, fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
-        print(serialize)
+        # print(serialize)
         return HttpResponse(
             serialize,
             content_type='application/json')

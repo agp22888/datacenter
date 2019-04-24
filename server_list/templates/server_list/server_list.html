@@ -5,53 +5,47 @@
 
 {% block script %}
 function openCity(evt, cityName) {
-// Declare all variables
-var i, tabcontent, tablinks;
+    var i, tabcontent, tablinks;
 
-// Get all elements with class="tabcontent" and hide them
-tabcontent = document.getElementsByClassName("tabcontent");
-for (i = 0; i < tabcontent.length; i++) {
-tabcontent[i].style.display = "none";
-}
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++){
+        tabcontent[i].style.display = "none";
+    }
 
-// Get all elements with class="tablinks" and remove the class "active"
-tablinks = document.getElementsByClassName("tablinks");
-for (i = 0; i < tablinks.length; i++) {
-tablinks[i].className = tablinks[i].className.replace(" active", "");
-}
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
 
-// Show the current tab, and add an "active" class to the button that opened the tab
-document.getElementById(cityName).style.display = "block";
+    document.getElementById(cityName).style.display = "block";
 evt.currentTarget.className += " active";
 }
+
 window.onload = function(){
-tabcontent = document.getElementsByClassName("tabcontent");
-for (let i = 0; i < tabcontent.length; i++){
-tabcontent[i].style.display="none";
-}
-tabcontent[0].style.display = "block";
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (let i = 0; i < tabcontent.length; i++){
+        tabcontent[i].style.display="none";
+    }
+    tabcontent[0].style.display = "block";
 
+    navbar = document.getElementById("navbar");
+    var rect = navbar.getBoundingClientRect();
+    console.log(rect.top, rect.right, rect.bottom, rect.left);
+    var stubs = document.getElementsByClassName("test_hide");
 
-}
+    table = document.getElementsByClassName("table")[0];
 
-window.onscroll = function() {stickyFunction()};
-
-
-
-function stickyFunction() {
-    var header = document.getElementById("table_header");
-    var navbar = document.getElementById("navbar");
-
-    var offset = navbar.style.height;
-    console.log('offset', offset);
-    console.log("sticky");
-    if (window.pageYOffset > offset) {
-        header.style.position = 'fixed';
-        header.style.top = offset;
-    } else {
-        header.style.position = 'static';
+    for ( i=0; i< stubs.length; i++){
+    //stubs[i].style.display='none';
+    stubs[i].style.position='fixed';
+    //stubs[i].style.top=rect.bottom+'px';
+    //console.log('width', stubs[i].parentElement.offsetWidth);
+    stubs[i].style.width=stubs[i].parentElement.offsetWidth+'px';
+    stubs[i].style.left=stubs[i].parentElement.getBoundingClientRect().left+'px';
     }
 }
+
+
 {% endblock %}
 
 {% block style %}
@@ -94,14 +88,19 @@ function stickyFunction() {
         <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
         {% for rack, ser_dict in rack_dict.items %}
         <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-        <div class="table-responsive" >
+        <div  class="table-responsive" >
             <table class="table table-sm table-hover center-block" >
                 <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
 
-                <thead class="table_header thead-dark" id="table_header" style="">
+                <thead class="table_header thead-dark" style="">
                 <tr>
                 {% for n in  ser_dict|get_dict_item:"header" %}
-                <th scope="row" style="position: sticky; top: 0;">{{n}}</th>
+                    <th scope="row" >{{n}}
+                    <div class="test_hide" style="background-color:#343a40; padding-left:inherit;"> <!-- ЗДЕСЬ БЛЯДЬ!! -->
+                        {{n}}
+                    </div>
+                    </th>
+
                 {% endfor %}
                 </tr>
                 </thead>

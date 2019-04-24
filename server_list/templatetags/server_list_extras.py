@@ -11,7 +11,6 @@ def is_list(value):
 @register.filter()
 def get_dict_item(value, arg):
     value = value.get(arg)
-    print("value", value)
     return value if value is not None else "none"
 
 
