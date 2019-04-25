@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 
 from server_list import strings
+from server_list.utils import search_servers
 from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
@@ -54,7 +55,7 @@ def servers(request):
             for rack in room.rack_set.all():
                 seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
                 ser_list = {}
-                row = [strings.STRING_UNIT, strings.STRING_MODEL,strings.STRING_HOSTNAME,strings.STRING_IS_ON,strings.STRING_VM, strings.STRING_OS , strings.STRING_PURPOSE]
+                row = [strings.STRING_UNIT, strings.STRING_MODEL, strings.STRING_HOSTNAME, strings.STRING_IS_ON, strings.STRING_VM, strings.STRING_OS, strings.STRING_PURPOSE]
                 for seg in seg_list:
                     row.append(seg.name)
                 row.append(strings.STRING_SN)
@@ -325,11 +326,8 @@ def ajax(request):
         return HttpResponse('ok')
     if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
-        server_list = list(Server.objects.filter(hostname_lower__icontains=search_query))
-        server_list.extend([x for x in Server.objects.filter(purpose_lower__icontains=search_query) if x not in server_list])
-        server_list.extend([x for x in Server.objects.filter(ip__ip_as_string__contains=search_query) if x not in server_list])
-        server_list.extend([y for x in server_list for y in x.ip_set.all()])
-        serialize = serializers.serialize('json', server_list, fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
+
+        serialize = serializers.serialize('json', search_servers(search_query), fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
         # print(serialize)
         return HttpResponse(
             serialize,
@@ -473,7 +471,9 @@ def search(request):
         print("GET")
         return HttpResponseBadRequest("400")
     if request.method == 'POST':
-        print(request)
+        search_query = request.POST.get('searchInput')
+        servers = search_servers(search_query)
+        print(servers) # todo убрать ip
         return HttpResponse(request.POST.items())
     return HttpResponse('search')
 

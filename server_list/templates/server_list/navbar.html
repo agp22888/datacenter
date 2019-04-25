@@ -10,7 +10,9 @@
     <title>{% block title %}{% endblock %} </title>
 
     <script> {% block script %}{% endblock %} </script>
+
     <script>
+
 $(document).ready(function() {
     let autocompleteItems = document.getElementById('autocomplete-items');
     let input = document.getElementById("myInput");
@@ -58,13 +60,16 @@ function searchFunction(){
 
             });
             for(let key in servers){
-            console.log(key, servers[key]);
-            a = document.createElement("div");
-            a.innerHTML="<p>Имя сервера: "+servers[key].hostname + "</p><p>Описание: " + servers[key].purpose + "</p><p>Ip-адреса: "+servers[key].ip+"</p>";
-            a.addEventListener("click", function(e){
-                        console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id + ' '+ this.getElementsByTagName("input")[0].dataset.model);
-                         });
-            list.appendChild(a);
+                console.log(key, servers[key]);
+                a = document.createElement("div");
+                a.innerHTML = "<input type='hidden' data-id='" + key +"' name='item'/>";
+                a.innerHTML+="<p>Имя сервера: "+servers[key].hostname + "</p><p>Описание: " + servers[key].purpose + "</p><p>Ip-адреса: "+servers[key].ip+"</p>";
+                a.addEventListener("click", function(e){
+                            console.log('clicked on ' + this.getElementsByTagName("input")[0].dataset.id );
+                            console.log('{% url 'server_view_without_parameters' %}'+this.getElementsByTagName("input")[0].dataset.id);
+                            window.open('{% url 'server_view_without_parameters' %}'+this.getElementsByTagName("input")[0].dataset.id, "_self");
+                             });
+                list.appendChild(a);
             }
 
         },
@@ -186,9 +191,6 @@ body {
                         </div>
                     </div>
 
-                    <input id="form_model" name="form_model" type="hidden">
-                    <input id="form_id" name="form_id" type="hidden">
-                    <input id="form_complete" name="form_complete" type="hidden" value="False">
                     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
                 </form>
             </li>
