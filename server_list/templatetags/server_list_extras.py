@@ -27,3 +27,19 @@ def negate(boolean):
 @register.filter()
 def get_ip_num(value):
     return value.split('_')[1]
+
+
+@register.simple_tag
+def url_help(url, item):
+    params = url.split('&')
+    r_params = params[:1]
+    for param in params[1:]:
+        if param == 'order_by=' + item + '-asc':
+            r_params.append('order_by=' + item + '-desc')
+        elif param == 'order_by=' + item + '-desc':
+            r_params.append('order_by=' + item + '-asc')
+
+    if len(r_params) == 1:
+        r_params.append('order_by=' + item + '-asc')
+
+    return '&'.join(x for x in r_params)

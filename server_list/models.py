@@ -52,6 +52,9 @@ class Rack(models.Model):
     def __str__(self):
         return self.name
 
+    def full_str(self):
+        return str(self.room) + ', ' + str(self.room.territory) + ', ' + str(self)
+
 
 class Segment(models.Model):
     name = models.CharField(max_length=50)

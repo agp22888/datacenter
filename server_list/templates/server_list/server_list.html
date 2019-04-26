@@ -82,7 +82,13 @@ window.onload = function(){
         {% endfor %}
     </ul>
 
-
+    {% if 'asc' in request.get_full_path%}
+        plus
+    {% elif 'desc' in request.get_full_path%}
+        minus
+    {% else %}
+        false
+    {% endif %}
     {% for ter, room_dict in servers.items %}
     <div id="{{ter}}" class="tabcontent bg-light ">
         {% for room, rack_dict in room_dict.items %}
@@ -92,17 +98,19 @@ window.onload = function(){
 
             <table id="table_{{rack.id}}" class="table table-sm table-hover center-block" >
                 <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
-
+                {% url_help request.GET.urlencode 'kek' %}
+                {% with header=ser_dict|get_dict_item:"header"%}
                 <thead class="table_header thead-dark" style="">
                 <tr>
-                {% for n in  ser_dict|get_dict_item:"header" %}
-                    <th scope="row" >{{n}}
+                {% for n,v in  header.items %}
+                    <th scope="row" ><a href="{{request.path}}?{% url_help request.GET.urlencode n %}">{{v}}</a>
 
                     </th>
 
                 {% endfor %}
                 </tr>
                 </thead>
+                {% endwith %}
 
                 <tbody>
                 {% for id, row in ser_dict.items %}

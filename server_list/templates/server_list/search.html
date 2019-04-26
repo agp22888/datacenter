@@ -1,0 +1,11 @@
+{% extends 'server_list/navbar.html' %}
+{% block title %}Карточка помещения{% endblock %}
+{% block content %}
+{% for server in result_set %}
+    <a href="{% url 'server_view' server.id %}">{{server}} {{server.purpose}} {{server.rack.full_str}}</a>
+    {% for ip in server.ip_set.all %}
+        {{ip}}
+    {% endfor %}
+<br>
+{%endfor %}
+{% endblock %}

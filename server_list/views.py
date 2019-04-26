@@ -49,19 +49,39 @@ def servers(request):
     tabs = {}  # список территорий для вкладок
     ser_dict = {}
     # {territory:{room:{rack::server_list}}}
+
+    order = '-unit'
+    vm_order = 'hostname'
+    order_by = request.GET.get('order_by')
+
+    if order_by is not None:
+        orders = order_by.split('-')
+        if len(orders) > 0:
+            if orders[0] == 'vm':
+                vm_order = ('' if orders[1] == 'asc' else '-') + 'hostname'
+            else:
+                order = ('' if orders[1] == 'asc' else '-') + orders[0]
+    print(order, vm_order)
     for t in territories:
         tabs.update({t.id: t.name})
         for room in t.room_set.all():
             for rack in room.rack_set.all():
                 seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
                 ser_list = {}
-                row = [strings.STRING_UNIT, strings.STRING_MODEL, strings.STRING_HOSTNAME, strings.STRING_IS_ON, strings.STRING_VM, strings.STRING_OS, strings.STRING_PURPOSE]
+                row = {'unit': strings.STRING_UNIT,
+                       'model': strings.STRING_MODEL,
+                       'hostname': strings.STRING_HOSTNAME,
+                       'is_on': strings.STRING_IS_ON,
+                       'vm': strings.STRING_VM,
+                       'os': strings.STRING_OS,
+                       'purpose': strings.STRING_PURPOSE}
                 for seg in seg_list:
-                    row.append(seg.name)
-                row.append(strings.STRING_SN)
-                row.append(strings.STRING_SPECS)
+                    row['seg_' + str(seg.id)] = seg.name
+                row['serial_num'] = strings.STRING_SN
+                row['specs'] = strings.STRING_SPECS
                 ser_list.update({"header": row})
-                for server in rack.server_set.filter(group=target_group):
+
+                for server in rack.server_set.filter(group=target_group).order_by(order):
                     row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                            server.hostname,
                            "on" if server.is_on else "off",
@@ -71,7 +91,7 @@ def servers(request):
                     row.append(server.serial_num)
                     row.append(server.specs)
                     ser_list.update({server.id: row})
-                    for vm in server.server_set.all():
+                    for vm in server.server_set.all().order_by(vm_order):
                         vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
                         for seg in seg_list:  # segment dict
 
@@ -472,9 +492,12 @@ def search(request):
         return HttpResponseBadRequest("400")
     if request.method == 'POST':
         search_query = request.POST.get('searchInput')
-        servers = search_servers(search_query)
-        print(servers) # todo убрать ip
-        return HttpResponse(request.POST.items())
+        result_set = Server.objects.filter(hostname_lower__icontains=search_query)
+        result_set |= Server.objects.filter(purpose_lower__icontains=search_query)
+
+        result_set.distinct()
+        print(result_set)  # todo убрать ip
+        return render(request, os.path.join('server_list', 'search.html'), {'result_set': result_set})
     return HttpResponse('search')
 
 
