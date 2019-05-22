@@ -167,16 +167,13 @@ function sleep(ms) {
             <th>{{ field.label}}</th>
 
             <th>{{ field }}</th>
-            {% if '_rack' in field.name %}
+            {% if 'rack' in field.name %}
             <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'rack_edit');">Редактировать</a> </th>
             <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_new' %}', 'rack_add');">Добавить</a> </th>
             {% endif %}
             {% if 'group' in field.name %}
             <th> <a href="javascript:void(0);" onclick="open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'group_edit');">Редактировать</a> </th>
-            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'group_new' %}', group_add');">Добавить</a> </th>
-            {% endif %}
-            {% if 'ip_' in field.name %}
-            <th><a href="javascript:void(0);" onclick="ajax_delete_ip({{field.name|get_ip_num}})">Удалить</a></th>
+            <th> <a href="javascript:void(0);" onclick="open_window('{% url "group_new" %}', 'group_add');">Добавить</a> </th>
             {% endif %}
             {% for error in field.errors %}
             <th><font color="red">{{error}}</font></th>

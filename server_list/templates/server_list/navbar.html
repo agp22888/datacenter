@@ -56,6 +56,9 @@ function searchFunction(){
                                 servers[obj.fields['server']].ip.push(obj.fields['ip_as_string']);
                             }
                             break;
+                        case 'server_list.error':
+                            alert('User is not unauthenticated!');
+                            return;
                    }
 
             });

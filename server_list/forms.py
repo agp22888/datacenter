@@ -75,7 +75,7 @@ class ServerForm(ModelForm):
             'location': st.STRING_LOCATION,
             'territory': st.STRING_TERRITORY,
             'room': st.STRING_ROOM,
-            'rack': st.STRING_GROUP,
+            'rack': st.STRING_RACK,
         }
 
     def clean(self):

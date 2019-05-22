@@ -51,7 +51,6 @@ def servers(request):
     # {territory:{room:{rack::server_list}}}
 
     order = '-unit'
-    vm_order = 'hostname'
     order_by = request.GET.get('order_by')
 
     if order_by is not None:
@@ -91,7 +90,7 @@ def servers(request):
                     row.append(server.serial_num)
                     row.append(server.specs)
                     ser_list.update({server.id: row})
-                    for vm in server.server_set.all().order_by(vm_order):
+                    for vm in server.server_set.all().order_by('hostname'):
                         vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
                         for seg in seg_list:  # segment dict
 
@@ -304,25 +303,8 @@ def server_view(request, server_id):
     return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict})
 
 
-@login_required(login_url=reverse_lazy('custom_login'))
+# @login_required(login_url=reverse_lazy('custom_login'))
 def ajax(request):
-    if request.GET.get('model') == 'territory':
-        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
-    if request.GET.get('model') == 'room':
-        ter = request.GET.get('territory')
-        # print("ter", ter)
-        if ter is None:
-            ter = 1
-            # print("ajax request ter is None")
-        return HttpResponse(
-            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))), fields='name'), content_type='application/json')
-    if request.GET.get('model') == 'rack':
-        room = request.GET.get('room')
-        if room is None:
-            # print("ajax request room is None")
-            room = 1
-        return HttpResponse(
-            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'), content_type='application/json')
     if request.GET.get('model') == 'server':
         if request.user.is_authenticated:
             try:
@@ -334,9 +316,10 @@ def ajax(request):
                 return HttpResponse('500')
         else:
             return HttpResponse('Access Denied')
-    if request.GET.get('model') == 'vm':
-        return HttpResponse(serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
+
     if request.GET.get('action') == 'delete_ip':
+        if not request.user.is_authenticated:
+            return HttpResponse("Вы не авторизованы")
         ip_id = request.GET.get('ip_id')
         try:
             ip = Ip.objects.get(pk=ip_id)
@@ -344,16 +327,36 @@ def ajax(request):
         except Ip.DoesNotExist:
             raise Http404
         return HttpResponse('ok')
+
+    if not request.user.is_authenticated:
+        return HttpResponse('[{"model": "server_list.error", "message":"User is not authenticated!"}]', content_type='application_json')
+
+    if request.GET.get('model') == 'territory':
+        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
+
+    if request.GET.get('model') == 'room':
+        ter = request.GET.get('territory')
+        if ter is None:
+            ter = 1
+        return HttpResponse(
+            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))), fields='name'), content_type='application/json')
+
+    if request.GET.get('model') == 'rack':
+        room = request.GET.get('room')
+        if room is None:
+            # print("ajax request room is None")
+            room = 1
+        return HttpResponse(
+            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'), content_type='application/json')
+
+    if request.GET.get('model') == 'vm':
+        return HttpResponse(serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
+
     if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
-
         serialize = serializers.serialize('json', search_servers(search_query), fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
-        # print(serialize)
-        return HttpResponse(
-            serialize,
-            content_type='application/json')
-
-    return None
+        print('serialize', serialize)
+        return HttpResponse(serialize, content_type='application/json')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

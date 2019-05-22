@@ -103,7 +103,12 @@ window.onload = function(){
                 <thead class="table_header thead-dark" style="">
                 <tr>
                 {% for n,v in  header.items %}
-                    <th scope="row" ><a href="{{request.path}}?{% url_help request.GET.urlencode n %}">{{v}}</a>
+                    <th scope="row" >
+                    {% if 'vm' != n %}
+                    <a href="{{request.path}}?{% url_help request.GET.urlencode n %}">{{v}}</a>
+                    {% else %}
+                        {{v}}
+                    {% endif %}
 
                     </th>
 
