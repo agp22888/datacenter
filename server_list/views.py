@@ -3,10 +3,11 @@ from itertools import chain
 
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.db.models import Count
 from django.urls import reverse, reverse_lazy
 
 from server_list import strings
-from server_list.utils import search_servers
+from server_list.utils import search_servers, order_query
 from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
@@ -53,52 +54,58 @@ def servers(request):
     order = '-unit'
     order_by = request.GET.get('order_by')
 
-    if order_by is not None:
-        orders = order_by.split('-')
-        if len(orders) > 0:
-            if orders[0] == 'vm':
-                vm_order = ('' if orders[1] == 'asc' else '-') + 'hostname'
-            else:
-                order = ('' if orders[1] == 'asc' else '-') + orders[0]
-    print(order, vm_order)
+    # if order_by is not None:
+    #     orders = order_by.split('-')
+    #     if len(orders) > 0:
+    #         if orders[0] == 'vm':
+    #             vm_order = ('' if orders[1] == 'asc' else '-') + 'hostname'
+    #         else:
+    #             order = ('' if orders[1] == 'asc' else '-') + orders[0]
     for t in territories:
         tabs.update({t.id: t.name})
         for room in t.room_set.all():
             for rack in room.rack_set.all():
                 seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
                 ser_list = {}
+                rack.server_set.filter(group=target_group)
                 row = {'unit': strings.STRING_UNIT,
                        'model': strings.STRING_MODEL,
                        'hostname': strings.STRING_HOSTNAME,
-                       'is_on': strings.STRING_IS_ON,
-                       'vm': strings.STRING_VM,
-                       'os': strings.STRING_OS,
-                       'purpose': strings.STRING_PURPOSE}
+                       'is_on': strings.STRING_IS_ON}
+                vm_col_needed = len(rack.server_set.filter(group=target_group).annotate(number_of_vms=Count('server')).filter(number_of_vms__gt=0)) > 0
+                if vm_col_needed:
+                    row.update({'vm': strings.STRING_VM})
+                row.update({'os': strings.STRING_OS,
+                            'purpose': strings.STRING_PURPOSE})
                 for seg in seg_list:
                     row['seg_' + str(seg.id)] = seg.name
                 row['serial_num'] = strings.STRING_SN
                 row['specs'] = strings.STRING_SPECS
                 ser_list.update({"header": row})
 
-                for server in rack.server_set.filter(group=target_group).order_by(order):
+                for server in order_query(rack.server_set.filter(group=target_group), order_by):
                     row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                            server.hostname,
-                           "on" if server.is_on else "off",
-                           "", server.os, server.purpose]
+                           "on" if server.is_on else "off"]
+                    if vm_col_needed:
+                        row.append([""])
+                    row.append(server.os)
+                    row.append(server.purpose)
                     for seg in seg_list:
                         row.append([x.ip_as_string for x in list(server.ip_set.filter(segment=seg))])
                     row.append(server.serial_num)
                     row.append(server.specs)
                     ser_list.update({server.id: row})
-                    for vm in server.server_set.all().order_by('hostname'):
-                        vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
-                        for seg in seg_list:  # segment dict
+                    if vm_col_needed:
+                        for vm in order_query(server.server_set.all(), order_by):
+                            vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
+                            for seg in seg_list:  # segment dict
 
-                            vm_row.append(
-                                [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
-                        vm_row.append("")
-                        vm_row.append("")
-                        ser_list.update({vm.id: vm_row})
+                                vm_row.append(
+                                    [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
+                            vm_row.append("")
+                            vm_row.append("")
+                            ser_list.update({vm.id: vm_row})
                     ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
@@ -326,6 +333,50 @@ def ajax(request):
             ip.delete()
         except Ip.DoesNotExist:
             raise Http404
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_server':
+        server_id = request.GET.get('server_id')
+        try:
+            server_to_delete = Server.objects.get(pk=server_id)
+        except Server.DoesNotExist:
+            raise Http404
+        if server_to_delete.server_set.count() > 0:
+            return HttpResponse('Перенесите виртуальные машины на другой сервер')
+        server_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_rack':
+        rack_id = request.GET.get('rack_id')
+        try:
+            rack_to_delete = Rack.objects.get(pk=rack_id)
+        except Rack.DoesNotExist:
+            raise Http404
+        if rack_to_delete.server_set.count() > 0:
+            return HttpResponse('Перенесите серверы в другую стойку')
+        rack_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_territory':
+        territory_id = request.GET.get('territory_id')
+        try:
+            territory_to_delete = Territory.objects.get(pk=territory_id)
+        except Territory.DoesNotExist:
+            raise Http404
+        if territory_to_delete.room_set.count() > 0:
+            return HttpResponse('Перенесите помещения на другую территорию')
+        territory_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_room':
+        room_id = request.GET.get('room_id')
+        try:
+            room_to_delete = Room.objects.get(pk=room_id)
+        except Room.DoesNotExist:
+            raise Http404
+        if room_to_delete.rack_set.count() > 0:
+            return HttpResponse('Перенесите стойки в другое помещение')
+        room_to_delete.delete()
         return HttpResponse('ok')
 
     if not request.user.is_authenticated:

@@ -21,11 +21,16 @@ def search_servers(search_query):
 
 
 def order_query(query, order):
-
-    # list.sort(key=lambda x: Ip.get_ip_from_string(x.ip_set.filter(segment=seg).first().ip_as_string) if x.ip_set.filter(segment=seg).first() is not None else 0)
-    parts = order.split('-')
-    if len(parts) > 0:
-        if parts[0] == 'vm':
-            vm_order = ('' if parts[1] == 'asc' else '-') + 'hostname'
-        else:
-            order = ('' if parts[1] == 'asc' else '-') + parts[0]
+    if order is not None:
+        parts = order.split('-')
+        if len(parts) > 0:
+            if 'seg_' in parts[0]:
+                list_query = list(query)
+                seg = Segment.objects.get(pk=int(parts[0].split('_')[1]))
+                list_query.sort(key=lambda x: Ip.get_ip_from_string(x.ip_set.filter(segment=seg).first().ip_as_string) if x.ip_set.filter(segment=seg).first() is not None else 0,
+                                reverse=parts[1] == 'desc')
+                return list_query
+            else:
+                order = ('' if parts[1] == 'asc' else '-') + parts[0]
+                return query.order_by(order)
+    return query

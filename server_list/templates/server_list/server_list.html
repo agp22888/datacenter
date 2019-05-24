@@ -82,13 +82,6 @@ window.onload = function(){
         {% endfor %}
     </ul>
 
-    {% if 'asc' in request.get_full_path%}
-        plus
-    {% elif 'desc' in request.get_full_path%}
-        minus
-    {% else %}
-        false
-    {% endif %}
     {% for ter, room_dict in servers.items %}
     <div id="{{ter}}" class="tabcontent bg-light ">
         {% for room, rack_dict in room_dict.items %}
@@ -122,33 +115,36 @@ window.onload = function(){
                 {% if not forloop.first %}
                 <tr>
                     {% for col in row %}
+                    <!--{{col}}-->
+                    {% endfor %}
+                    {% for col in row %}
                     {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
-                    <td ><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
-                    {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " "%}
+                    <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
+                    {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " " %}
                     <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
                     {%else%}
 
                     <td>
                         <p>
                             {%if col|is_list%}
-                            {% for c in col %}
-                            {% if not forloop.first %}
-                            <br/>
-                            {% endif%}
-                            {{c}}
-                            {% endfor %}
+
+                                {% for c in col %}
+                                    {% if not forloop.first %}
+                                        <br/>
+                                    {% endif%}
+                                    {{c}}
+                                {% endfor %}
                             {% else %}
-                            {% if col == 'on' %}
-                            <font color="green">On</font>
-                            {% elif col == 'off'%}
-                            <font color="red">Off</font>
-                            {% else %}
-                            {{col}}
-                            {% endif %}
+                                {% if col == 'on' %}
+                                    <font color="green">On</font>
+                                {% elif col == 'off'%}
+                                    <font color="red">Off</font>
+                                {% else %}
+                                    {{col}}
+                                {% endif %}
                             {% endif %}
                         </p>
                     </td>
-                    <!--|linebreaks-->
                     {%endif%}
                     {% endfor %}
 

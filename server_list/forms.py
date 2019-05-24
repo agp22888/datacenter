@@ -208,7 +208,7 @@ class ServerFormOld(forms.Form):
             if self.cleaned_data['host_machine'] is None:
                 self.errors.update({'host_machine': ['Это поле не должно быть пустым']})
 
-    def __init__(self, *args, **kwargs, ):
+    def __init__(self, *args, **kwargs):
         self.server_id = kwargs.pop('server_id', None)
         self.new = kwargs.pop('new_server', False)
         super(ServerFormOld, self).__init__(*args, **kwargs)
