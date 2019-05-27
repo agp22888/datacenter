@@ -83,80 +83,68 @@ window.onload = function(){
     </ul>
 
     {% for ter, room_dict in servers.items %}
-    <div id="{{ter}}" class="tabcontent bg-light ">
+        <div id="{{ter}}" class="tabcontent bg-light ">
         {% for room, rack_dict in room_dict.items %}
-        <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
-        {% for rack, ser_dict in rack_dict.items %}
-        <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
-
-            <table id="table_{{rack.id}}" class="table table-sm table-hover center-block" >
-                <!-- Unit Модель Имя Питание VM OS Назначение IP Mask/Gateway ilo iscsi port s/n specs sens-->
-                {% url_help request.GET.urlencode 'kek' %}
+            <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
+            {% for rack, ser_dict in rack_dict.items %}
+                <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
+                <table id="table_{{rack.id}}" class="table table-sm table-hover center-block" >
                 {% with header=ser_dict|get_dict_item:"header"%}
-                <thead class="table_header thead-dark" style="">
-                <tr>
-                {% for n,v in  header.items %}
-                    <th scope="row" >
-                    {% if 'vm' != n %}
-                    <a href="{{request.path}}?{% url_help request.GET.urlencode n %}">{{v}}</a>
-                    {% else %}
-                        {{v}}
-                    {% endif %}
-
-                    </th>
-
-                {% endfor %}
-                </tr>
-                </thead>
+                    <thead class="table_header thead-dark" style="">
+                    <tr>
+                    {% for n,v in  header.items %}
+                        <th scope="row" >
+                        {% if 'vm' != n %}
+                            <a href="{{request.path}}?{% url_help request.GET.urlencode n %}">{{v}}</a>
+                        {% else %}
+                            {{v}}
+                        {% endif %}
+                        </th>
+                    {% endfor %}
+                    </tr>
+                    </thead>
                 {% endwith %}
 
                 <tbody>
                 {% for id, row in ser_dict.items %}
-                {% if not forloop.first %}
-                <tr>
-                    {% for col in row %}
-                    <!--{{col}}-->
-                    {% endfor %}
-                    {% for col in row %}
-                    {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
-                    <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
-                    {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " " %}
-                    <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
-                    {%else%}
-
-                    <td>
-                        <p>
-                            {%if col|is_list%}
-
-                                {% for c in col %}
-                                    {% if not forloop.first %}
-                                        <br/>
-                                    {% endif%}
-                                    {{c}}
-                                {% endfor %}
-                            {% else %}
-                                {% if col == 'on' %}
-                                    <font color="green">On</font>
-                                {% elif col == 'off'%}
-                                    <font color="red">Off</font>
+                    {% if not forloop.first %}
+                        <tr {% if forloop.counter0 != 0 and row.2 != " " %} bgcolor="#f2f2f2" {% endif %}>
+                        {% for col in row %}
+                            {% if forloop.counter0 == 2 and forloop.parentloop.counter0 != 0 and row.2 != " " %}
+                                <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
+                            {%elif forloop.counter0 == 4 and forloop.parentloop.counter0 != 0 and row.2 == " " %}
+                                <td><p><a href="{% url 'server_view' id %}">{{col}}</a></p></td>
+                            {%else%}
+                                <td>
+                                <p>
+                                {%if col|is_list%}
+                                    {% for c in col %}
+                                        {% if not forloop.first %}
+                                            <br/>
+                                        {% endif%}
+                                        {{c}}
+                                    {% endfor %}
                                 {% else %}
-                                    {{col}}
+                                    {% if col == 'on' %}
+                                        <font color="green">On</font>
+                                    {% elif col == 'off'%}
+                                        <font color="red">Off</font>
+                                    {% else %}
+                                        {{col}}
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
-                        </p>
-                    </td>
+                                </p>
+                                </td>
+                            {%endif%}
+                        {% endfor %}
+                        </tr>
                     {%endif%}
-                    {% endfor %}
-
-                </tr>
-                {%endif%}
                 {% endfor %}
-            </table>
+                </tbody>
+                </table>
 
+            {% endfor %}
         {% endfor %}
-        {% endfor %}
-    </div>
-
+        </div>
     {% endfor %}
-
 {% endblock %}
