@@ -138,7 +138,7 @@
         back_ids  = { {% for s in back %} "{{s}}":{{s.id}} {% if not forloop.last %},{%endif %} {% endfor %} }
 
         switch(data[1]){
-            case 0:
+            case 1:
                 for(let server in front){
                     if (data[0]<= front[server][0] + front[server][1] -1 && data[0]>= front[server][0]){
                         console.log("success", front[server], front_ids[server]);
@@ -146,7 +146,7 @@
                     }
                 }
                 break;
-            case 1:
+            case 0:
                 for(let server in back){
                     if (data[0]<= back[server][0] + back[server][1] -1 && data[0]>= back[server][0]){
                         console.log("success", back[server], back_ids[server]);
