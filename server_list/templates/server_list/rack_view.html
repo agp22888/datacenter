@@ -78,7 +78,13 @@
             coordArray = unitCoords[serverUnit];
             ctx.fillRect(coordArray[1], coordArray[0] , rackWidth, unitHeight*back[server][1]);
             ctx.fillStyle = "black";
-            ctx.fillText(server,coordArray[1] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ back[server][1]*unitHeight/2 + fontSize/2 -2 );
+            text = server;
+            if (ctx.measureText(text).width > rackWidth){
+                while(ctx.measureText(text).width >= rackWidth){
+                    text = text.slice(0,-4)+'...';
+                }
+            }
+            ctx.fillText(text,coordArray[1] +rackWidth/2 - ctx.measureText(text).width/2, coordArray[0]+ back[server][1]*unitHeight/2 + fontSize/2 -2 );
         }
 
         for (let server in front){
@@ -87,7 +93,13 @@
             coordArray = unitCoords[serverUnit];
             ctx.fillRect(coordArray[3], coordArray[0] , rackWidth, unitHeight*front[server][1]);
             ctx.fillStyle = "black";
-            ctx.fillText(server,coordArray[3] +rackWidth/2 - ctx.measureText(server).width/2, coordArray[0]+ front[server][1]*unitHeight/2 + fontSize/2 -2);
+            text = server;
+            if (ctx.measureText(text).width > rackWidth){
+                while(ctx.measureText(text).width >= rackWidth){
+                    text = text.slice(0,-4)+'...';
+                }
+            }
+            ctx.fillText(text,coordArray[3] +rackWidth/2 - ctx.measureText(text).width/2, coordArray[0]+ front[server][1]*unitHeight/2 + fontSize/2 -2);
         }
    }
 
