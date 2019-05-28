@@ -238,9 +238,9 @@ def rack_view(request, rack_id):
     rack_back = {}
     for s in rack.server_set.all():
         units = [s.unit, s.height]
-        if s.location != 0:
-            rack_front.update({s: units})
         if s.location != 1:
+            rack_front.update({s: units})
+        if s.location != 0:
             rack_back.update({s: units})
     return render(request, os.path.join('server_list', 'rack_view.html'), {'rack': rack, 'front': rack_front, 'back': rack_back})
 
