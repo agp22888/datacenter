@@ -54,7 +54,7 @@ class ServerForm(ModelForm):
             'room': Select(attrs={'pk': 'select'}),
             'territory': Select(attrs={'pk': 'select'}),
             'rack': Select(attrs={'pk': 'select'}),
-            'host_machine': Select(attrs={'pk': 'select'}),
+            'host_machine': Select(attrs={'pk': 'select'}, choices=Server.objects.filter(is_physical=True)),
             'location': Select(attrs={'pk': 'select'}, choices=(('0', 'front'), ('1', 'back'), ('2', 'full')))
         }
 
