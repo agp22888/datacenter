@@ -53,7 +53,8 @@ def servers(request):
 
     order = '-unit'
     order_by = request.GET.get('order_by')
-
+    tab_num = request.GET.get('tab')
+    print('tab_num', tab_num)
     # if order_by is not None:
     #     orders = order_by.split('-')
     #     if len(orders) > 0:
@@ -112,7 +113,7 @@ def servers(request):
                {'divider': True},
                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
 
-    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions})
+    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions, "tab_num": tab_num})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
