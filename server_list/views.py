@@ -135,6 +135,19 @@ def server_edit(request, server_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
+def server_delete(request, server_id):
+    try:
+        server = Server.objects.get(id=server_id)
+    except Server.DoesNotExist:
+        raise Http404("Server not found")
+    if request.GET.get('confirm') == 'true':
+        server.delete()
+        return render(request, os.path.join('server_list', 'server_delete.html'), {'action': 'report'})
+    else:
+        return render(request, os.path.join('server_list', 'server_delete.html'), {'action': 'ask', 'server': server, 'vms': server.server_set.all()})
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
 def server_new(request):
     if request.method == 'GET':
         form = ServerForm()
@@ -307,8 +320,9 @@ def server_view(request, server_id):
                           "host_machine": server.host_machine.hostname,
                           "host_machine_id": server.host_machine.id,
                           })
-
-    return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict})
+    actions = [{'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
+    print (actions)
+    return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict, 'actions': actions})
 
 
 # @login_required(login_url=reverse_lazy('custom_login'))

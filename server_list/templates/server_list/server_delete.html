@@ -1,0 +1,27 @@
+{% extends 'server_list/navbar.html' %}
+{% block title %}Удаление сервера{% endblock %}
+{% block script %}
+function askUser(){
+    if (confirm('Вы уверены, что хотите удалить сервер?')){
+        location.href='{% url 'server_delete' server.id %}?confirm=true';
+    }
+}
+{% endblock %}
+{% block content %}
+
+
+<h6>Удаление сервера</h6>
+{% if action == 'ask' %}
+{% if vms %}
+<p>На данном сервере работают следующие виртуальные машины:</p>
+{% for vm in vms %}
+<p>{{vm.hostname}}</p>
+{% endfor %}
+{% endif %}
+<p>Удалить сервер {{server.hostname}}?</p>
+<p><input type="button" value="Удалить" onclick="askUser();"/><input type="button" value="Отмена" onclick="location.href='{% url 'server_view' server.id %}'"/></p>
+{% elif action == 'report' %}
+<p>Сервер успешно удалён.</p>
+<meta http-equiv="refresh" content="3;url={% url 'list' %}" />
+{% endif %}
+{% endblock %}
