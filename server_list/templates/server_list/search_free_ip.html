@@ -1,0 +1,17 @@
+{% extends 'server_list/navbar.html' %}
+{% block title %}Поиск свободного IP{% endblock %}
+{% block content %}
+<form id="search_ip_form"  method="POST" autocomplete="off">
+   {% csrf_token %}
+    <input name="ipInput" type="search" placeholder="Введите адрес сети...">
+    <button type="submit">Поиск</button>
+</form>
+{% if message %}
+    {{ message }}
+{% endif %}
+{% if ip_list %}
+    {% for ip in ip_list %}
+    <p>{{ ip }}</p>
+    {% endfor %}
+{% endif %}
+{% endblock %}

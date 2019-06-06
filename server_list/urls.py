@@ -49,6 +49,7 @@ urlpatterns = [
 
     url(r'^group_edit/(?P<group_id>\d*)', views.group_edit, name='group_edit'),
     url(r'^add_group$', views.group_add, name='group_new'),
-    url(r'^group_edit/$', views.group_edit, name='group_edit_without_parameters')
+    url(r'^group_edit/$', views.group_edit, name='group_edit_without_parameters'),
 
+    url(r'^search_free', views.search_free_ip, name='search_free_ip')
 ]

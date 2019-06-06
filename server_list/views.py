@@ -1,5 +1,6 @@
 import os
 from itertools import chain
+from ipaddress import IPv4Network, AddressValueError
 
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -111,7 +112,9 @@ def servers(request):
     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
                {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
                {'divider': True},
-               {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'}]
+               {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'},
+               {'divider': True},
+               {'link': reverse('search_free_ip'), 'divider': False, 'name': 'Поиск свободных IP'}]
 
     return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions, "tab_num": tab_num})
 
@@ -321,7 +324,7 @@ def server_view(request, server_id):
                           "host_machine_id": server.host_machine.id,
                           })
     actions = [{'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
-    print (actions)
+    print(actions)
     return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict, 'actions': actions})
 
 
@@ -526,7 +529,6 @@ def group_add(request):
     if request.method == 'GET':
         form = GroupForm()
         render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-
     return None
 
 
@@ -568,6 +570,34 @@ def search(request):
         print(result_set)  # todo убрать ip
         return render(request, os.path.join('server_list', 'search.html'), {'result_set': result_set})
     return HttpResponse('search')
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def search_free_ip(request):
+    if request.method == 'GET':
+        return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Ведите адрес сети для поиска'})  # TODO REFACTOR THIS SHIT
+    if request.method == 'POST':
+        try:
+            target_network = IPv4Network(request.POST.get('ipInput'))
+            ip_list = []
+            for host in target_network.hosts():
+                if Ip.objects.filter(ip_as_string=host).exists():
+                    continue
+                ip_list.append(host)
+            if len(ip_list) > 0:
+                line = [ip_list[0]]
+                for i in range(1, len(ip_list)):
+                    if ip_list[i] - 1 != ip_list[i - 1]:
+                        if line[-1] != ip_list[i - 1]:
+                            line[-1] = str(line[-1]) + ' - ' + str(ip_list[i - 1])
+
+                        else:
+                            line[-1] = str(line[-1])
+                        line.append(ip_list[i])
+                line[-1] = str(line[-1]) + ' - ' + str(ip_list[-2])
+            return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Свободные адреса:', 'ip_list': line})
+        except (ValueError, AddressValueError) as e:
+            return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Неверный адрес сети'})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
