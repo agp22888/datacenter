@@ -50,14 +50,16 @@ class ServerForm(ModelForm):
     class Meta:
         model = Server
         exclude = ('segments', 'description')
-        widgets = {
-            'room': Select(attrs={'pk': 'select'}),
-            'territory': Select(attrs={'pk': 'select'}),
-            'rack': Select(attrs={'pk': 'select'}),
-            'host_machine': Select(attrs={'pk': 'select'}, choices=Server.objects.filter(is_physical=True)),
-            'location': Select(attrs={'pk': 'select'}, choices=(('0', 'front'), ('1', 'back'), ('2', 'full')))
-        }
-
+        try:
+            widgets = {
+                'room': Select(attrs={'pk': 'select'}),
+                'territory': Select(attrs={'pk': 'select'}),
+                'rack': Select(attrs={'pk': 'select'}),
+                'host_machine': Select(attrs={'pk': 'select'}, choices=Server.objects.filter(is_physical=True)),
+                'location': Select(attrs={'pk': 'select'}, choices=(('0', 'front'), ('1', 'back'), ('2', 'full')))
+            }
+        except OperationalError:
+            pass
         labels = {
             'hostname': st.STRING_HOSTNAME,
             'purpose': st.STRING_PURPOSE,
@@ -140,20 +142,20 @@ class ServerFormOld(forms.Form):
                    'server_rack', ]
     server_name = ServerFormNameField(label="Имя", required=True, initial="Новый сервер")
     server_purpose = forms.CharField(label="Назначение", required=False)
-    server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), initial=ServerGroup.objects.first())
+
     power_state = forms.BooleanField(label="Питание", required=False, initial=True)
     is_physical = forms.BooleanField(label="Физический сервер", required=False, initial=True)
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
-    # try:
-    host_machine = forms.ModelChoiceField(label="Физический сервер", required=False, queryset=Server.objects.filter(is_physical=True), to_field_name='hostname')
-    server_territory = forms.ModelChoiceField(label="Территория", required=False, queryset=Territory.objects.all())
-    server_room = forms.ModelChoiceField(label='Помещение', required=False, queryset=Room.objects.all())
-    server_rack = forms.ModelChoiceField(label='Стойка', required=False, queryset=Rack.objects.all())
+    try:
+        server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), initial=ServerGroup.objects.first())
+        host_machine = forms.ModelChoiceField(label="Физический сервер", required=False, queryset=Server.objects.filter(is_physical=True), to_field_name='hostname')
+        server_territory = forms.ModelChoiceField(label="Территория", required=False, queryset=Territory.objects.all())
+        server_room = forms.ModelChoiceField(label='Помещение', required=False, queryset=Room.objects.all())
+        server_rack = forms.ModelChoiceField(label='Стойка', required=False, queryset=Rack.objects.all())
 
-    # except OperationalError:
-    #     print("operational error")
-    #     pass
+    except OperationalError:
+        pass
     server_unit = forms.IntegerField(label="Юнит", required=False)
     server_height = forms.IntegerField(label="Высота в юнитах", required=False)
     server_model = forms.CharField(label="Модель", required=False)
