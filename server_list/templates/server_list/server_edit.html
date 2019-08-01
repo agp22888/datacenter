@@ -20,8 +20,7 @@ $(document).ready(function() {
 
     if(territory_id != null){
 
-        $("#id_territory").val(territory_id);
-        ajax_request_rooms_by_territory($("#id_territory").val());
+        init();
     }
 
     $("#id_territory").change(function(){
@@ -52,14 +51,19 @@ $(document).ready(function() {
     }
 });
 
+function init(){
+    $("#id_territory").val(territory_id);
+    ajax_request_rooms_by_territory($("#id_territory").val());
+}
+
 function empty_room_list(){
     $("#id_room").empty();
-    $("#id_room").append($('<option></option>').attr('value', "").text('**выберите территорию**'));
+    $("#id_room").append($('<option></option>').attr('value', "").text('**сначала выберите территорию**'));
 }
 
 function empty_rack_list(){
     $("#id_rack").empty();
-    $("#id_rack").append($('<option></option>').attr('value', "").text('**выберите помещение**'));
+    $("#id_rack").append($('<option></option>').attr('value', "").text('**сначала выберите помещение**'));
 }
 
 function hide_fields(fields){
@@ -155,17 +159,10 @@ function sleep(ms) {
     switch (caller){
         case "rack":
             console.log(ids)
-
-            $.when(ajax_request_rooms_by_territory(ids[2]), ajax_request_racks_by_room(ids[1])).then(
-                function(a1,a2){
-                    console.log('when',a1,a2);
-                    sel = document.getElementById('id_rack');
-
-                    for (let i = 0; i < sel.length; i++){
-                        if (sel[i].value === ids[0])sel[i].selected = true;
-                    }
-                }
-            );
+            territory_id = ids[2];
+            room_id = ids[1];
+            rack_id = ids[0];
+            init()
             break;
     }
 }
