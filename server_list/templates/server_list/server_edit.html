@@ -150,11 +150,7 @@ function ajax_request_racks_by_room(room_id){
 
 {% include "server_list/js_reload_call.html" %}
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
- async function call_reload(caller,ids){
+async function call_reload(caller,ids){
     console.log('reload called, caller is:', caller);
     switch (caller){
         case "rack":
