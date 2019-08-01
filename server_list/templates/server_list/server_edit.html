@@ -75,7 +75,7 @@ function unhide_fields(fields){
 }
 
 
-function ajax_request_rooms_by_territory(territory_id){
+function ajax_request_rooms_by_territory(territory_id, callback){
     if (territory_id == ''){
         empty_room_list();
         empty_rack_list();
@@ -86,6 +86,11 @@ function ajax_request_rooms_by_territory(territory_id){
             data: {'model':'room','territory': territory_id},
             dataType: "json",
             success: function(resp){
+                sel = document.getElementById('id_territory');
+
+                for (let i = 0; i < sel.length; i++){
+                    if (sel[i].value === territory_id)sel[i].selected = true;
+                }
                 $("#id_room").empty();
                 $("#id_room").append($('<option></option>').attr('value', "").text('---------'));
                 $.each(resp, function(idx, obj) {
@@ -114,6 +119,10 @@ function ajax_request_racks_by_room(room_id){
             data: {'model':'rack','room': room_id},
             dataType: "json",
             success: function(resp){
+                sel = document.getElementById('id_room');
+                for (let i = 0; i < sel.length; i++){
+                    if (sel[i].value === room_id)sel[i].selected = true;
+                }
                 $("#id_rack").empty();
                 $("#id_rack").append($('<option></option>').attr('value', "").text('---------'));
                 $.each(resp, function(idx, obj) {
@@ -141,11 +150,24 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
- async function call_reload(){
-    console.log('reload called');
-    console.log("listener triggered, sleeping 1s");
-    await sleep(500);
-    location.reload();
+ async function call_reload(caller,ids){
+    console.log('reload called, caller is:', caller);
+    switch (caller){
+        case "rack":
+            console.log(ids)
+
+            $.when(ajax_request_rooms_by_territory(ids[2]), ajax_request_racks_by_room(ids[1])).then(
+                function(a1,a2){
+                    console.log('when',a1,a2);
+                    sel = document.getElementById('id_rack');
+
+                    for (let i = 0; i < sel.length; i++){
+                        if (sel[i].value === ids[0])sel[i].selected = true;
+                    }
+                }
+            );
+            break;
+    }
 }
 
 {% endblock %}

@@ -14,7 +14,8 @@ from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerFormOld, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, GroupForm
+from .forms import ServerFormOld, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
+    GroupForm
 from django.http import Http404
 
 
@@ -67,14 +68,17 @@ def servers(request):
         tabs.update({t.id: t.name})
         for room in t.room_set.all():
             for rack in room.rack_set.all():
-                seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(server__in=rack.server_set.all())
+                seg_list = Segment.objects.filter(server__in=servers_in_target_group).distinct().filter(
+                    server__in=rack.server_set.all())
                 ser_list = {}
                 rack.server_set.filter(group=target_group)
                 row = {'unit': strings.STRING_UNIT,
                        'model': strings.STRING_MODEL,
                        'hostname': strings.STRING_HOSTNAME,
                        'is_on': strings.STRING_IS_ON}
-                vm_col_needed = len(rack.server_set.filter(group=target_group).annotate(number_of_vms=Count('server')).filter(number_of_vms__gt=0)) > 0
+                vm_col_needed = len(
+                    rack.server_set.filter(group=target_group).annotate(number_of_vms=Count('server')).filter(
+                        number_of_vms__gt=0)) > 0
                 if vm_col_needed:
                     row.update({'vm': strings.STRING_VM})
                 row.update({'os': strings.STRING_OS,
@@ -116,7 +120,8 @@ def servers(request):
                {'divider': True},
                {'link': reverse('search_free_ip'), 'divider': False, 'name': 'Поиск свободных IP'}]
 
-    return render(request, os.path.join('server_list', 'server_list.html'), {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions, "tab_num": tab_num})
+    return render(request, os.path.join('server_list', 'server_list.html'),
+                  {"links": links, "tabs": tabs, "servers": ser_dict, 'actions': actions, "tab_num": tab_num})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -147,7 +152,8 @@ def server_delete(request, server_id):
         server.delete()
         return render(request, os.path.join('server_list', 'server_delete.html'), {'action': 'report'})
     else:
-        return render(request, os.path.join('server_list', 'server_delete.html'), {'action': 'ask', 'server': server, 'vms': server.server_set.all()})
+        return render(request, os.path.join('server_list', 'server_delete.html'),
+                      {'action': 'ask', 'server': server, 'vms': server.server_set.all()})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -259,7 +265,8 @@ def rack_view(request, rack_id):
             rack_front.update({s: units})
         if s.location != 0:
             rack_back.update({s: units})
-    return render(request, os.path.join('server_list', 'rack_view.html'), {'rack': rack, 'front': rack_front, 'back': rack_back})
+    return render(request, os.path.join('server_list', 'rack_view.html'),
+                  {'rack': rack, 'front': rack_front, 'back': rack_back})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -323,9 +330,11 @@ def server_view(request, server_id):
                           "host_machine": server.host_machine.hostname,
                           "host_machine_id": server.host_machine.id,
                           })
-    actions = [{'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
+    actions = [
+        {'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
     print(actions)
-    return render(request, os.path.join('server_list', 'server_view.html'), {'server_dict': data_dict, 'actions': actions})
+    return render(request, os.path.join('server_list', 'server_view.html'),
+                  {'server_dict': data_dict, 'actions': actions})
 
 
 # @login_required(login_url=reverse_lazy('custom_login'))
@@ -398,17 +407,20 @@ def ajax(request):
         return HttpResponse('ok')
 
     if not request.user.is_authenticated:
-        return HttpResponse('[{"model": "server_list.error", "message":"User is not authenticated!"}]', content_type='application_json')
+        return HttpResponse('[{"model": "server_list.error", "message":"User is not authenticated!"}]',
+                            content_type='application_json')
 
     if request.GET.get('model') == 'territory':
-        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'), content_type='application/json')
+        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
+                            content_type='application/json')
 
     if request.GET.get('model') == 'room':
         ter = request.GET.get('territory')
         if ter is None:
             ter = 1
         return HttpResponse(
-            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))), fields='name'), content_type='application/json')
+            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
+                                  fields='name'), content_type='application/json')
 
     if request.GET.get('model') == 'rack':
         room = request.GET.get('room')
@@ -416,14 +428,18 @@ def ajax(request):
             # print("ajax request room is None")
             room = 1
         return HttpResponse(
-            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'), content_type='application/json')
+            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
+            content_type='application/json')
 
     if request.GET.get('model') == 'vm':
-        return HttpResponse(serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')), content_type='application/json')
+        return HttpResponse(
+            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
+            content_type='application/json')
 
     if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
-        serialize = serializers.serialize('json', search_servers(search_query), fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
+        serialize = serializers.serialize('json', search_servers(search_query),
+                                          fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
         print('serialize', serialize)
         return HttpResponse(serialize, content_type='application/json')
 
@@ -575,7 +591,8 @@ def search(request):
 @login_required(login_url=reverse_lazy('custom_login'))
 def search_free_ip(request):
     if request.method == 'GET':
-        return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Ведите адрес сети для поиска'})  # TODO REFACTOR THIS SHIT
+        return render(request, os.path.join('server_list', 'search_free_ip.html'),
+                      {'message': 'Ведите адрес сети для поиска'})  # TODO REFACTOR THIS SHIT
     if request.method == 'POST':
         try:
             target_network = IPv4Network(request.POST.get('ipInput'))
@@ -595,9 +612,11 @@ def search_free_ip(request):
                             line[-1] = str(line[-1])
                         line.append(ip_list[i])
                 line[-1] = str(line[-1]) + ' - ' + str(ip_list[-2])
-            return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Свободные адреса:', 'ip_list': line})
+            return render(request, os.path.join('server_list', 'search_free_ip.html'),
+                          {'message': 'Свободные адреса:', 'ip_list': line})
         except (ValueError, AddressValueError) as e:
-            return render(request, os.path.join('server_list', 'search_free_ip.html'), {'message': 'Неверный адрес сети'})
+            return render(request, os.path.join('server_list', 'search_free_ip.html'),
+                          {'message': 'Неверный адрес сети'})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -636,8 +655,10 @@ def rack_new(request):
     if request.method == 'POST':
         form = RackForm(request.POST)
         if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
+            instance = form.save()
+            return HttpResponse(
+                "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
+                "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 

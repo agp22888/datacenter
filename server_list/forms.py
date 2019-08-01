@@ -81,7 +81,8 @@ class ServerForm(ModelForm):
         }
 
     def clean(self):
-        self.cleaned_data['hostname'] = re.sub(r'\s+', ' ', self.cleaned_data['hostname'].strip())  # getting rid of double spaces
+        self.cleaned_data['hostname'] = re.sub(r'\s+', ' ',
+                                               self.cleaned_data['hostname'].strip())  # getting rid of double spaces
         for server in Server.objects.filter(hostname_lower=self.cleaned_data['hostname'].lower):
             if server.hostname_lower == self.cleaned_data['hostname'].lower and server != self.instance:
                 self.errors.update({'hostname': ['Имя уже используется']})
@@ -92,7 +93,8 @@ class ServerForm(ModelForm):
             if self.cleaned_data['rack'] is None:
                 self.errors.update({'rack': ['Укажите стойку']})
                 return
-            if self.cleaned_data['unit'] is None or self.cleaned_data['height'] is None or self.cleaned_data['unit'] <= 0 or self.cleaned_data['height'] <= 0:
+            if self.cleaned_data['unit'] is None or self.cleaned_data['height'] is None or self.cleaned_data[
+                'unit'] <= 0 or self.cleaned_data['height'] <= 0:
                 self.errors.update({'unit': ['Ошибка']})
                 return
             this_unit_low = self.cleaned_data['unit']
@@ -108,9 +110,12 @@ class ServerForm(ModelForm):
                 check_s_unit_high = check_s_unit_low + check_s.height - 1
                 check_s_location = check_s.location
                 if (check_s_location == this_location or check_s_location == 2 or this_location == 2) \
-                        and ((check_s_unit_low <= this_unit_low <= check_s_unit_high or check_s_unit_low <= this_unit_high <= check_s_unit_high)
+                        and ((
+                                     check_s_unit_low <= this_unit_low <= check_s_unit_high or check_s_unit_low <= this_unit_high <= check_s_unit_high)
                              or (this_unit_low < check_s_unit_low and this_unit_high > check_s_unit_high)):
-                    self.errors.update({'unit': ['unit already in use by ' + check_s.hostname + '; units: ' + check_s.get_unit_string() + Server.locations.get(check_s.location)]})
+                    self.errors.update({'unit': [
+                        'unit already in use by ' + check_s.hostname + '; units: ' + check_s.get_unit_string() + Server.locations.get(
+                            check_s.location)]})
         else:
             if self.cleaned_data['host_machine'] is None:
                 self.errors.update({'host_machine': ['Это поле не должно быть пустым']})
@@ -148,8 +153,11 @@ class ServerFormOld(forms.Form):
     server_os = forms.CharField(label="Операционная система", required=False)
     sensitive_data = forms.CharField(label="Учётные данные", required=False)
     try:
-        server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(), initial=ServerGroup.objects.first())
-        host_machine = forms.ModelChoiceField(label="Физический сервер", required=False, queryset=Server.objects.filter(is_physical=True), to_field_name='hostname')
+        server_group = forms.ModelChoiceField(label="Группа", required=False, queryset=ServerGroup.objects.all(),
+                                              initial=ServerGroup.objects.first())
+        host_machine = forms.ModelChoiceField(label="Физический сервер", required=False,
+                                              queryset=Server.objects.filter(is_physical=True),
+                                              to_field_name='hostname')
         server_territory = forms.ModelChoiceField(label="Территория", required=False, queryset=Territory.objects.all())
         server_room = forms.ModelChoiceField(label='Помещение', required=False, queryset=Room.objects.all())
         server_rack = forms.ModelChoiceField(label='Стойка', required=False, queryset=Rack.objects.all())
@@ -163,11 +171,13 @@ class ServerFormOld(forms.Form):
     server_serial_number = forms.CharField(label="Серийный номер", required=False)
     server_location = forms.ChoiceField(label='Расположение в стойке', required=False,
                                         choices=[(i, n) for i, n in Server.locations.items()])
-    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory', 'server_room', 'server_rack', 'server_location', 'server_group']
+    vm_fields_to_hide = ['server_unit', 'server_model', 'server_height', 'server_serial_number', 'server_territory',
+                         'server_room', 'server_rack', 'server_location', 'server_group']
     physical_fields_to_hide = ['host_machine']
 
     def clean(self):
-        self.cleaned_data['server_name'] = re.sub(r'\s+', ' ', self.cleaned_data['server_name'].strip())  # getting rid of double spaces
+        self.cleaned_data['server_name'] = re.sub(r'\s+', ' ', self.cleaned_data[
+            'server_name'].strip())  # getting rid of double spaces
         if self.new and Server.objects.filter(hostname=self.cleaned_data['server_name']).count() > 0:
             self.errors.update({'server_name': ['Имя уже используется']})
 
@@ -183,7 +193,8 @@ class ServerFormOld(forms.Form):
         if self.cleaned_data['is_physical']:
             if self.cleaned_data['server_group'] is None:
                 self.errors.update({'server_group': ['Это поле не должно быть пустым']})
-            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
+            if self.cleaned_data['server_unit'] is None or self.cleaned_data['server_height'] is None or \
+                    self.cleaned_data['server_unit'] <= 0 or self.cleaned_data['server_height'] <= 0:
                 self.errors.update({'server_unit': ['Error']})
                 return
             this_unit_low = self.cleaned_data['server_unit']
@@ -201,7 +212,8 @@ class ServerFormOld(forms.Form):
                 print('server location is', self.cleaned_data['server_location'], check_s_location)
 
                 if (check_s_location == this_location or check_s_location == 2 or this_location == 2) \
-                        and ((check_s_unit_low <= this_unit_low <= check_s_unit_high or check_s_unit_low <= this_unit_high <= check_s_unit_high)
+                        and ((
+                                     check_s_unit_low <= this_unit_low <= check_s_unit_high or check_s_unit_low <= this_unit_high <= check_s_unit_high)
                              or (this_unit_low < check_s_unit_low and this_unit_high > check_s_unit_high)):
                     self.errors.update({'server_unit': [
                         'unit already in use by ' + check_s.hostname + '; units: ' +
@@ -262,7 +274,8 @@ class IpFormTest(ModelForm):
         #    self.errors.update({'segment_id': ['invalid segment']})
         # inst = self.save(commit=False)
         for ip in Ip.objects.filter(ip_as_string=self.cleaned_data['ip_as_string']):
-            if (not ip.ip_as_string == self.cleaned_data['ip_as_string']) or (self.cleaned_data['server'] == ip.server and ip.segment == self.cleaned_data['segment']):
+            if (not ip.ip_as_string == self.cleaned_data['ip_as_string']) or (
+                    self.cleaned_data['server'] == ip.server and ip.segment == self.cleaned_data['segment']):
                 self.errors.update({'ip_as_string': ['данный ip уже существует']})
         if not Ip.check_ip(self.cleaned_data['ip_as_string']):
             self.errors.update({'ip_as_string': ['invalid ip']})
@@ -300,7 +313,9 @@ class RackForm(ModelForm):
         for server in self.instance.server_set.all():
             if server.unit + server.height - 1 > self.cleaned_data['size']:
                 self.errors.update(
-                    {'size': ["сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+                    {'size': [
+                        "сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+
 
 
 class RoomForm(ModelForm):
