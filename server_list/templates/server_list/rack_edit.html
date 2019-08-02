@@ -3,7 +3,28 @@
 {% block script %}
 {% include "server_list/js_open_window.html" %}
 
-{% include "server_list/js_reload_call.html" %}
+function reload_call(caller, ids){
+    $.ajax({
+        url: "{% url 'ajax' %}",
+        type: 'GET',
+        data: {'model':'room_all'},
+        dataType: "json",
+        success: function(resp){
+            $("#id_group").empty();
+            $("#id_group").append($('<option></option>').attr('value', "").text('---------'));
+            $.each(resp, function(idx, obj) {
+                if(obj.pk==ids[0]){
+                    $("#id_room").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                }else{
+                    $("#id_room").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                }
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown+'ajax rooms');
+        }
+    });
+}
 {% endblock %}
 {% block content %}
 
@@ -17,7 +38,7 @@
             {{error}}
         {% endfor %}
         {% if 'room' in field.name %}
-        <a href="javascript:void(0);" onclick="open_window('{% url 'room_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'room_edit');">Редактировать</a>
+        <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'room_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'room_edit');">Редактировать</a>
         <a href="javascript:void(0);" onClick="open_window('{% url 'room_new' %}', 'room_add');">Добавить</a>
         {% endif %}
     </p>

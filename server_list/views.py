@@ -284,9 +284,11 @@ def rack_edit(request, rack_id):
         print(request.POST)
         form = RackForm(request.POST, instance=rack)
         if form.is_valid():
-            form.save()
+            instance = form.save()
             if request.GET.get('close') == 'True':
-                return HttpResponse("<script>window.close()</script>")
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
+                    "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
             return redirect('rack_view', rack_id)
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
@@ -422,6 +424,11 @@ def ajax(request):
             serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
                                   fields='name'), content_type='application/json')
 
+    if request.GET.get('model') == 'room_all':
+        return HttpResponse(
+            serializers.serialize('json', Room.objects.all(), fields=('pk', 'name')),
+            content_type='application/json')
+
     if request.GET.get('model') == 'rack':
         room = request.GET.get('room')
         if room is None:
@@ -536,9 +543,11 @@ def group_edit(request, group_id):
     if request.method == 'POST':
         form = GroupForm(request.POST, instance=group)
         if form.is_valid():
-            form.save()
+            instance = form.save()
             if request.GET.get('close') == 'True':
-                return HttpResponse("<script>window.close()</script>")
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
+                        instance.id))
             return redirect('list')
         else:
             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
@@ -684,8 +693,8 @@ def room_new(request):
     if request.method == 'POST':
         form = RoomForm(request.POST)
         if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
+            instance = form.save()
+            return HttpResponse("<script>opener.reload_call('room',[{}]); window.close();</script>".format(instance.id))
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
 

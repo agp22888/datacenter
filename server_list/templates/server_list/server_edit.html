@@ -2,6 +2,7 @@
 
 {% load server_list_extras %}
 {% load widget_tweaks %}
+{% block title %} Редактировать сервер{% endblock %}
 {% block script %}
 
 var territory_id={{form.instance.rack.room.territory.id|convert_none}}
