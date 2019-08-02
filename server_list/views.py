@@ -436,6 +436,11 @@ def ajax(request):
             serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
             content_type='application/json')
 
+    if request.GET.get('model') == 'group':
+        return HttpResponse(
+            serializers.serialize('json', ServerGroup.objects.all(), fields=('pk', 'name')),
+            content_type='application/json')
+
     if request.GET.get('action') == 'search':
         search_query = request.GET.get('query')
         serialize = serializers.serialize('json', search_servers(search_query),
@@ -544,8 +549,16 @@ def group_edit(request, group_id):
 def group_add(request):
     if request.method == 'GET':
         form = GroupForm()
-        render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-    return None
+        return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = GroupForm(request.POST)
+        if form.is_valid():
+            instance = form.save()
+            return HttpResponse(
+                "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
+                    instance.id))
+        else:
+            return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

@@ -123,10 +123,10 @@ function ajax_request_racks_by_room(room_id){
             data: {'model':'rack','room': room_id},
             dataType: "json",
             success: function(resp){
-                sel = document.getElementById('id_room');
-                for (let i = 0; i < sel.length; i++){
-                    if (sel[i].value === room_id)sel[i].selected = true;
-                }
+                //sel = document.getElementById('id_room');
+                //for (let i = 0; i < sel.length; i++){
+                //    if (sel[i].value === room_id)sel[i].selected = true;
+                //}
                 $("#id_rack").empty();
                 $("#id_rack").append($('<option></option>').attr('value', "").text('---------'));
                 $.each(resp, function(idx, obj) {
@@ -148,18 +148,38 @@ function ajax_request_racks_by_room(room_id){
 
 {% include "server_list/js_open_window.html" %}
 
-{% include "server_list/js_reload_call.html" %}
-
 async function call_reload(caller,ids){
     console.log('reload called, caller is:', caller);
     switch (caller){
         case "rack":
-            console.log(ids)
+            console.log(ids);
             territory_id = ids[2];
             room_id = ids[1];
             rack_id = ids[0];
             init()
             break;
+        case "group":
+            console.log(ids);
+            $.ajax({
+                url: "{% url 'ajax' %}",
+                type: 'GET',
+                data: {'model':'group'},
+                dataType: "json",
+                success: function(resp){
+                    $("#id_group").empty();
+                    $("#id_group").append($('<option></option>').attr('value', "").text('---------'));
+                    $.each(resp, function(idx, obj) {
+                        if(obj.pk==ids[0]){
+                            $("#id_group").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                        }else{
+                            $("#id_group").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                        }
+                    });
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert(errorThrown+'ajax groups');
+                }
+            });
     }
 }
 
@@ -183,11 +203,11 @@ async function call_reload(caller,ids){
 
             <th>{{ field }}</th>
             {% if 'rack' in field.name %}
-            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'rack_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'rack_edit');">Редактировать</a> </th>
             <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_new' %}', 'rack_add');">Добавить</a> </th>
             {% endif %}
             {% if 'group' in field.name %}
-            <th> <a href="javascript:void(0);" onclick="open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'group_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'group_edit');">Редактировать</a> </th>
             <th> <a href="javascript:void(0);" onclick="open_window('{% url "group_new" %}', 'group_add');">Добавить</a> </th>
             {% endif %}
             {% for error in field.errors %}
