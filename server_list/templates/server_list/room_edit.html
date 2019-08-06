@@ -3,7 +3,29 @@
 {% block script %}
 {% include "server_list/js_open_window.html" %}
 
-{% include "server_list/js_reload_call.html" %}
+
+function call_reload(caller, ids){
+     $.ajax({
+        url: "{% url 'ajax' %}",
+        type: 'GET',
+        data: {'model':'territory'},
+        dataType: "json",
+        success: function(resp){
+            $("#id_territory").empty();
+            $("#id_territory").append($('<option></option>').attr('value', "").text('---------'));
+            $.each(resp, function(idx, obj) {
+                if(obj.pk==ids[0]){
+                    $("#id_territory").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                }else{
+                    $("#id_territory").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                }
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown+'ajax territories');
+        }
+    });
+}
 {% endblock %}
 {% block content %}
 
