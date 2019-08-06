@@ -1,19 +1,59 @@
 {% extends 'server_list/navbar.html' %}
 {% block title %}Карточка стойки{% endblock %}
+{% load server_list_extras %}
 {% block script %}
 {% include "server_list/js_open_window.html" %}
+var territory_id = {{form.instance.room.territory.id|convert_none}}
+var room_id = {{form.instance.room.id|convert_none}}
+window.onload = function() {
+    let sel = document.getElementById("id_territory");
+    sel.onchange = function(){
+        console.log('onchange');
+        update_room_list(sel.options[sel.selectedIndex].value,null);
+    }
 
-function reload_call(caller, ids){
+
+    if (territory_id != null){
+        for (var i = 0; i < sel.length; i++){
+            console.log (i, territory_id, sel.options[i].value);
+            if (sel.options[i].value == territory_id){
+                sel.selectedIndex = i;
+            }
+        }
+        update_room_list(territory_id,room_id);
+    }else {
+        empty_room_list();
+    }
+    let room_sel = document.getElementById("id_room");
+    if (room_id != null){
+        for (var i = 0; i < room_sel.length; i++){
+            //console.log (i, territory_id, sel.options[i].value);
+            if (room_sel.options[i].value == territory_id){
+                room_sel.selectedIndex = i;
+            }
+        }
+    }
+    console.log('{{form.instance.room.id|convert_none}}');
+}
+
+function empty_room_list() {
+    let sel = document.getElementById("id_room");
+    sel.innerHTML = '';
+    let opt = document.createElement('option');
+    opt.innerHTML = '**сначала выберите территорию**';
+    sel.appendChild(opt);
+}
+function update_room_list(ter_id,r_id){
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
-        data: {'model':'room_all'},
+        data: {'model':'room', 'territory':ter_id},
         dataType: "json",
         success: function(resp){
-            $("#id_group").empty();
-            $("#id_group").append($('<option></option>').attr('value', "").text('---------'));
+            $("#id_room").empty();
+            $("#id_room").append($('<option></option>').attr('value', "").text('---------'));
             $.each(resp, function(idx, obj) {
-                if(obj.pk==ids[0]){
+                if(obj.pk==r_id){
                     $("#id_room").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
                 }else{
                     $("#id_room").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
@@ -24,6 +64,9 @@ function reload_call(caller, ids){
             alert(errorThrown+'ajax rooms');
         }
     });
+}
+function call_reload(caller, ids){
+    update_room_list(territory_id, ids[0]);
 }
 {% endblock %}
 {% block content %}

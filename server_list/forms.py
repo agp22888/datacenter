@@ -306,6 +306,18 @@ class RackForm(ModelForm):
     class Meta:
         model = Rack
         fields = '__all__'
+    field_order = ['name',
+                   'description',
+                   'territory',
+                   'room',
+                   'serial_number',
+                   'size',
+                   'topdown']
+
+    try:
+        territory = forms.ModelChoiceField(label="Территория", required=False, queryset=Territory.objects.all())
+    except OperationalError:
+        pass
 
     def clean(self):
         if int(self.cleaned_data['size']) <= 0:
@@ -315,7 +327,6 @@ class RackForm(ModelForm):
                 self.errors.update(
                     {'size': [
                         "сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
-
 
 
 class RoomForm(ModelForm):

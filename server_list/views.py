@@ -457,6 +457,18 @@ def ajax(request):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
+def room_view(request, room_id):
+    try:
+        room = Room.objects.get(pk=room_id)
+    except Room.DoesntExist:
+        raise Http404
+    racks = {}
+    for rack in room.rack_set.all():
+        racks.update({rack.id: rack.name})
+    return render(request, os.path.join('server_list', 'room_view.html'), {'room': room, 'racks': racks})
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
 def room_edit(request, room_id):
     try:
         room = Room.objects.get(pk=room_id)
@@ -468,9 +480,11 @@ def room_edit(request, room_id):
     if request.method == 'POST':
         form = RoomForm(request.POST, instance=room)
         if form.is_valid():
-            form.save()
+            instance = form.save()
             if request.GET.get('close') == 'True':
-                return HttpResponse("<script>window.close()</script>")
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('room',[{}]);window.close()</script>".format(
+                        instance.id))
             return redirect('room_view', room_id)
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
@@ -478,15 +492,17 @@ def room_edit(request, room_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def room_view(request, room_id):
-    try:
-        room = Room.objects.get(pk=room_id)
-    except Room.DoesntExist:
-        raise Http404
-    racks = {}
-    for rack in room.rack_set.all():
-        racks.update({rack.id: rack.name})
-    return render(request, os.path.join('server_list', 'room_view.html'), {'room': room, 'racks': racks})
+def room_new(request):
+    if request.method == 'GET':
+        form = RoomForm()
+        return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = RoomForm(request.POST)
+        if form.is_valid():
+            instance = form.save()
+            return HttpResponse("<script>opener.call_reload('room',[{}]); window.close();</script>".format(instance.id))
+        else:
+            return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -520,6 +536,20 @@ def territory_edit(request, territory_id):
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     return HttpResponse('ok')
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def territory_new(request):
+    if request.method == 'GET':
+        form = TerritoryForm()
+        return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
+    if request.method == 'POST':
+        form = TerritoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponse("<script>window.close()</script>")
+        else:
+            return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -683,31 +713,3 @@ def rack_new(request):
                 "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def room_new(request):
-    if request.method == 'GET':
-        form = RoomForm()
-        return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponse("<script>opener.reload_call('room',[{}]); window.close();</script>".format(instance.id))
-        else:
-            return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def territory_new(request):
-    if request.method == 'GET':
-        form = TerritoryForm()
-        return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = TerritoryForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
-        else:
-            return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
