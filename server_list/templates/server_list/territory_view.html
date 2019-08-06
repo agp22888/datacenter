@@ -4,11 +4,11 @@
 <div class="container">
     <p>Название: {{territory.name}}</p>
     <p>Расположение: {{territory.address}}</p>
-    <p>Описание: {{room.description}}</p>
+    <p>Описание: {{territory.description}}</p>
     {% for room_id, room_name in rooms.items %}
     {% if forloop.first%}<p>Помещения:</p>{% endif %}
     <p><a href="{% url 'room_view' room_id %}">{{room_name}}</a></p>
     {% endfor %}
-    <p><a href="{% url 'territory_edit' territory.id %}">Редактировать</a></p>
+    <p><a href="{% url 'territory_edit' %}?territory_id={{territory.id}}">Редактировать</a></p>
 </div>
 {% endblock %}

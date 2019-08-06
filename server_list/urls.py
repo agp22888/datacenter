@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'add_room$', views.room_new, name="room_new"),
 
     url(r'territory/(?P<territory_id>\d*)', views.territory_view, name="territory_view"),
-    url(r'territory_edit/(?P<territory_id>\d*)', views.territory_edit, name="territory_edit"),
+    url(r'territory_edit$', views.territory_edit, name="territory_edit"),
     url(r'territory_edit/$', views.territory_edit, name="territory_edit_without_parameters"),
     url(r'add_territory$', views.territory_new, name='territory_new'),
 

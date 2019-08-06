@@ -509,7 +509,7 @@ def room_new(request):
 def territory_view(request, territory_id):
     try:
         territory = Territory.objects.get(pk=territory_id)
-    except Territory.DoesntExist:
+    except Territory.DoesNotExist:
         raise Http404
     rooms = {}
     for room in territory.room_set.all():
@@ -518,21 +518,29 @@ def territory_view(request, territory_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def territory_edit(request, territory_id):
-    try:
-        territory = Territory.objects.get(pk=territory_id)
-    except Territory.DoesNotExists:
-        raise Http404("No rack found")
+def territory_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        form = TerritoryForm(instance=territory)
+        if not is_new:
+            try:
+                inst = Territory.objects.get(pk=int(request.GET.get('territory_id')))
+            except (Territory.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = TerritoryForm(instance=inst)
         return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = TerritoryForm(request.POST, instance=territory)
+        try:
+            territory_id = request.POST.get('territory_id')
+            inst = Territory.objects.get(pk=territory_id)
+        except (Territory.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = TerritoryForm(request.POST, instance=inst)
         if form.is_valid():
-            form.save()
+            instance = form.save()
             if request.GET.get('close') == 'True':
                 return HttpResponse("<script>window.close()</script>")
-            return redirect('territory_view', territory_id)
+            return redirect('territory_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     return HttpResponse('ok')
@@ -635,7 +643,7 @@ def search(request):
         result_set |= Server.objects.filter(purpose_lower__icontains=search_query)
 
         result_set.distinct()
-        print(result_set)  # todo убрать ip
+        print(result_set)  # todo убрать ip; edit: нахуа?
         return render(request, os.path.join('server_list', 'search.html'), {'result_set': result_set})
     return HttpResponse('search')
 
