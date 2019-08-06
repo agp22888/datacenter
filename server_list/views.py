@@ -539,7 +539,9 @@ def territory_edit(request):
         if form.is_valid():
             instance = form.save()
             if request.GET.get('close') == 'True':
-                return HttpResponse("<script>window.close()</script>")
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('territory',[{}]);window.close()</script>".format(
+                        instance.id))
             return redirect('territory_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
@@ -554,8 +556,10 @@ def territory_new(request):
     if request.method == 'POST':
         form = TerritoryForm(request.POST)
         if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
+            instance = form.save()
+            return HttpResponse(
+                "<script>if (opener!=null) opener.call_reload('territory',[{}]);window.close()</script>".format(
+                    instance.id))
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
 
