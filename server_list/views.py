@@ -14,7 +14,7 @@ from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerFormOld, IpFormTest, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
+from .forms import ServerFormOld, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
     GroupForm
 from django.http import Http404
 
@@ -94,6 +94,10 @@ def ajax(request):
 
     if request.GET.get('model') == 'territory':
         return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
+                            content_type='application/json')
+
+    if request.GET.get('model') == 'segment':
+        return HttpResponse(serializers.serialize('json', Segment.objects.all(), fields='name'),
                             content_type='application/json')
 
     if request.GET.get('model') == 'room':
@@ -225,7 +229,7 @@ def servers(request):
                             ser_list.update({vm.id: vm_row})
                     ser_dict = utils.update(ser_dict, {t: {room: {rack: ser_list}}})
     actions = [{'link': reverse('server_view_all'), 'divider': False, 'name': 'Все серверы'},
-               {'link': reverse('server_new'), 'divider': False, 'name': 'Добавить сервер'},
+               {'link': reverse('server_edit') + '?new=true', 'divider': False, 'name': 'Добавить сервер'},
                {'divider': True},
                {'link': reverse('dump'), 'divider': False, 'name': 'Сохранить базу'},
                {'divider': True},
@@ -236,21 +240,34 @@ def servers(request):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def server_edit(request, server_id):
-    try:
-        server = Server.objects.get(id=server_id)
-    except Server.DoesNotExist:
-        raise Http404("No server found")
+def server_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        form = ServerForm(instance=server)
+        if not is_new:
+            try:
+                inst = Server.objects.get(pk=int(request.GET.get('server_id')))
+            except (Server.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = ServerForm(instance=inst)
         return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
-    elif request.method == 'POST':
-        form = ServerForm(request.POST, instance=server)
-        if not form.is_valid():
-            return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+    if request.method == 'POST':
+        try:
+            server_id = request.POST.get('server_id')
+            inst = Server.objects.get(pk=server_id)
+        except (Server.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = ServerForm(request.POST, instance=inst)
+        if form.is_valid():
+            instance = form.save()
+            if request.GET.get('close') == 'true':
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('server',[{}]);window.close()</script>".format(
+                        instance.id))
+            return redirect('server_view', instance.id)
         else:
-            form.save()
-        return redirect('server_view', server_id=server.id)
+            return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
+    return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -265,20 +282,6 @@ def server_delete(request, server_id):
     else:
         return render(request, os.path.join('server_list', 'server_delete.html'),
                       {'action': 'ask', 'server': server, 'vms': server.server_set.all()})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def server_new(request):
-    if request.method == 'GET':
-        form = ServerForm()
-        return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
-    elif request.method == 'POST':
-        form = ServerForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("server_view", form.instance.id)
-        else:
-            return render(request, os.path.join('server_list', 'server_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -325,81 +328,65 @@ def server_view(request, server_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def ip_edit(request, ip_id):
-    try:
-        ip = Ip.objects.get(pk=ip_id)
-    except Ip.DoesNotExist:
-        raise Http404("IP not found")
+def ip_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        form = IpFormTest(instance=ip)
+        if not is_new:
+            try:
+                inst = Ip.objects.get(pk=int(request.GET.get('ip_id')))
+            except (Ip.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = IpForm(instance=inst)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
-    elif request.method == 'POST':
-        form = IpFormTest(request.POST)
+    if request.method == 'POST':
+        try:
+            ip_id = request.POST.get('ip_id')
+            inst = Ip.objects.get(pk=ip_id)
+        except (Ip.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = IpForm(request.POST, instance=inst)
         if form.is_valid():
-            ip.ip_as_string = form.cleaned_data['ip_as_string']
-            ip.segment = form.cleaned_data['segment']
-            ip.save()
-            return HttpResponse("<script>window.close()</script>")
+            instance = form.save()
+            if request.GET.get('close') == 'true':
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('ip',[{}]);window.close()</script>".format(
+                        instance.id))
+            return HttpResponse('something went wrong, contack site admin')
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
+    return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def ip_new(request, server_id):
-    try:
-        server = Server.objects.get(pk=server_id)
-    except Server.DoesNotExist:
-        raise Http404("Server not found")
+def segment_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        ip = Ip()
-        ip.server = server
-        return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': IpFormTest(instance=ip)})
-    elif request.method == 'POST':
-        form = IpFormTest(request.POST)
-        if form.is_valid():
-            ip = Ip()
-            ip.segment = form.cleaned_data['segment']
-            ip.ip_as_string = form.cleaned_data['ip_as_string']
-            ip.mask_as_int = 0
-            ip.gateway_as_int = 0
-            ip.server = server
-            ip.save()
-            return HttpResponse("<script>window.close()</script>")
-        else:
-            return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def segment_new(request):
-    if request.method == 'GET':
-        form = SegmentForm()
+        if not is_new:
+            try:
+                inst = Segment.objects.get(pk=int(request.GET.get('segment_id')))
+            except (Segment.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = SegmentForm(instance=inst)
         return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = SegmentForm(request.POST)
+        try:
+            segment_id = request.POST.get('segment_id')
+            inst = Segment.objects.get(pk=segment_id)
+        except (Segment.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = SegmentForm(request.POST, instance=inst)
         if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
+            instance = form.save()
+            if request.GET.get('close') == 'true':
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('segment',[{}]);window.close()</script>".format(
+                        instance.id))
+            return HttpResponse('something went wrong, contact site admin')
         else:
             return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def segment_edit(request, segment_id):
-    try:
-        instance = Segment.objects.get(pk=segment_id)
-    except Segment.DoesNotExist:
-        raise Http404("No segment found")
-    if request.method == 'GET':
-        form = SegmentForm(instance=instance)
-        return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = SegmentForm(request.POST, instance=instance)
-        if form.is_valid():
-            form.save()
-            return HttpResponse("<script>window.close()</script>")
-        else:
-            return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-    return None
+    return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -601,45 +588,6 @@ def group_edit(request):
         else:
             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
     return HttpResponse('ok')
-
-
-# @login_required(login_url=reverse_lazy('custom_login'))
-# def group_edit_old(request, group_id):
-#     try:
-#         group = ServerGroup.objects.get(pk=group_id)
-#     except ServerGroup.DoesNotExists:
-#         raise Http404("Нет такой группы")
-#     if request.method == 'GET':
-#         form = GroupForm(instance=group)
-#         return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-#     if request.method == 'POST':
-#         form = GroupForm(request.POST, instance=group)
-#         if form.is_valid():
-#             instance = form.save()
-#             if request.GET.get('close') == 'true':
-#                 return HttpResponse(
-#                     "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
-#                         instance.id))
-#             return redirect('list')
-#         else:
-#             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-#     return HttpResponse('ok')
-
-
-# @login_required(login_url=reverse_lazy('custom_login'))
-# def group_add(request):
-#     if request.method == 'GET':
-#         form = GroupForm()
-#         return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-#     if request.method == 'POST':
-#         form = GroupForm(request.POST)
-#         if form.is_valid():
-#             instance = form.save()
-#             return HttpResponse(
-#                 "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
-#                     instance.id))
-#         else:
-#             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

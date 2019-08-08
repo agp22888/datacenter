@@ -5,19 +5,19 @@ from . import views
 urlpatterns = [
     path('list', views.servers, name='list'),
     # path('edit', views.edit, name='edit'),
-    url(r'^server_edit/(?P<server_id>\d*)', views.server_edit, name='server_edit'),
+    url(r'^server_edit/?$', views.server_edit, name='server_edit'),
     url(r'^server/$', views.server_view, name='server_view_without_parameters'),
     url(r'^server/(?P<server_id>\d*)', views.server_view, name='server_view'),
-    url(r'^add_server', views.server_new, name='server_new'),
+    # url(r'^add_server', views.server_new, name='server_new'),
     url(r'^delete_server/(?P<server_id>\d*)', views.server_delete, name='server_delete'),
 
     url(r'^all$', views.server_view_all, name='server_view_all'),
 
-    url(r'^ip/(?P<ip_id>\d*)', views.ip_edit, name='ip_edit'),
-    url(r'^add_ip/(?P<server_id>\d*)', views.ip_new, name='ip_new'),
+    url(r'^ip/?$', views.ip_edit, name='ip_edit'),
+    # url(r'^add_ip/(?P<server_id>\d*)', views.ip_new, name='ip_new'),
 
-    url(r'^add_segment$', views.segment_new, name='segment_new'),
-    url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
+    # url(r'^add_segment$', views.segment_new, name='segment_new'),
+    url(r'^segment_edit/?$', views.segment_edit, name='segment_edit'),
 
     url(r'ajax/', views.ajax, name='ajax'),
 

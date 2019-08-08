@@ -263,7 +263,7 @@ class GroupForm(ModelForm):
                 self.errors.update({'name': ['группа с таким именем уже существует']})
 
 
-class IpFormTest(ModelForm):
+class IpForm(ModelForm):
     class Meta:
         model = Ip
         fields = ['segment', 'ip_as_string', 'server']

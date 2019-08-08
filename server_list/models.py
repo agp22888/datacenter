@@ -106,8 +106,8 @@ class Server(models.Model):
 
 class Ip(models.Model):
     # ip_as_int = models.IntegerField()
-    mask_as_int = models.IntegerField()
-    gateway_as_int = models.IntegerField()
+    mask_as_int = models.IntegerField(default=0)
+    gateway_as_int = models.IntegerField(default=0)
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
     segment = models.ForeignKey(Segment, on_delete=models.CASCADE)
     ip_as_string = models.CharField(max_length=20)
