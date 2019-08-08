@@ -200,7 +200,6 @@ def servers(request):
                 row['serial_num'] = strings.STRING_SN
                 row['specs'] = strings.STRING_SPECS
                 ser_list.update({"header": row})
-
                 for server in order_query(rack.server_set.filter(group=target_group), order_by):
                     row = [server.get_unit_string() + " " + Server.locations.get(server.location), server.model,
                            server.hostname,
@@ -359,7 +358,6 @@ def ip_new(request, server_id):
         form = IpFormTest(request.POST)
         if form.is_valid():
             ip = Ip()
-            # ip.ip_as_int = Ip.get_ip_from_string(form.cleaned_data['ip'])
             ip.segment = form.cleaned_data['segment']
             ip.ip_as_string = form.cleaned_data['ip_as_string']
             ip.mask_as_int = 0
@@ -389,7 +387,6 @@ def segment_new(request):
 def segment_edit(request, segment_id):
     try:
         instance = Segment.objects.get(pk=segment_id)
-
     except Segment.DoesNotExist:
         raise Http404("No segment found")
     if request.method == 'GET':
@@ -402,7 +399,6 @@ def segment_edit(request, segment_id):
             return HttpResponse("<script>window.close()</script>")
         else:
             return render(request, os.path.join('server_list', 'segment_edit.html'), {'form': form})
-
     return None
 
 
@@ -457,8 +453,6 @@ def rack_edit(request):
 
 @login_required(login_url=reverse_lazy('custom_login'))
 def rack_edit_old(request, rack_id):
-    # print('post', request.POST.get('close'))
-    # print('get', request.GET.get('close'))
     try:
         rack = Rack.objects.get(pk=rack_id)
     except Rack.DoesNotExists:
@@ -480,22 +474,6 @@ def rack_edit_old(request, rack_id):
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 
     return HttpResponse('ok')
-
-
-# @login_required(login_url=reverse_lazy('custom_login'))
-# def rack_new(request):
-#     if request.method == 'GET':
-#         form = RackForm()
-#         return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-#     if request.method == 'POST':
-#         form = RackForm(request.POST)
-#         if form.is_valid():
-#             instance = form.save()
-#             return HttpResponse(
-#                 "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
-#                 "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
-#         else:
-#             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -594,42 +572,74 @@ def group_view(request, group_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def group_edit(request, group_id):
-    try:
-        group = ServerGroup.objects.get(pk=group_id)
-    except ServerGroup.DoesNotExists:
-        raise Http404("Нет такой группы")
+def group_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        form = GroupForm(instance=group)
+        if not is_new:
+            try:
+                inst = ServerGroup.objects.get(pk=int(request.GET.get('group_id')))
+            except (ServerGroup.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = GroupForm(instance=inst)
         return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = GroupForm(request.POST, instance=group)
+        try:
+            group_id = request.POST.get('group_id')
+            print(group_id)
+            inst = ServerGroup.objects.get(pk=group_id)
+        except (ServerGroup.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = GroupForm(request.POST, instance=inst)
         if form.is_valid():
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
                         instance.id))
-            return redirect('list')
+            return HttpResponse('this site under construction')
         else:
             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
     return HttpResponse('ok')
 
 
-@login_required(login_url=reverse_lazy('custom_login'))
-def group_add(request):
-    if request.method == 'GET':
-        form = GroupForm()
-        return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = GroupForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponse(
-                "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
-                    instance.id))
-        else:
-            return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+# @login_required(login_url=reverse_lazy('custom_login'))
+# def group_edit_old(request, group_id):
+#     try:
+#         group = ServerGroup.objects.get(pk=group_id)
+#     except ServerGroup.DoesNotExists:
+#         raise Http404("Нет такой группы")
+#     if request.method == 'GET':
+#         form = GroupForm(instance=group)
+#         return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+#     if request.method == 'POST':
+#         form = GroupForm(request.POST, instance=group)
+#         if form.is_valid():
+#             instance = form.save()
+#             if request.GET.get('close') == 'true':
+#                 return HttpResponse(
+#                     "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
+#                         instance.id))
+#             return redirect('list')
+#         else:
+#             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+#     return HttpResponse('ok')
+
+
+# @login_required(login_url=reverse_lazy('custom_login'))
+# def group_add(request):
+#     if request.method == 'GET':
+#         form = GroupForm()
+#         return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
+#     if request.method == 'POST':
+#         form = GroupForm(request.POST)
+#         if form.is_valid():
+#             instance = form.save()
+#             return HttpResponse(
+#                 "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
+#                     instance.id))
+#         else:
+#             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

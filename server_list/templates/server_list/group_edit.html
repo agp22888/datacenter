@@ -1,9 +1,6 @@
 {% extends 'server_list/navbar.html' %}
 {% block title %}Карточка группы{% endblock %}
 {% block script %}
-{% include "server_list/js_open_window.html" %}
-
-{% include "server_list/js_reload_call.html" %}
 {% endblock %}
 {% block content %}
  <h6>Редактирование группы</h6>
@@ -16,6 +13,7 @@
         {% endfor %}
     </p>
     {% endfor %}
+      <input type="hidden" name="group_id" value="{{form.instance.id}}">
     <p><input type="submit" value="Submit"></p>
 </form>
 

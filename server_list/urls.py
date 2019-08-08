@@ -17,15 +17,14 @@ urlpatterns = [
     url(r'^add_ip/(?P<server_id>\d*)', views.ip_new, name='ip_new'),
 
     url(r'^add_segment$', views.segment_new, name='segment_new'),
-    # todo подумать над объединением view для создания и редактирования объекта
     url(r'^edit_segment/(?P<segment_id>\d*)', views.segment_edit, name='segment_edit'),
 
     url(r'ajax/', views.ajax, name='ajax'),
 
     url(r'rack/(?P<rack_id>\d*)', views.rack_view, name="rack_view"),
     url(r'rack_edit/?$', views.rack_edit, name="rack_edit"),
-    #url(r'rack_edit/$', views.rack_edit, name="rack_edit_without_parameters"),
-    #url(r'add_rack$', views.rack_new, name="rack_new"),
+    # url(r'rack_edit/$', views.rack_edit, name="rack_edit_without_parameters"),
+    # url(r'add_rack$', views.rack_new, name="rack_new"),
 
     url(r'room/(?P<room_id>\d*)', views.room_view, name="room_view"),
     url(r'room_edit/?$', views.room_edit, name="room_edit"),
@@ -44,9 +43,9 @@ urlpatterns = [
 
     url(r'^dump$', views.dump, name='dump'),
 
-    url(r'^group_edit/(?P<group_id>\d*)', views.group_edit, name='group_edit'),
-    url(r'^add_group$', views.group_add, name='group_new'),
-    url(r'^group_edit/$', views.group_edit, name='group_edit_without_parameters'),
+    url(r'^group_edit/?$', views.group_edit, name='group_edit'),
+    # url(r'^add_group$', views.group_add, name='group_new'),
+    # url(r'^group_edit/$', views.group_edit, name='group_edit_without_parameters'),
 
     url(r'^search_free', views.search_free_ip, name='search_free_ip')
 ]

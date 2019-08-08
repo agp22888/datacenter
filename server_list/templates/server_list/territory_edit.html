@@ -6,7 +6,7 @@
         {%csrf_token%}
         {{form.as_p}}
         <input type="hidden" name="territory_id" value="{{form.instance.id}}">
-        <p><input class="btn btn-outline-success" type="submit" value="Submit" onclick="if(opener != null) opener.call_reload()"></p>
+        <p><input class="btn btn-outline-success" type="submit" value="Submit"></p>
 
     </form>
 
