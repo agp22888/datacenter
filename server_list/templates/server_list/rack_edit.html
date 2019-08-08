@@ -9,7 +9,8 @@ window.onload = function() {
     let sel = document.getElementById("id_territory");
     sel.onchange = function(){
         console.log('onchange');
-        update_room_list(sel.options[sel.selectedIndex].value,null);
+        territory_id = sel.options[sel.selectedIndex].value;
+        update_room_list();
     }
 
 
@@ -43,17 +44,42 @@ function empty_room_list() {
     opt.innerHTML = '**сначала выберите территорию**';
     sel.appendChild(opt);
 }
-function update_room_list(ter_id,r_id){
+
+function ajax_request_territories(){
+     $.ajax({
+            url: "{% url 'ajax' %}",
+            type: 'GET',
+            data: {'model':'territory'},
+            dataType: "json",
+            success: function(resp){
+                $("#id_territory").empty();
+                $("#id_territory").append($('<option></option>').attr('value', "").text('---------'));
+                $.each(resp, function(idx, obj) {
+                    if(obj.pk==territory_id){
+                        $("#id_territory").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                    }else{
+                        $("#id_territory").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                    }
+                    });
+                update_room_list();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown+' rooms by ter '+territory_id);
+            }
+        });
+}
+
+function update_room_list(){
     $.ajax({
         url: "{% url 'ajax' %}",
         type: 'GET',
-        data: {'model':'room', 'territory':ter_id},
+        data: {'model':'room', 'territory':territory_id},
         dataType: "json",
         success: function(resp){
             $("#id_room").empty();
             $("#id_room").append($('<option></option>').attr('value', "").text('---------'));
             $.each(resp, function(idx, obj) {
-                if(obj.pk==r_id){
+                if(obj.pk==room_id){
                     $("#id_room").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
                 }else{
                     $("#id_room").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
@@ -66,7 +92,8 @@ function update_room_list(ter_id,r_id){
     });
 }
 function call_reload(caller, ids){
-    update_room_list(territory_id, ids[0]);
+    room_id = ids[0]
+    ajax_request_territories();
 }
 {% endblock %}
 {% block content %}
@@ -81,8 +108,8 @@ function call_reload(caller, ids){
             {{error}}
         {% endfor %}
         {% if 'room' in field.name %}
-        <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'room_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'room_edit');">Редактировать</a>
-        <a href="javascript:void(0);" onClick="open_window('{% url 'room_new' %}', 'room_add');">Добавить</a>
+        <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'room_edit' %}?room_id='+document.getElementById('{{field.auto_id}}').value+'&close=true', 'room_edit');">Редактировать</a>
+        <a href="javascript:void(0);" onClick="open_window('{% url 'room_edit' %}?new=true', 'room_add');">Добавить</a>
         {% endif %}
     </p>
     {% endfor %}

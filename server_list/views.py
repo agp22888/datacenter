@@ -19,9 +19,121 @@ from .forms import ServerFormOld, IpFormTest, SegmentForm, RackForm, TerritoryFo
 from django.http import Http404
 
 
-# Create your views here.
-def proof(request):
-    return HttpResponseRedirect(reverse('list'))
+# @login_required(login_url=reverse_lazy('custom_login'))
+def ajax(request):
+    if request.GET.get('model') == 'server':
+        if request.user.is_authenticated:
+            try:
+                ser = Server.objects.get(pk=int(request.GET.get('server_id')))
+                return HttpResponse(ser.sensitive_data + ' ')
+            except Server.DoesNotExist:
+                raise Http404
+            except ValueError:
+                return HttpResponse('500')
+        else:
+            return HttpResponse('Access Denied')
+
+    if request.GET.get('action') == 'delete_ip':
+        if not request.user.is_authenticated:
+            return HttpResponse("Вы не авторизованы")
+        ip_id = request.GET.get('ip_id')
+        try:
+            ip = Ip.objects.get(pk=ip_id)
+            ip.delete()
+        except Ip.DoesNotExist:
+            raise Http404
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_server':
+        server_id = request.GET.get('server_id')
+        try:
+            server_to_delete = Server.objects.get(pk=server_id)
+        except Server.DoesNotExist:
+            raise Http404
+        if server_to_delete.server_set.count() > 0:
+            return HttpResponse('Перенесите виртуальные машины на другой сервер')
+        server_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_rack':
+        rack_id = request.GET.get('rack_id')
+        try:
+            rack_to_delete = Rack.objects.get(pk=rack_id)
+        except Rack.DoesNotExist:
+            raise Http404
+        if rack_to_delete.server_set.count() > 0:
+            return HttpResponse('Перенесите серверы в другую стойку')
+        rack_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_territory':
+        territory_id = request.GET.get('territory_id')
+        try:
+            territory_to_delete = Territory.objects.get(pk=territory_id)
+        except Territory.DoesNotExist:
+            raise Http404
+        if territory_to_delete.room_set.count() > 0:
+            return HttpResponse('Перенесите помещения на другую территорию')
+        territory_to_delete.delete()
+        return HttpResponse('ok')
+
+    if request.GET.get('action') == 'delete_room':
+        room_id = request.GET.get('room_id')
+        try:
+            room_to_delete = Room.objects.get(pk=room_id)
+        except Room.DoesNotExist:
+            raise Http404
+        if room_to_delete.rack_set.count() > 0:
+            return HttpResponse('Перенесите стойки в другое помещение')
+        room_to_delete.delete()
+        return HttpResponse('ok')
+
+    if not request.user.is_authenticated:
+        return HttpResponse('[{"model": "server_list.error", "message":"User is not authenticated!"}]',
+                            content_type='application_json')
+
+    if request.GET.get('model') == 'territory':
+        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
+                            content_type='application/json')
+
+    if request.GET.get('model') == 'room':
+        ter = request.GET.get('territory')
+        if ter is None:
+            ter = 1
+        return HttpResponse(
+            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
+                                  fields='name'), content_type='application/json')
+
+    if request.GET.get('model') == 'room_all':
+        return HttpResponse(
+            serializers.serialize('json', Room.objects.all(), fields=('pk', 'name')),
+            content_type='application/json')
+
+    if request.GET.get('model') == 'rack':
+        room = request.GET.get('room')
+        if room is None:
+            # print("ajax request room is None")
+            room = 1
+        return HttpResponse(
+            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
+            content_type='application/json')
+
+    if request.GET.get('model') == 'vm':
+        return HttpResponse(
+            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
+            content_type='application/json')
+
+    if request.GET.get('model') == 'group':
+        return HttpResponse(
+            serializers.serialize('json', ServerGroup.objects.all(), fields=('pk', 'name')),
+            content_type='application/json')
+
+    if request.GET.get('action') == 'search':
+        search_query = request.GET.get('query')
+        serialize = serializers.serialize('json', search_servers(search_query),
+                                          fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
+        print('serialize', serialize)
+        return HttpResponse(serialize, content_type='application/json')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -171,6 +283,49 @@ def server_new(request):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
+def server_view(request, server_id):
+    try:
+        server = Server.objects.get(pk=server_id)
+    except Server.DoesNotExist:
+        raise Http404("No server found")
+    ip_list = []
+    for ip in server.ip_set.all():
+        ip_list.append((ip.segment.name, ip.ip_as_string, ip.id))
+    data_dict = {"server_id": server_id,
+                 "model": server.model,
+                 "hostname": server.hostname,
+                 "power_state": server.is_on,
+                 "os": server.os,
+                 "purpose": server.purpose,
+                 "ip_list": ip_list,
+                 "serial_number": server.serial_num,
+                 "specs": server.specs,
+                 "root_ip_list": (server.ip_set.filter(segment__is_root_segment=True).distinct()),
+                 "group": server.group,
+                 }
+    if server.is_physical:
+        rack = server.rack
+        room = rack.room
+        territory = room.territory
+        data_dict.update({"is_physical": True,
+                          "unit": server.get_unit_string(),
+                          "territory": territory,
+                          "room": room,
+                          "rack": rack,
+                          "vm_list": server.server_set.all()})
+    else:
+        data_dict.update({"is_physical": False,
+                          "host_machine": server.host_machine.hostname,
+                          "host_machine_id": server.host_machine.id,
+                          })
+    actions = [
+        {'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
+    print(actions)
+    return render(request, os.path.join('server_list', 'server_view.html'),
+                  {'server_dict': data_dict, 'actions': actions})
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
 def ip_edit(request, ip_id):
     try:
         ip = Ip.objects.get(pk=ip_id)
@@ -270,7 +425,38 @@ def rack_view(request, rack_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def rack_edit(request, rack_id):
+def rack_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
+    if request.method == 'GET':
+        if not is_new:
+            try:
+                inst = Rack.objects.get(pk=int(request.GET.get('rack_id')))
+            except (Rack.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = RackForm(instance=inst)
+        return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+    if request.method == 'POST':
+        try:
+            rack_id = request.POST.get('rack_id')
+            inst = Rack.objects.get(pk=rack_id)
+        except (Rack.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = RackForm(request.POST, instance=inst)
+        if form.is_valid():
+            instance = form.save()
+            if request.GET.get('close') == 'true':
+                return HttpResponse(
+                    "<script>if (opener!=null) opener.call_reload('rack',[{}]);window.close()</script>".format(
+                        instance.id))
+            return redirect('rack_view', instance.id)
+        else:
+            return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+    return HttpResponse('ok')
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def rack_edit_old(request, rack_id):
     # print('post', request.POST.get('close'))
     # print('get', request.GET.get('close'))
     try:
@@ -296,164 +482,20 @@ def rack_edit(request, rack_id):
     return HttpResponse('ok')
 
 
-@login_required(login_url=reverse_lazy('custom_login'))
-def server_view(request, server_id):
-    try:
-        server = Server.objects.get(pk=server_id)
-    except Server.DoesNotExist:
-        raise Http404("No server found")
-    ip_list = []
-    for ip in server.ip_set.all():
-        ip_list.append((ip.segment.name, ip.ip_as_string, ip.id))
-    data_dict = {"server_id": server_id,
-                 "model": server.model,
-                 "hostname": server.hostname,
-                 "power_state": server.is_on,
-                 "os": server.os,
-                 "purpose": server.purpose,
-                 "ip_list": ip_list,
-                 "serial_number": server.serial_num,
-                 "specs": server.specs,
-                 "root_ip_list": (server.ip_set.filter(segment__is_root_segment=True).distinct()),
-                 "group": server.group,
-                 }
-    if server.is_physical:
-        rack = server.rack
-        room = rack.room
-        territory = room.territory
-        data_dict.update({"is_physical": True,
-                          "unit": server.get_unit_string(),
-                          "territory": territory,
-                          "room": room,
-                          "rack": rack,
-                          "vm_list": server.server_set.all()})
-    else:
-        data_dict.update({"is_physical": False,
-                          "host_machine": server.host_machine.hostname,
-                          "host_machine_id": server.host_machine.id,
-                          })
-    actions = [
-        {'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
-    print(actions)
-    return render(request, os.path.join('server_list', 'server_view.html'),
-                  {'server_dict': data_dict, 'actions': actions})
-
-
 # @login_required(login_url=reverse_lazy('custom_login'))
-def ajax(request):
-    if request.GET.get('model') == 'server':
-        if request.user.is_authenticated:
-            try:
-                ser = Server.objects.get(pk=int(request.GET.get('server_id')))
-                return HttpResponse(ser.sensitive_data + ' ')
-            except Server.DoesNotExist:
-                raise Http404
-            except ValueError:
-                return HttpResponse('500')
-        else:
-            return HttpResponse('Access Denied')
-
-    if request.GET.get('action') == 'delete_ip':
-        if not request.user.is_authenticated:
-            return HttpResponse("Вы не авторизованы")
-        ip_id = request.GET.get('ip_id')
-        try:
-            ip = Ip.objects.get(pk=ip_id)
-            ip.delete()
-        except Ip.DoesNotExist:
-            raise Http404
-        return HttpResponse('ok')
-
-    if request.GET.get('action') == 'delete_server':
-        server_id = request.GET.get('server_id')
-        try:
-            server_to_delete = Server.objects.get(pk=server_id)
-        except Server.DoesNotExist:
-            raise Http404
-        if server_to_delete.server_set.count() > 0:
-            return HttpResponse('Перенесите виртуальные машины на другой сервер')
-        server_to_delete.delete()
-        return HttpResponse('ok')
-
-    if request.GET.get('action') == 'delete_rack':
-        rack_id = request.GET.get('rack_id')
-        try:
-            rack_to_delete = Rack.objects.get(pk=rack_id)
-        except Rack.DoesNotExist:
-            raise Http404
-        if rack_to_delete.server_set.count() > 0:
-            return HttpResponse('Перенесите серверы в другую стойку')
-        rack_to_delete.delete()
-        return HttpResponse('ok')
-
-    if request.GET.get('action') == 'delete_territory':
-        territory_id = request.GET.get('territory_id')
-        try:
-            territory_to_delete = Territory.objects.get(pk=territory_id)
-        except Territory.DoesNotExist:
-            raise Http404
-        if territory_to_delete.room_set.count() > 0:
-            return HttpResponse('Перенесите помещения на другую территорию')
-        territory_to_delete.delete()
-        return HttpResponse('ok')
-
-    if request.GET.get('action') == 'delete_room':
-        room_id = request.GET.get('room_id')
-        try:
-            room_to_delete = Room.objects.get(pk=room_id)
-        except Room.DoesNotExist:
-            raise Http404
-        if room_to_delete.rack_set.count() > 0:
-            return HttpResponse('Перенесите стойки в другое помещение')
-        room_to_delete.delete()
-        return HttpResponse('ok')
-
-    if not request.user.is_authenticated:
-        return HttpResponse('[{"model": "server_list.error", "message":"User is not authenticated!"}]',
-                            content_type='application_json')
-
-    if request.GET.get('model') == 'territory':
-        return HttpResponse(serializers.serialize('json', Territory.objects.all(), fields='name'),
-                            content_type='application/json')
-
-    if request.GET.get('model') == 'room':
-        ter = request.GET.get('territory')
-        if ter is None:
-            ter = 1
-        return HttpResponse(
-            serializers.serialize('json', Room.objects.filter(territory=Territory.objects.get(pk=int(ter))),
-                                  fields='name'), content_type='application/json')
-
-    if request.GET.get('model') == 'room_all':
-        return HttpResponse(
-            serializers.serialize('json', Room.objects.all(), fields=('pk', 'name')),
-            content_type='application/json')
-
-    if request.GET.get('model') == 'rack':
-        room = request.GET.get('room')
-        if room is None:
-            # print("ajax request room is None")
-            room = 1
-        return HttpResponse(
-            serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
-            content_type='application/json')
-
-    if request.GET.get('model') == 'vm':
-        return HttpResponse(
-            serializers.serialize('json', Server.objects.filter(is_physical=True), fields=('pk', 'hostname')),
-            content_type='application/json')
-
-    if request.GET.get('model') == 'group':
-        return HttpResponse(
-            serializers.serialize('json', ServerGroup.objects.all(), fields=('pk', 'name')),
-            content_type='application/json')
-
-    if request.GET.get('action') == 'search':
-        search_query = request.GET.get('query')
-        serialize = serializers.serialize('json', search_servers(search_query),
-                                          fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
-        print('serialize', serialize)
-        return HttpResponse(serialize, content_type='application/json')
+# def rack_new(request):
+#     if request.method == 'GET':
+#         form = RackForm()
+#         return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+#     if request.method == 'POST':
+#         form = RackForm(request.POST)
+#         if form.is_valid():
+#             instance = form.save()
+#             return HttpResponse(
+#                 "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
+#                 "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
+#         else:
+#             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -469,52 +511,34 @@ def room_view(request, room_id):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def room_edit(request, room_id):
-    try:
-        room = Room.objects.get(pk=room_id)
-    except Room.DoesNotExists:
-        raise Http404("No rack found")
+def room_edit(request):
+    is_new = request.GET.get('new') == 'true'
+    inst = None
     if request.method == 'GET':
-        form = RoomForm(instance=room)
+        if not is_new:
+            try:
+                inst = Room.objects.get(pk=int(request.GET.get('room_id')))
+            except (Room.DoesNotExist, ValueError, TypeError) as e:
+                raise Http404("Ошибка, проверьте ссылку")
+        form = RoomForm(instance=inst)
         return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
     if request.method == 'POST':
-        form = RoomForm(request.POST, instance=room)
+        try:
+            room_id = request.POST.get('room_id')
+            inst = Room.objects.get(pk=room_id)
+        except (Room.DoesNotExist, ValueError, TypeError) as e:
+            pass
+        form = RoomForm(request.POST, instance=inst)
         if form.is_valid():
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('room',[{}]);window.close()</script>".format(
                         instance.id))
-            return redirect('room_view', room_id)
+            return redirect('room_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
     return HttpResponse('ok')
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def room_new(request):
-    if request.method == 'GET':
-        form = RoomForm()
-        return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = RoomForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponse("<script>opener.call_reload('room',[{}]); window.close();</script>".format(instance.id))
-        else:
-            return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def territory_view(request, territory_id):
-    try:
-        territory = Territory.objects.get(pk=territory_id)
-    except Territory.DoesNotExist:
-        raise Http404
-    rooms = {}
-    for room in territory.room_set.all():
-        rooms.update({room.id: room.name})
-    return render(request, os.path.join('server_list', 'territory_view.html'), {'territory': territory, 'rooms': rooms})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -546,6 +570,18 @@ def territory_edit(request):
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     return HttpResponse('ok')
+
+
+@login_required(login_url=reverse_lazy('custom_login'))
+def territory_view(request, territory_id):
+    try:
+        territory = Territory.objects.get(pk=territory_id)
+    except Territory.DoesNotExist:
+        raise Http404
+    rooms = {}
+    for room in territory.room_set.all():
+        rooms.update({room.id: room.name})
+    return render(request, os.path.join('server_list', 'territory_view.html'), {'territory': territory, 'rooms': rooms})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -594,11 +630,6 @@ def group_add(request):
                     instance.id))
         else:
             return render(request, os.path.join('server_list', 'group_edit.html'), {'form': form})
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def test(request):
-    return render(request, os.path.join('server_list', 'test.html'))
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -696,16 +727,5 @@ def custom_login(request):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def rack_new(request):
-    if request.method == 'GET':
-        form = RackForm()
-        return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = RackForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponse(
-                "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
-                "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
-        else:
-            return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
+def test(request):
+    return render(request, os.path.join('server_list', 'test.html'))

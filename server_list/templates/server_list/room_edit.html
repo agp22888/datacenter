@@ -38,11 +38,12 @@ function call_reload(caller, ids){
             {{error}}
         {% endfor %}
         {% if 'territory' in field.name %}
-        <a href="javascript:void(0);" onclick="open_window('{% url 'territory_edit' %}?territory_id='+document.getElementById('{{field.auto_id}}').value+'&close=True', 'territory_edit');">Редактировать</a>
+        <a href="javascript:void(0);" onclick="open_window('{% url 'territory_edit' %}?territory_id='+document.getElementById('{{field.auto_id}}').value+'&close=true', 'territory_edit');">Редактировать</a>
         <a href="javascript:void(0);" onClick="open_window('{% url 'territory_edit' %}?new=true&close=true', 'territory_add');">Добавить</a>
         {% endif %}
     </p>
     {% endfor %}
+    <input type="hidden" name="room_id" value="{{form.instance.id}}">
     <p><input type="submit" value="Submit"></p>
 </form>
 {% endblock %}

@@ -172,7 +172,7 @@ window.onresize=init;
         <p>Нумерация: {{rack.topdown|yesno:"сверху,снизу"}}</p>
         <p>Описание: {{rack.description}}</p>
         <p>Серийный номер: {{rack.serial_number}}</p>
-        <p><a href="{% url 'rack_edit' rack.id %}">Редактировать</a></p>
+        <p><a href="{% url 'rack_edit'%}?rack_id={{rack.id}}">Редактировать</a></p>
     </div>
 
     <div class="col-sm">

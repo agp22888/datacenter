@@ -8,5 +8,5 @@
 {% if forloop.first%}<p>Стойки:</p>{% endif %}
 <p><a href="{% url 'rack_view' rack_id %}">{{rack_name}}</a></p>
 {% endfor %}
-<p><a href="{% url 'room_edit' room.id %}">Редактировать</a></p>
+<p><a href="{% url 'room_edit' %}?room_id={{room.id}}">Редактировать</a></p>
 {% endblock %}

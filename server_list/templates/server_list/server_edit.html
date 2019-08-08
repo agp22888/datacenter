@@ -52,8 +52,8 @@ $(document).ready(function() {
 });
 
 function init(){
-    $("#id_territory").val(territory_id);
-    ajax_request_rooms_by_territory($("#id_territory").val());
+    //$("#id_territory").val(territory_id);
+    ajax_request_territories();
 }
 
 function empty_room_list(){
@@ -78,8 +78,31 @@ function unhide_fields(fields){
     }
 }
 
+function ajax_request_territories(){
+     $.ajax({
+            url: "{% url 'ajax' %}",
+            type: 'GET',
+            data: {'model':'territory'},
+            dataType: "json",
+            success: function(resp){
+                $("#id_territory").empty();
+                $("#id_territory").append($('<option></option>').attr('value', "").text('---------'));
+                $.each(resp, function(idx, obj) {
+                    if(obj.pk==territory_id){
+                        $("#id_territory").append($('<option></option>').attr('value', obj.pk).attr('selected','selected').text(obj.fields.name));
+                    }else{
+                        $("#id_territory").append($('<option></option>').attr('value', obj.pk).text(obj.fields.name));
+                    }
+                    });
+                ajax_request_rooms_by_territory($("#id_territory").val());
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert(errorThrown+' rooms by ter '+territory_id);
+            }
+        });
+}
 
-function ajax_request_rooms_by_territory(territory_id, callback){
+function ajax_request_rooms_by_territory(territory_id){
     if (territory_id == ''){
         empty_room_list();
         empty_rack_list();
@@ -90,11 +113,7 @@ function ajax_request_rooms_by_territory(territory_id, callback){
             data: {'model':'room','territory': territory_id},
             dataType: "json",
             success: function(resp){
-                sel = document.getElementById('id_territory');
 
-                for (let i = 0; i < sel.length; i++){
-                    if (sel[i].value === territory_id)sel[i].selected = true;
-                }
                 $("#id_room").empty();
                 $("#id_room").append($('<option></option>').attr('value', "").text('---------'));
                 $.each(resp, function(idx, obj) {
@@ -203,8 +222,8 @@ async function call_reload(caller,ids){
 
             <th>{{ field }}</th>
             {% if 'rack' in field.name %}
-            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=true', 'rack_edit');">Редактировать</a> </th>
-            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_new' %}', 'rack_add');">Добавить</a> </th>
+            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'rack_edit' %}?rack_id='+document.getElementById('{{field.auto_id}}').value+'&close=true', 'rack_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_edit' %}?new=true', 'rack_add');">Добавить</a> </th>
             {% endif %}
             {% if 'group' in field.name %}
             <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=true', 'group_edit');">Редактировать</a> </th>
