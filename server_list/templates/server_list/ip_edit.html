@@ -39,7 +39,7 @@ function call_reload(caller, ids){
             <th>{{field.label}}</th>
             <th>{{field}}</th>
             {% if field.auto_id == 'id_segment' %}
-            <th><a href="javascript:void(0)" onclick='open_window("{% url 'segment_edit' %}?new=true", "Новый сегмент");'>Добавить сегмент</a></th>
+            <th><a href="javascript:void(0)" onclick='open_window("{% url 'segment_edit' %}?new=true&close=true", "Новый сегмент");'>Добавить сегмент</a></th>
             <th><a href="javascript:void(0)" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url "segment_edit" %}?segment_id='+document.getElementById('{{field.auto_id}}').value+'&close=true', 'segment_edit');">Редактировать</a></th>
 
             {% endif %}
@@ -50,7 +50,7 @@ function call_reload(caller, ids){
         {% endfor %}
     </table>
     <input type="hidden" name="ip_id" value="{{form.instance.id}}">
-    <input type="submit" value="submit" onclick="if(opener != null) opener.call_reload()">
+    <input type="submit" value="submit">
 </form>
 
 {% endblock %}
