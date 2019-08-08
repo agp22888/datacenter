@@ -439,31 +439,6 @@ def rack_edit(request):
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
-def rack_edit_old(request, rack_id):
-    try:
-        rack = Rack.objects.get(pk=rack_id)
-    except Rack.DoesNotExists:
-        raise Http404("No rack found")
-    if request.method == 'GET':
-        form = RackForm(instance=rack)
-        return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-    if request.method == 'POST':
-        print(request.POST)
-        form = RackForm(request.POST, instance=rack)
-        if form.is_valid():
-            instance = form.save()
-            if request.GET.get('close') == 'true':
-                return HttpResponse(
-                    "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
-                    "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
-            return redirect('rack_view', rack_id)
-        else:
-            return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-
-    return HttpResponse('ok')
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
 def room_view(request, room_id):
     try:
         room = Room.objects.get(pk=room_id)
