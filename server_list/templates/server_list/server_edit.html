@@ -203,11 +203,11 @@ async function call_reload(caller,ids){
 
             <th>{{ field }}</th>
             {% if 'rack' in field.name %}
-            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'rack_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url 'rack_edit_without_parameters' %}'+document.getElementById('{{field.auto_id}}').value+'?close=true', 'rack_edit');">Редактировать</a> </th>
             <th> <a href="javascript:void(0);" onclick="open_window('{% url 'rack_new' %}', 'rack_add');">Добавить</a> </th>
             {% endif %}
             {% if 'group' in field.name %}
-            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=True', 'group_edit');">Редактировать</a> </th>
+            <th> <a href="javascript:void(0);" onclick="if(/^\d+$/.test(document.getElementById('{{field.auto_id}}').value)) open_window('{% url "group_edit_without_parameters" %}'+document.getElementById('{{field.auto_id}}').value+'?close=true', 'group_edit');">Редактировать</a> </th>
             <th> <a href="javascript:void(0);" onclick="open_window('{% url "group_new" %}', 'group_add');">Добавить</a> </th>
             {% endif %}
             {% for error in field.errors %}

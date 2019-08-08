@@ -285,7 +285,7 @@ def rack_edit(request, rack_id):
         form = RackForm(request.POST, instance=rack)
         if form.is_valid():
             instance = form.save()
-            if request.GET.get('close') == 'True':
+            if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('rack',[{0},{1},{2}]);window.close()"
                     "</script>".format(instance.id, instance.room.id, instance.room.territory.id))
@@ -481,7 +481,7 @@ def room_edit(request, room_id):
         form = RoomForm(request.POST, instance=room)
         if form.is_valid():
             instance = form.save()
-            if request.GET.get('close') == 'True':
+            if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('room',[{}]);window.close()</script>".format(
                         instance.id))
@@ -538,7 +538,7 @@ def territory_edit(request):
         form = TerritoryForm(request.POST, instance=inst)
         if form.is_valid():
             instance = form.save()
-            if request.GET.get('close') == 'True':
+            if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('territory',[{}]);window.close()</script>".format(
                         instance.id))
@@ -546,22 +546,6 @@ def territory_edit(request):
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     return HttpResponse('ok')
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def territory_new(request):
-    if request.method == 'GET':
-        form = TerritoryForm()
-        return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
-    if request.method == 'POST':
-        form = TerritoryForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponse(
-                "<script>if (opener!=null) opener.call_reload('territory',[{}]);window.close()</script>".format(
-                    instance.id))
-        else:
-            return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -586,7 +570,7 @@ def group_edit(request, group_id):
         form = GroupForm(request.POST, instance=group)
         if form.is_valid():
             instance = form.save()
-            if request.GET.get('close') == 'True':
+            if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('group',[{}]);window.close()</script>".format(
                         instance.id))
