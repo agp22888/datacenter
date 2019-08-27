@@ -3,6 +3,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    path('', views.proof, name='proof'),
     path('list', views.servers, name='list'),
     # path('edit', views.edit, name='edit'),
     url(r'^server_edit/?$', views.server_edit, name='server_edit'),

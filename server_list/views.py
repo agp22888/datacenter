@@ -18,6 +18,9 @@ from .forms import ServerFormOld, IpForm, SegmentForm, RackForm, TerritoryForm, 
     GroupForm
 from django.http import Http404
 
+def proof(request):
+    return HttpResponseRedirect(reverse('list'))
+
 
 # @login_required(login_url=reverse_lazy('custom_login'))
 def ajax(request):
