@@ -10,7 +10,7 @@ from django.db.utils import OperationalError
 
 class ServerFormNameField(CharField):
     def validate(self, value):
-        print('validate')
+        # print('validate')
         return value
 
 
@@ -123,8 +123,8 @@ class ServerForm(ModelForm):
     def __init__(self, *args, **kwargs):
 
         super(ServerForm, self).__init__(*args, **kwargs)
-        if self.instance.rack is not None:
-            print('kek')
+        # if self.instance.rack is not None:
+        #     print('kek')
 
 
 class ServerFormOld(forms.Form):
@@ -209,7 +209,7 @@ class ServerFormOld(forms.Form):
                 check_s_unit_low = check_s.unit
                 check_s_unit_high = check_s_unit_low + check_s.height - 1
                 check_s_location = check_s.location
-                print('server location is', self.cleaned_data['server_location'], check_s_location)
+                # print('server location is', self.cleaned_data['server_location'], check_s_location)
 
                 if (check_s_location == this_location or check_s_location == 2 or this_location == 2) \
                         and ((

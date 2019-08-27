@@ -140,7 +140,7 @@ def ajax(request):
         search_query = request.GET.get('query')
         serialize = serializers.serialize('json', search_servers(search_query),
                                           fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
-        print('serialize', serialize)
+        # print('serialize', serialize)
         return HttpResponse(serialize, content_type='application/json')
 
 
@@ -176,7 +176,7 @@ def servers(request):
     order = '-unit'
     order_by = request.GET.get('order_by')
     tab_num = request.GET.get('tab')
-    print('tab_num', tab_num)
+    # print('tab_num', tab_num)
     # if order_by is not None:
     #     orders = order_by.split('-')
     #     if len(orders) > 0:
@@ -326,7 +326,7 @@ def server_view(request, server_id):
                           })
     actions = [
         {'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
-    print(actions)
+    # print(actions)
     return render(request, os.path.join('server_list', 'server_view.html'),
                   {'server_dict': data_dict, 'actions': actions})
 
@@ -552,7 +552,7 @@ def group_edit(request):
     if request.method == 'POST':
         try:
             group_id = request.POST.get('group_id')
-            print(group_id)
+            # print(group_id)
             inst = ServerGroup.objects.get(pk=group_id)
         except (ServerGroup.DoesNotExist, ValueError, TypeError) as e:
             pass
@@ -591,7 +591,7 @@ def dump(request):
 @login_required(login_url=reverse_lazy('custom_login'))
 def search(request):
     if request.method == 'GET':
-        print("GET")
+        # print("GET")
         return HttpResponseBadRequest("400")
     if request.method == 'POST':
         search_query = request.POST.get('searchInput')
@@ -599,7 +599,7 @@ def search(request):
         result_set |= Server.objects.filter(purpose_lower__icontains=search_query)
 
         result_set.distinct()
-        print(result_set)  # todo убрать ip; edit: нахуа?
+        # print(result_set)  # todo убрать ip; edit: нахуа?
         return render(request, os.path.join('server_list', 'search.html'), {'result_set': result_set})
     return HttpResponse('search')
 
