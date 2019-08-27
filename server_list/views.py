@@ -350,13 +350,15 @@ def ip_edit(request):
         except (Ip.DoesNotExist, ValueError, TypeError) as e:
             pass
         form = IpForm(request.POST, instance=inst)
+
         if form.is_valid():
+            form.instance.server = Server.objects.get(pk=int(request.GET.get('server_id')))
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
                     "<script>if (opener!=null) opener.call_reload('ip',[{}]);window.close()</script>".format(
                         instance.id))
-            return HttpResponse('something went wrong, contack site admin')
+            return HttpResponse('something went wrong, contact site admin')
         else:
             return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     return HttpResponse('ok')

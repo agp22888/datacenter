@@ -33,7 +33,6 @@ function call_reload(caller, ids){
 <form method="post">
        <table>
         {% csrf_token %}
-
         {% for field in form %}
         <tr>
             <th>{{field.label}}</th>

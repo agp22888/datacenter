@@ -108,7 +108,7 @@ function ajax_delete_ip(ip_id){
     <p>{{ip.0}} : {{ip.1}} <a href="javascript:void(0);" onclick="open_window('{% url 'ip_edit'%}?ip_id={{ip.2}}&close=true' , 'Edit ip');">Редактировать</a>
         <a href="javascript:void(0);" onclick="ajax_delete_ip({{ip.2}})">Удалить</a></p>
     {% endfor %}
-    <p><a href="javascript:void(0);" onClick="open_window('{% url 'ip_edit'%}?new=true&server_id={{server_dict.server_id}}', 'Добавить ip');">Добавить ip</a></p>
+    <p><a href="javascript:void(0);" onClick="open_window('{% url 'ip_edit'%}?new=true&server_id={{server_dict.server_id}}&close=true', 'Добавить ip');">Добавить ip</a></p>
     {% if server_dict|get_dict_item:"vm_list" %}
     <p>Виртуальные машины:</p>
     {% endif %}

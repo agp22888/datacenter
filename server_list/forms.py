@@ -267,7 +267,7 @@ class IpForm(ModelForm):
     class Meta:
         model = Ip
         fields = ['segment', 'ip_as_string']
-        widgets = {'server': forms.HiddenInput()}
+        # widgets = {'server': forms.HiddenInput()}
 
     def clean(self):
         # if not Segment.objects.filter(pk=self.cleaned_data['segment_id']).exists:
