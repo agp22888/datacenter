@@ -14,7 +14,7 @@ from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
-from .forms import ServerFormOld, IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
+from .forms import IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
     GroupForm
 from django.http import Http404
 
