@@ -479,8 +479,8 @@ def room_edit(request):
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
-                    "<script>if (opener!=null) opener.call_reload('room',[{}]);window.close()</script>".format(
-                        instance.id))
+                    "<script>if (opener!=null) opener.call_reload('room',[{},{}]);window.close()</script>".format(
+                        instance.id, instance.territory.id))
             return redirect('room_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
