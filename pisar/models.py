@@ -11,7 +11,7 @@ class Employee(models.Model):
     tel_number = models.CharField(max_length=11)
     rank = models.IntegerField()
     supervisor = models.ForeignKey('self', on_delete=models.SET_DEFAULT, default=None)
-    department = models.ForeignKey('Department', on_delete=models.SET_DEFAULT, default=None)
+    dept = models.ForeignKey('Department', on_delete=models.SET_DEFAULT, default=None)
     position = models.CharField(max_length=500)
 
 

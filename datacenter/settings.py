@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'server_list',
+    'pisar',
 ]
 
 MIDDLEWARE = [
