@@ -94,11 +94,16 @@ window.onload = function(){
         {% for room, rack_dict in room_dict.items %}
             <p><a href="{% url 'room_view' room.id%}">{{room.name}}</a></p>
             {% for rack, ser_dict in rack_dict.items %}
-                <p><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></p>
+
+
                 <table id="table_{{rack.id}}" class="table table-sm table-hover center-block" >
                 {% with header=ser_dict|get_dict_item:"header"%}
-                    <thead class="table_header thead-dark" style="">
-                    <tr>
+
+                    <thead  style="">
+                    <tr bgcolor="#f2f2f2" >
+                        <th   colspan="100"><a href="{% url 'rack_view' rack.id %}">{{rack.name}}</a></th>
+                    </tr>
+                    <tr class="table_header thead-dark">
                     {% for n,v in  header.items %}
                         <th scope="row" >
                         {% if 'vm' != n %}
@@ -149,6 +154,7 @@ window.onload = function(){
                 {% endfor %}
                 </tbody>
                 </table>
+
 
             {% endfor %}
         {% endfor %}
