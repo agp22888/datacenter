@@ -9,3 +9,8 @@ class MainForm(forms.Form):
     employee_list = forms.ModelChoiceField(label="Сотрудник", queryset=Employee.objects.all(), required=True)
     report_list = forms.ModelChoiceField(label="Рапорт", queryset=Report.objects.all(), required=True)
 
+
+class EmployeeForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = '__all__'
