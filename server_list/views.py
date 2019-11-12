@@ -352,7 +352,8 @@ def ip_edit(request):
         form = IpForm(request.POST, instance=inst)
 
         if form.is_valid():
-            form.instance.server = Server.objects.get(pk=int(request.GET.get('server_id')))
+            if is_new:
+                form.instance.server = Server.objects.get(pk=int(request.GET.get('server_id')))
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
