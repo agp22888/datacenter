@@ -344,16 +344,13 @@ def ip_edit(request):
         form = IpForm(instance=inst)
         return render(request, os.path.join('server_list', 'ip_edit.html'), {'form': form})
     if request.method == 'POST':
-        try:
-            ip_id = request.POST.get('ip_id')
-            inst = Ip.objects.get(pk=ip_id)
-        except (Ip.DoesNotExist, ValueError, TypeError) as e:
-            pass
+        if is_new:
+            inst = Ip(server=Server.objects.get(pk=int(request.GET.get('server_id'))))
+        else:
+            inst = Ip.objects.get(pk=int(request.GET.get("ip_id")))
         form = IpForm(request.POST, instance=inst)
 
         if form.is_valid():
-            if is_new:
-                form.instance.server = Server.objects.get(pk=int(request.GET.get('server_id')))
             instance = form.save()
             if request.GET.get('close') == 'true':
                 return HttpResponse(
