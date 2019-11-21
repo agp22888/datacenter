@@ -616,6 +616,7 @@ def search_free_ip(request):
         try:
             target_network = IPv4Network(request.POST.get('ipInput'))
             ip_list = []
+            line = []
             for host in target_network.hosts():
                 if Ip.objects.filter(ip_as_string=host).exists():
                     continue
