@@ -10,7 +10,7 @@ ENV PYTHONBUFFERED 1
 ENV UWSGI_PROCESSES 1
 ENV UWSGI_THREADS 16
 ENV UWSGI_HARAKIRI 240
-ENV DJANGO_SETTINGS_MODULE 'datacenter.settigs'
+ENV DJANGO_SETTINGS_MODULE 'datacenter.settings'
 ENV DJANGO_DEBUG ${DJANGO_DEBUG}
 ENV DJANGOSECRET_KEY ${DJANGO_SECRET_KEY}
 
@@ -25,8 +25,11 @@ RUN mkdir -p /var/www/static/ && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
+
 COPY . .
 
-EXPOSE 8000
+RUN chmod +x run_uwsgi.sh
 
+EXPOSE 8000
+#CMD ["tail","-f","/dev/null"]
 ENTRYPOINT ["./run_uwsgi.sh"]

@@ -2,3 +2,5 @@ asgiref==3.5.1
 Django==4.0.4
 django-widget-tweaks==1.4.12
 sqlparse==0.4.2
+uwsgi==2.0.20
+python-dotenv==0.20.0
