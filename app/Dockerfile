@@ -19,7 +19,9 @@ COPY requirements.txt requirements.txt
 COPY uwsgi/uwsgi.ini uwsgi.ini
 
 RUN mkdir -p /var/www/static/ && \
-    mkdir /opt/apt/static && \
+    mkdir -p /var/www/media/ && \
+    mkdir -p /opt/app/media && \
+    mkdir -p /opt/apt/static && \
     pip install --upgrade pip && \
     pip install -r requirements.txt
 
