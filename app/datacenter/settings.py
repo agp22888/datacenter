@@ -24,7 +24,7 @@ SECRET_KEY = '2vbi_^bj(puq=l6ws!1chfef--^xff(1^zcg@o4v6x7l5ld-9@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '10.21.63.4', '192.168.20.99']
+ALLOWED_HOSTS = [os.environ.get('SERVER_NAME', '127.0.0.1')]
 
 # Application definition
 
@@ -114,7 +114,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = 'static/'
-#STATIC_ROOT = '/var/www/django_datacenter/static/'
-STATIC_ROOT = os.environ.get('DJANGO_STATIC_ROOT', os.path.join(BASE_DIR,STATIC_URL))
+# STATIC_ROOT = '/var/www/django_datacenter/static/'
+STATIC_ROOT = os.environ.get('DJANGO_STATIC_ROOT', os.path.join(BASE_DIR, STATIC_URL))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/django_datacenter/media/'
