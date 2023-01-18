@@ -15,6 +15,7 @@ services:
       - ./data:/var/www/static
     environment:
       DJANGO_STATIC_ROOT: "/var/www/static"
+      SERVER_NAME: ${SERVER_NAME}
 
   nginx:
     image: nginx
