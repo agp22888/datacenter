@@ -1,0 +1,14 @@
+version: '3'
+services:
+    web:
+        build:
+            context: ./app
+            args:
+                DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+        expose:
+            - "8000"
+        volumes:
+            - ./db.sqlite3:/opt/app/db/db.sqlite3
+            - ./data:/var/www/static
+        environment:
+            DJANGO_STATIC_ROOT: "/var/www/static"
