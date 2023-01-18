@@ -24,7 +24,10 @@ SECRET_KEY = '2vbi_^bj(puq=l6ws!1chfef--^xff(1^zcg@o4v6x7l5ld-9@'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [os.environ.get('SERVER_NAME', '127.0.0.1')]
+server_name = os.environ.get('SERVER_NAME', '127.0.0.1')
+ALLOWED_HOSTS = [server_name]
+
+CSRF_TRUSTED_ORIGINS = [f"https://{server_name}"]
 
 # Application definition
 
