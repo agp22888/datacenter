@@ -113,7 +113,8 @@ USE_TZ = True
 # static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/django_datacenter/static/'
+STATIC_URL = 'static/'
+#STATIC_ROOT = '/var/www/django_datacenter/static/'
+STATIC_ROOT = os.environ.get('DJANGO_STATIC_ROOT', os.path.join(BASE_DIR,STATIC_URL))
 MEDIA_URL = '/media/'
 MEDIA_ROOT = '/var/www/django_datacenter/media/'
