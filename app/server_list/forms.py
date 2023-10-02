@@ -322,11 +322,12 @@ class RackForm(ModelForm):
     def clean(self):
         if int(self.cleaned_data['size']) <= 0:
             self.errors.update({'size': ["Неверный размер"]})
-        for server in self.instance.server_set.all():
-            if server.unit + server.height - 1 > self.cleaned_data['size']:
-                self.errors.update(
-                    {'size': [
-                        "сервер " + server.hostname + " имеет расположение, которое выходит за границы размеров стойки"]})
+        if self.instance.pk:
+            for server in self.instance.server_set.all():
+                if server.unit + server.height - 1 > self.cleaned_data['size']:
+                    self.errors.update(
+                        {'size': ["сервер " + server.hostname + " имеет расположение, "
+                                                                "которое выходит за границы размеров стойки"]})
 
 
 class RoomForm(ModelForm):

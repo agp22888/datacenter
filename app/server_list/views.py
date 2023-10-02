@@ -425,7 +425,7 @@ def rack_edit(request):
         return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
     if request.method == 'POST':
         try:
-            rack_id = request.POST.get('rack_id')
+            rack_id = request.GET.get('rack_id')
             inst = Rack.objects.get(pk=rack_id)
         except (Rack.DoesNotExist, ValueError, TypeError) as e:
             pass
