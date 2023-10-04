@@ -439,7 +439,7 @@ def rack_edit(request):
             return redirect('rack_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-    return HttpResponse('ok')
+    return HttpResponse('Wrong Method')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
