@@ -1,4 +1,6 @@
 import factory
+from django.contrib.auth.models import User
+
 from server_list.models import Territory, Server, Ip, Segment, Rack, Room, ServerGroup
 
 
@@ -28,7 +30,7 @@ class RackFactory(factory.django.DjangoModelFactory):
     description = 'x'
     room = factory.SubFactory(RoomFactory)
     serial_number = 'x'
-    size = 0
+    size = 42
     topdown = True
 
 
@@ -84,3 +86,11 @@ class ServerFactory(factory.django.DjangoModelFactory):
     group = factory.SubFactory(ServerGroupFactory)
     hostname_lower = 'x'
     purpose_lower = 'x'
+
+
+class UserFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = User
+
+    username = "test"
+    password = "test"
