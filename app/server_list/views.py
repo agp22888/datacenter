@@ -4,8 +4,10 @@ from ipaddress import IPv4Network, AddressValueError
 
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.urls import reverse, reverse_lazy
+from django.views import View
 
 from server_list import strings
 from server_list.utils import search_servers, order_query
@@ -393,29 +395,32 @@ def segment_edit(request):
     return HttpResponse('ok')
 
 
-@login_required(login_url=reverse_lazy('custom_login'))
-def rack_view(request, rack_id):
-    try:
-        rack = Rack.objects.get(pk=rack_id)
-    except Rack.DoesNotExist:
-        raise Http404("No rack found")
-    rack_front = {}
-    rack_back = {}
-    for s in rack.server_set.all():
-        units = [s.unit, s.height]
-        if s.location != 1:
-            rack_front.update({s: units})
-        if s.location != 0:
-            rack_back.update({s: units})
-    return render(request, os.path.join('server_list', 'rack_view.html'),
-                  {'rack': rack, 'front': rack_front, 'back': rack_back})
+class RackView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('custom_login')
+
+    def get(self, request, rack_id):
+        try:
+            rack = Rack.objects.get(pk=rack_id)
+        except Rack.DoesNotExist:
+            raise Http404("No rack found")
+        rack_front = {}
+        rack_back = {}
+        for s in rack.server_set.all():
+            units = [s.unit, s.height]
+            if s.location != 1:
+                rack_front.update({s: units})
+            if s.location != 0:
+                rack_back.update({s: units})
+        return render(request, os.path.join('server_list', 'rack_view.html'),
+                      {'rack': rack, 'front': rack_front, 'back': rack_back})
 
 
-@login_required(login_url=reverse_lazy('custom_login'))
-def rack_edit(request):
-    is_new = request.GET.get('new') == 'true'
-    inst = None
-    if request.method == 'GET':
+class RackEdit(LoginRequiredMixin, View):
+    login_url = reverse_lazy('custom_login')
+
+    def get(self, request):
+        is_new = request.GET.get('new') == 'true'
+        inst = None
         if not is_new:
             try:
                 inst = Rack.objects.get(pk=int(request.GET.get('rack_id')))
@@ -423,12 +428,13 @@ def rack_edit(request):
                 raise Http404("Ошибка, проверьте ссылку")
         form = RackForm(instance=inst)
         return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-    if request.method == 'POST':
+
+    def post(self, request):
         try:
             rack_id = request.GET.get('rack_id')
             inst = Rack.objects.get(pk=rack_id)
         except (Rack.DoesNotExist, ValueError, TypeError) as e:
-            pass
+            inst = Rack()
         form = RackForm(request.POST, instance=inst)
         if form.is_valid():
             instance = form.save()
@@ -439,7 +445,6 @@ def rack_edit(request):
             return redirect('rack_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'rack_edit.html'), {'form': form})
-    return HttpResponse('Wrong Method')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))

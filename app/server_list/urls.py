@@ -22,8 +22,10 @@ urlpatterns = [
 
     re_path(r'ajax/', views.ajax, name='ajax'),
 
-    re_path(r'rack/(?P<rack_id>\d*)', views.rack_view, name="rack_view"),
-    re_path(r'rack_edit/?$', views.rack_edit, name="rack_edit"),
+    # re_path(r'rack/(?P<rack_id>\d*)', views.rack_view, name="rack_view"),
+    # re_path(r'rack_edit/?$', views.rack_edit, name="rack_edit"),
+    re_path(r'rack/(?P<rack_id>\d*)', views.RackView.as_view(), name="rack_view"),
+    re_path(r'rack_edit/?$', views.RackEdit.as_view(), name="rack_edit"),
     # url(r'rack_edit/$', views.rack_edit, name="rack_edit_without_parameters"),
     # url(r'add_rack$', views.rack_new, name="rack_new"),
 
