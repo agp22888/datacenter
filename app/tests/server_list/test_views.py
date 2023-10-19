@@ -113,7 +113,7 @@ class TestRack:
         rack = rack_factory()
         url = f"{reverse('rack_edit')}/?rack_id={rack.id}"
         resp = client_with_user.put(url)
-        assert resp.content.decode() == "Wrong Method"
+        assert resp.status_code == 405
 
     def test_rack_edit_new_get(self,
                                client_with_user):
