@@ -1,12 +1,12 @@
 import random
 
 import pytest
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from faker import Faker
 from faker.providers import internet
 
 from server_list.forms import RackForm
-from server_list.models import Room, Rack
+from server_list.models import Rack
 
 pytestmark = pytest.mark.django_db
 
@@ -55,6 +55,14 @@ class TestRack:
         form = resp.context['form']
         assert resp.status_code == 200
         assert form.instance == rack
+
+    def test_rack_edit_get_404(self,
+                               client_with_user,
+                               rack_factory):
+        rack = rack_factory()
+        url = f"{reverse('rack_edit')}/?rack_id={rack.id + 100}"
+        resp = client_with_user.get(url)
+        assert resp.status_code == 404
 
     def test_rack_edit_change_success(self,
                                       client_with_user,
@@ -106,3 +114,30 @@ class TestRack:
         url = f"{reverse('rack_edit')}/?rack_id={rack.id}"
         resp = client_with_user.put(url)
         assert resp.content.decode() == "Wrong Method"
+
+    def test_rack_edit_new_get(self,
+                               client_with_user):
+        url = f"{reverse('rack_edit')}/?new=true"
+        resp = client_with_user.get(url)
+        assert resp.status_code == 200
+        assert isinstance(resp.context["form"], RackForm)
+
+    def test_rack_edit_new_post(self,
+                                client_with_user,
+                                room_factory):
+        room = room_factory()
+        url = f"{reverse('rack_edit')}/?new=true"
+        resp = client_with_user.get(url)
+        data = resp.context['form'].initial
+        data['name'] = 'new_rack'
+        data['size'] = 36
+        data['room'] = room.pk
+        data['territory'] = room.territory.pk
+        resp = client_with_user.post(url, data=data)
+        assert resp.status_code == 302
+        resp = client_with_user.get(resp.url)
+        created_rack = resp.context['rack']
+        assert created_rack.name == data['name']
+        assert created_rack.size == data['size']
+        assert created_rack.room.pk == data['room']
+        assert created_rack.room.territory.pk == data['territory']
