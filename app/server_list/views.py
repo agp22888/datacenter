@@ -15,7 +15,7 @@ from . import utils
 from django.core import serializers
 from django.shortcuts import render, redirect
 from server_list.models import Server, Segment, Ip, Rack, Room, Territory, ServerGroup
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, HttpResponseNotAllowed
 from .forms import IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserForm, ServerForm, \
     GroupForm
 from django.http import Http404
@@ -467,7 +467,7 @@ def room_edit(request):
                 raise Http404("Ошибка, проверьте ссылку")
         form = RoomForm(instance=inst)
         return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-    if request.method == 'POST':
+    elif request.method == 'POST':
         try:
             room_id = request.POST.get('room_id')
             inst = Room.objects.get(pk=room_id)
@@ -483,7 +483,9 @@ def room_edit(request):
             return redirect('room_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
-    return HttpResponse('ok')
+    else:
+        return HttpResponseNotAllowed("Error")
+        # return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -498,7 +500,7 @@ def territory_edit(request):
                 raise Http404("Ошибка, проверьте ссылку")
         form = TerritoryForm(instance=inst)
         return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
-    if request.method == 'POST':
+    elif request.method == 'POST':
         try:
             territory_id = request.POST.get('territory_id')
             inst = Territory.objects.get(pk=territory_id)
@@ -514,7 +516,8 @@ def territory_edit(request):
             return redirect('territory_view', instance.id)
         else:
             return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
-    return HttpResponse('ok')
+    else:
+        return HttpResponseNotAllowed('Error')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
