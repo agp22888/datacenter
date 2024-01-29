@@ -5,6 +5,7 @@ from ipaddress import IPv4Network, AddressValueError
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
 from django.urls import reverse, reverse_lazy
 from django.views import View
@@ -447,7 +448,7 @@ class RackEdit(LoginRequiredMixin, View):
 def room_view(request, room_id):
     try:
         room = Room.objects.get(pk=room_id)
-    except Room.DoesntExist:
+    except ObjectDoesNotExist:
         raise Http404
     racks = {}
     for rack in room.rack_set.all():
@@ -469,7 +470,7 @@ def room_edit(request):
         return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
     elif request.method == 'POST':
         try:
-            room_id = request.POST.get('room_id')
+            room_id = request.GET.get('room_id')
             inst = Room.objects.get(pk=room_id)
         except (Room.DoesNotExist, ValueError, TypeError) as e:
             pass
@@ -502,7 +503,7 @@ def territory_edit(request):
         return render(request, os.path.join('server_list', 'territory_edit.html'), {'form': form})
     elif request.method == 'POST':
         try:
-            territory_id = request.POST.get('territory_id')
+            territory_id = request.GET.get('territory_id')
             inst = Territory.objects.get(pk=territory_id)
         except (Territory.DoesNotExist, ValueError, TypeError) as e:
             pass
