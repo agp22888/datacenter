@@ -43,8 +43,8 @@ class TestRack:
         servers = [server_factory(hostname=f.hostname(), rack=rack, location=random.randint(0, 1)) for _ in range(10)]
         url = reverse('rack_view', args=[rack.id])
         resp = client_with_user.get(url)
-        assert set(resp.context['front']) == {x for x in servers if x.location is 0}
-        assert set(resp.context['back']) == {x for x in servers if x.location is 1}
+        assert set(resp.context['front']) == {x for x in servers if x.location == 0}
+        assert set(resp.context['back']) == {x for x in servers if x.location == 1}
 
     def test_rack_edit_get(self,
                            client_with_user,
