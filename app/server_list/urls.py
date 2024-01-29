@@ -3,7 +3,6 @@ from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
-    path('', views.proof, name='proof'),
     path('list', views.servers, name='list'),
     # path('edit', views.edit, name='edit'),
     re_path(r'^server_edit/?$', views.server_edit, name='server_edit'),
@@ -37,7 +36,6 @@ urlpatterns = [
     re_path(r'territory/(?P<territory_id>\d*)', views.territory_view, name="territory_view"),
     re_path(r'territory_edit/?$', views.territory_edit, name="territory_edit"),
 
-    re_path(r'^test$', views.test, name='test'),
 
     re_path(r'^search$', views.search, name='search'),
 

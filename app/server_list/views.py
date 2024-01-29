@@ -21,10 +21,6 @@ from .forms import IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserF
 from django.http import Http404
 
 
-def proof(request):
-    return HttpResponseRedirect(reverse('list'))
-
-
 # @login_required(login_url=reverse_lazy('custom_login'))
 def ajax(request):
     if request.GET.get('model') == 'server':
@@ -667,8 +663,3 @@ def custom_login(request):
         else:
             return render(request, os.path.join('server_list', 'login.html'), {'form': form})
     return HttpResponse('login')
-
-
-@login_required(login_url=reverse_lazy('custom_login'))
-def test(request):
-    return render(request, os.path.join('server_list', 'test.html'))
