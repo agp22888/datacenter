@@ -154,10 +154,11 @@ def servers(request):
     try:
         target_group_id = int(request.GET.get('group'))
     except TypeError:
-        first = ServerGroup.objects.first()
-        if first is None:
-            return HttpResponse('no groups')
-        return HttpResponseRedirect(reverse('list') + '?group=' + str(first.id))
+        group = ServerGroup.objects.first()
+        if group is None:
+            group = ServerGroup.objects.create(name='default')
+            # return HttpResponse('no groups')
+        return HttpResponseRedirect(reverse('list') + '?group=' + str(group.id))
     links = {}
     for group in ServerGroup.objects.all():
         links.update({group.id: group.name})
