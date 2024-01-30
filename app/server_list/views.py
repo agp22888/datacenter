@@ -22,7 +22,6 @@ from .forms import IpForm, SegmentForm, RackForm, TerritoryForm, RoomForm, UserF
 from django.http import Http404
 
 
-# @login_required(login_url=reverse_lazy('custom_login'))
 def ajax(request):
     if request.GET.get('model') == 'server':
         if request.user.is_authenticated:
@@ -119,7 +118,6 @@ def ajax(request):
     if request.GET.get('model') == 'rack':
         room = request.GET.get('room')
         if room is None:
-            # print("ajax request room is None")
             room = 1
         return HttpResponse(
             serializers.serialize('json', Rack.objects.filter(room=Room.objects.get(pk=int(room))), fields='name'),
@@ -139,7 +137,6 @@ def ajax(request):
         search_query = request.GET.get('query')
         serialize = serializers.serialize('json', search_servers(search_query),
                                           fields=('pk', 'purpose', 'hostname', 'ip_as_string', 'server'))
-        # print('serialize', serialize)
         return HttpResponse(serialize, content_type='application/json')
 
 
@@ -157,7 +154,6 @@ def servers(request):
         group = ServerGroup.objects.first()
         if group is None:
             group = ServerGroup.objects.create(name='default')
-            # return HttpResponse('no groups')
         return HttpResponseRedirect(reverse('list') + '?group=' + str(group.id))
     links = {}
     for group in ServerGroup.objects.all():
@@ -169,21 +165,11 @@ def servers(request):
         territory = server.get_territory()
         if territory not in territories:
             territories.append(territory)
-    tabs = {}  # список территорий для вкладок
+    tabs = {}
     ser_dict = {}
-    # {territory:{room:{rack::server_list}}}
 
-    order = '-unit'
     order_by = request.GET.get('order_by')
     tab_num = request.GET.get('tab')
-    # print('tab_num', tab_num)
-    # if order_by is not None:
-    #     orders = order_by.split('-')
-    #     if len(orders) > 0:
-    #         if orders[0] == 'vm':
-    #             vm_order = ('' if orders[1] == 'asc' else '-') + 'hostname'
-    #         else:
-    #             order = ('' if orders[1] == 'asc' else '-') + orders[0]
     for t in territories:
         tabs.update({t.id: t.name})
         for room in t.room_set.all():
@@ -224,7 +210,7 @@ def servers(request):
                     if vm_col_needed:
                         for vm in order_query(server.server_set.all(), order_by):
                             vm_row = ["", "", " ", "on" if vm.is_on else "off", vm.hostname, vm.os, vm.purpose]
-                            for seg in seg_list:  # segment dict
+                            for seg in seg_list:
 
                                 vm_row.append(
                                     [x.ip_as_string for x in list(vm.ip_set.filter(segment=seg))])
@@ -326,7 +312,6 @@ def server_view(request, server_id):
                           })
     actions = [
         {'link': reverse('server_delete', kwargs={'server_id': server.id}), 'divider': False, 'name': 'Удалить сервер'}]
-    # print(actions)
     return render(request, os.path.join('server_list', 'server_view.html'),
                   {'server_dict': data_dict, 'actions': actions})
 
@@ -487,7 +472,6 @@ def room_edit(request):
             return render(request, os.path.join('server_list', 'room_edit.html'), {'form': form})
     else:
         return HttpResponseNotAllowed("Error")
-        # return HttpResponse('ok')
 
 
 @login_required(login_url=reverse_lazy('custom_login'))
@@ -558,7 +542,6 @@ def group_edit(request):
     if request.method == 'POST':
         try:
             group_id = request.POST.get('group_id')
-            # print(group_id)
             inst = ServerGroup.objects.get(pk=group_id)
         except (ServerGroup.DoesNotExist, ValueError, TypeError) as e:
             pass
@@ -586,9 +569,6 @@ def dump(request):
     qs_ip = Ip.objects.all()
     qs_combined = list(chain(qs_room, qs_territory, qs_rack, qs_segment, qs_server, qs_ip))
     ser = serializers.serialize(fmt, qs_combined)
-    # d = serializers.deserialize(fmt, ser)
-    # for obj in d:
-    #     print(obj)
     response = HttpResponse(ser, content_type='application/plain-text')
     response['Content-Disposition'] = 'attachment; filename=backup_base.' + fmt
     return response
@@ -597,7 +577,6 @@ def dump(request):
 @login_required(login_url=reverse_lazy('custom_login'))
 def search(request):
     if request.method == 'GET':
-        # print("GET")
         return HttpResponseBadRequest("400")
     if request.method == 'POST':
         search_query = request.POST.get('searchInput')
@@ -605,7 +584,6 @@ def search(request):
         result_set |= Server.objects.filter(purpose_lower__icontains=search_query)
 
         result_set.distinct()
-        # print(result_set)  # todo убрать ip; edit: нахуа?
         return render(request, os.path.join('server_list', 'search.html'), {'result_set': result_set})
     return HttpResponse('search')
 
@@ -614,7 +592,7 @@ def search(request):
 def search_free_ip(request):
     if request.method == 'GET':
         return render(request, os.path.join('server_list', 'search_free_ip.html'),
-                      {'message': 'Ведите адрес сети для поиска'})  # TODO REFACTOR THIS SHIT
+                      {'message': 'Ведите адрес сети для поиска'})
     if request.method == 'POST':
         try:
             target_network = IPv4Network(request.POST.get('ipInput'))
