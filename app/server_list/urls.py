@@ -1,8 +1,11 @@
 from django.urls import path, re_path
+from django.views.generic import RedirectView
+
 # from django.conf.urls import url
 from . import views
 
 urlpatterns = [
+    path('', RedirectView.as_view(pattern_name='list')),
     path('list', views.servers, name='list'),
     # path('edit', views.edit, name='edit'),
     re_path(r'^server_edit/?$', views.server_edit, name='server_edit'),
