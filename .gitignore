@@ -127,3 +127,4 @@ venv_linux/
 
 .directory
 data/
+*.crt

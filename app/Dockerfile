@@ -17,6 +17,8 @@ ENV DJANGOSECRET_KEY ${DJANGO_SECRET_KEY}
 COPY run_uwsgi.sh run_uwsgi.sh
 COPY requirements.txt requirements.txt
 COPY uwsgi/uwsgi.ini uwsgi.ini
+RUN apt-get update && \
+    apt-get install -y python3-dev python3-ldap libsasl2-dev libldap2-dev libssl-dev
 
 RUN mkdir -p /var/www/static/ && \
     mkdir -p /var/www/media/ && \

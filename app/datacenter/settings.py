@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+import ldap
+from django_auth_ldap.config import LDAPSearch
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -73,7 +75,30 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'datacenter.wsgi.application'
+# Authentication backends
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.ModelBackend",
+                           "django_auth_ldap.backend.LDAPBackend"]
 
+# LDAP AUTH
+
+AUTH_LDAP_SERVER_URI = f"ldap://{os.environ.get('LDAP_SERVER', '')}"
+AUTH_LDAP_BIND_DN = os.environ.get('LDAP_USER', '')
+AUTH_LDAP_BIND_PASSWORD = os.environ.get('LDAP_PASSWORD', '')
+AUTH_LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN', '')
+if os.environ.get('LDAP_USE_TLS', False):
+    AUTH_LDAP_START_TLS = True
+    ca_file = os.environ.get('LDAP_CA_FILE_PATH', None)
+    AUTH_LDAP_CONNECTION_OPTIONS = {
+        ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_ALLOW,
+        ldap.OPT_X_TLS_NEWCTX: 0
+    }
+    if ca_file:
+        LDAP_CA_FILE_PATH = os.path.join(BASE_DIR, ca_file)
+        AUTH_LDAP_CONNECTION_OPTIONS[ldap.OPT_X_TLS_CACERTFILE] = LDAP_CA_FILE_PATH
+
+# AUTH_LDAP_USER_SEARCH = LDAPSearch(AUTH_LDAP_BASE_DN, ldap.SCOPE_SUBTREE, "(uid=%(user)s")
+
+AUTH_LDAP_USER_DN_TEMPLATE = f"uid=%(user)s,{AUTH_LDAP_BASE_DN}"
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
